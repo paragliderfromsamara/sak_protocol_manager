@@ -1,0 +1,15 @@
+c:\users\kra\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\SAKProtocolManager.exe.config
+c:\users\kra\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\SAKProtocolManager.exe
+c:\users\kra\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\SAKProtocolManager.pdb
+c:\users\kra\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.csprojResolveAssemblyReference.cache
+c:\users\kra\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.MainForm.resources
+c:\users\kra\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.Properties.Resources.resources
+c:\users\kra\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.csproj.GenerateResource.Cache
+c:\users\kra\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.exe
+c:\users\kra\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.pdb
+c:\users\kra\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\MySql.Data.dll
+c:\users\kra\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\MySql.Data.xml
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.MeasureResultReader.resources
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\itextsharp.dll
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.StatusForm.resources
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.FuncTestForm.resources

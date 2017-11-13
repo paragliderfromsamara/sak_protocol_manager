@@ -1,0 +1,809 @@
+%---------------------------------------------------------------------------------------------------
+% Программа описания протокола электрических испытаний форматом A5 Для АО "Казэнергокабель"
+% два протокола на одном листе
+% язык: PostScript
+
+% Общие определения
+/mm {2.834646 mul} def % Преобразует мм в пункты
+/deg_C ( \260C) def % Печатает знак градусы Цельсия
+/Mult_symbol ( \65 ) def	% Символ умножения (перекрестья) в шрифте ZapfDingbats
+
+/Inf 3.4e38 def	% Определили значение плюс бесконечности
+/-Inf -3.4e38 def	% Определили значение минус бесконечности
+
+/pagewidth 210 mm def  % Ширина листа 
+/pageheight 297 mm def  % Высота листа 
+
+/SetPaper	% Устанавливает размер бумаги
+{
+<<
+  /HWResolution [1200 1200]
+  /PageSize [ pagewidth pageheight ]
+>> setpagedevice
+} def
+
+SetPaper
+
+/pole_left 15 mm  def % Левое поле
+/pole_rigth  pagewidth 10 mm sub  def % Правое поле
+/pole_top  pageheight 8 mm sub  def  % Верхнее поле
+/pole_bot 8 mm def % Нижнее поле
+
+/swap {exch} def
+/over {1 index} def
+/rot {3 -1 roll} def
+
+/Kab_Goden true def	% Флаг годности кабеля
+
+/Concat_string	% Складывает две строки лежащие на стеке->возвращает объединённую строку
+{ 
+	2 copy length
+	swap length dup
+	rot add string dup
+	rot 4 -1 roll putinterval
+	dup 0 4 -1 roll putinterval
+} def
+
+/center % Размещает объёкт по центру меж x1 x2 на стеке: размер объёкта, x1 x2 возвращает координату x
+{ over sub rot sub 2 div add } def
+
+/center_page % Размещает объёкт по центру страницы на стеке: размер объёкта возвращает координату x
+{ pole_left pole_rigth center } def
+
+/center_print % Печатает строку по центру меж x1 x2 на стеке: x1, x2, y и строка
+{
+	dup 		% на стеке: x1, x2, y, строка, строка
+	5 1 roll	% на стеке: строка, x1, x2, y, строка 
+	stringwidth pop % на стеке: строка, x1, x2, y, её длина
+	4 -2 roll	% на стеке: строка, y, её длина, x1, x2
+	center		% на стеке: строка, y, x
+	swap moveto show
+} def
+
+/rigth_print % Печатает строку выравнивая по правому краю на x1 на стеке: x1, y и строка
+{dup stringwidth pop 4 -1 roll swap sub rot moveto show} def
+
+/newsize % На стеке размер шрифта
+{ scalefont setfont } def
+
+/a_b % Печатает строку a и строку b как нижний индекс строки a
+{ currentfont 3 1 roll swap show Times_Regular 6 newsize 0 -0.5 mm rmoveto show 0 0.5 mm rmoveto setfont } def
+
+/a^b % Печатает строку a и строку b как верхний индекс строки a
+{ currentfont 3 1 roll swap show Times_Regular 6 newsize 0 1.5 mm rmoveto show 0 -1.5 mm rmoveto setfont } def
+
+/kgs-cm^2	% Печатает единицу измерения давления
+{ (кгс\57см) (2) a^b } def
+
+/sred	% Берёт на стеке два числа оставляет среднее арифметическое
+{
+	add 2 div
+} def
+%---------------------------------------------------------------------------------------------------
+
+/Times_Regular % Устанавливает шрифт TimesNewRoman
+{/TimesNewRomanPSMT-Regular findfont} def
+/Times_Bold % Устанавливает шрифт TimesNewRoman жирный
+{/TimesNewRomanPSMT-Bold findfont} def
+/Times_Italic % Устанавливает шрифт TimesNewRoman курсив
+{/TimesNewRomanPSMT-Italic findfont} def
+/Textbook_Regular % Устанавливает шрифт TextbookPSCyr-Regular
+{/TextbookPSCyr-Regular findfont} def
+/Academy_Bold % Устанавливает шрифт Academy жирный
+{/AcademyPSCyr-Bold findfont} def
+/ArialMT_Regular % Устанавливает шрифт Arial жирный
+{/ArialMT-Regular findfont} def
+/ArialMT_Bold % Устанавливает шрифт Arial жирный
+{/ArialMT-Bold findfont} def
+/ArialMT_Italic % Устанавливает шрифт Arial курсив
+{/ArialMT-Italic findfont} def
+/Symbol % Устанавливает шрифт Symbol 
+{/Symbol findfont} def
+/Zapf	% Устанавливает шрифт ZapfDingbats
+{/ZapfDingbats findfont} def
+
+%---------------------------------------------------------------------------------------------------
+
+% Разметки на странице
+/circle_perf
+{	% Добавляет окружность диаметром 5 мм для перфорации
+    newpath
+	2.5 mm 0 360 arc
+    % closepath 
+    stroke
+} def
+
+% Линия разреза
+gsave
+	0.05 mm setlinewidth
+	%1 setlinecap
+	[1.4 mm 1 mm] 0 setdash
+	newpath
+		0 147.5 mm moveto
+		pole_left 0 rlineto
+		currentpoint
+	stroke
+
+	0.5 mm sub moveto
+	Zapf 10 newsize (!) show
+	currentpoint
+	0.5 mm add
+
+	newpath
+	    moveto
+	    pole_rigth (!) stringwidth pop sub 147.5 mm lineto
+	    currentpoint
+	stroke
+
+	0.5 mm sub moveto
+	(!) show
+	currentpoint
+	0.5 mm add
+
+	newpath
+	    moveto
+	    pagewidth 147.5 mm lineto
+	stroke
+
+	[1.309 mm 0.935 mm] 0 setdash
+	10 mm 28.5 mm circle_perf
+	10 mm 108.5 mm circle_perf
+	10 mm 188.5 mm circle_perf
+	10 mm 268.5 mm circle_perf
+	
+grestore
+
+
+%---------------------------------------------------------------------------------------------------
+% Описание логотипа для АО "Казэнергокабель"
+
+/logo_linwidth 0.5 mm def % толщина линии логотипа
+
+/logotip	% Печатает логотип на стеке: x, y Центра логотипа
+{
+	2 copy moveto	% установили текущую точку
+	gsave	% запомнили состояние графики
+%		[ 1 0 0.3639 0.833 0 0 ]
+		[ 0.6666 0 0.2426 0.5553 0 0 ] concat	% смаштабировали и наклонили координатные оси
+		currentpoint	% определили координаты текущей точки в носой системе отсчёта
+		
+		newpath	% Рисуем внешний контур
+		over 6.2619 mm sub over 9.7567 mm sub moveto
+		6.7843 mm 0 rlineto
+		2 copy 6.9931 mm 274.2837 306.1432 arc
+		over 4.1246 mm add over 5.6473 mm sub lineto
+		0.0572 mm -0.1094 mm rlineto
+		0.2337 mm -0.5 mm rlineto
+		0.1929 mm -0.5 mm rlineto
+		0.1571 mm -0.5 mm rlineto
+		0.1248 mm -0.5 mm rlineto
+		0.095 mm -0.5 mm rlineto
+		0.0625 mm -0.5 mm rlineto
+		0.0438 mm -0.5 mm rlineto
+		0.0131 mm -0.5 mm rlineto
+		7.3537 mm 0 rlineto
+		2 copy 6.9931 mm 354.3256 6.0831 arc
+		over 6.9537 mm add over 0.741 mm add lineto
+		5.4449 mm 9.4786 mm rlineto
+		-7.087 mm 0 rlineto
+		-0.0118 mm -0.4763 mm rlineto
+		-0.0379 mm -0.5 mm rlineto
+		-0.0647 mm -0.5 mm rlineto
+		-0.0925 mm -0.5 mm rlineto
+		-0.1217 mm -0.5 mm rlineto
+		-0.1533 mm -0.5 mm rlineto
+		-0.1825 mm -0.5 mm rlineto
+		-0.2324 mm -0.5 mm rlineto
+		-0.2724 mm -0.5 mm rlineto
+		2 copy 6.9931 mm 54.1402 85.7163 arc
+		over 0.5224 mm add over 6.9735 mm add lineto
+		0 3.2461 mm rlineto
+		-6.8538 mm 0 rlineto
+		0.0108 mm -0.4763 mm rlineto
+		0.0347 mm -0.5 mm rlineto
+		0.0591 mm -0.5 mm rlineto
+		0.0842 mm -0.5 mm rlineto
+		0.1085 mm -0.5 mm rlineto
+		0.1396 mm -0.5 mm rlineto
+		0.1674 mm -0.5 mm rlineto
+		0.1997 mm -0.5 mm rlineto
+		0.2355 mm -0.5 mm rlineto
+		0.2765 mm -0.5 mm rlineto
+		2 copy 6.9931 mm 134.181 224.4076 arc
+		over 4.9957 mm sub over 4.8935 mm sub lineto
+		-0.2011 mm -0.3632 mm rlineto
+		-0.2408 mm -0.5 mm rlineto
+		-0.204 mm -0.5 mm rlineto
+		-0.171 mm -0.5 mm rlineto
+		-0.1409 mm -0.5 mm rlineto
+		-0.1128 mm -0.5 mm rlineto
+		-0.0863 mm -0.5 mm rlineto
+		-0.0609 mm -0.5 mm rlineto
+		-0.0363 mm -0.5 mm rlineto
+		-0.0121 mm -0.5 mm rlineto
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №2
+		newpath
+		2 copy 6.9931 mm 233.8568 265.7163 arc
+		over 0.5224 mm sub over 6.9735 mm sub lineto
+		0 -1.8067 mm rlineto
+		-4.532 mm 0 rlineto
+		0.0024 mm 0.0236 mm rlineto
+		0.0667 mm 0.5 mm rlineto
+		0.095 mm 0.5 mm rlineto
+		0.1248 mm 0.5 mm rlineto
+		0.1571 mm 0.5 mm rlineto
+		0.1929 mm 0.5 mm rlineto
+		0.2337 mm 0.5 mm rlineto
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath	% Отрисуем кривую №3
+		2 copy 6.9931 mm 315.5924 341.9445 arc
+		over 6.6487 mm add over 2.1675 mm sub lineto
+		3.8591 mm -6.6128 mm rlineto
+		-4.292 mm 0 rlineto
+		-0.0023 mm 0.0236 mm rlineto
+		-0.0609 mm 0.5 mm rlineto
+		-0.0863 mm 0.5 mm rlineto
+		-0.1128 mm 0.5 mm rlineto
+		-0.1409 mm 0.5 mm rlineto
+		-0.171 mm 0.5 mm rlineto
+		-0.204 mm 0.5 mm rlineto
+		-0.2408 mm 0.5 mm rlineto
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №4
+		over 3.4953 mm sub over 4.6735 mm sub moveto
+		0.3561 mm 0.4168 mm rlineto
+		0.5364 mm 0.5 mm rlineto
+		0.4157 mm 0.3022 mm rlineto
+		0.336 mm 0.1978 mm rlineto
+		0.6057 mm 0.264 mm rlineto
+		0.7231 mm 0.1742 mm rlineto
+		2 copy 5.836 mm 264.8649 233.207 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №5
+		over 3.4953 mm add over 4.6735 mm sub moveto
+		-0.3561 mm 0.4168 mm rlineto
+		-0.5364 mm 0.5 mm rlineto
+		-0.4157 mm 0.3022 mm rlineto
+		-0.336 mm 0.1978 mm rlineto
+		-0.4189 mm 0.1946 mm rlineto
+		-0.4061 mm 0.1378 mm rlineto
+		-0.5038 mm 0.1058 mm rlineto
+		2 copy 5.836 mm 275.1351 306.793 arc
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №6
+		over 4.3227 mm sub over 3.9209 mm sub moveto
+		0.1376 mm 0.1642 mm rlineto
+		0.4773 mm 0.5 mm rlineto
+		0.5966 mm 0.5 mm rlineto
+		0.4731 mm 0.3152 mm rlineto
+		0.3337 mm 0.1848 mm rlineto
+		0.5662 mm 0.249 mm rlineto
+		0.4979 mm 0.1572 mm rlineto
+		0.4406 mm 0.0938 mm rlineto
+		0.2774 mm 0.0379 mm rlineto
+		0 1.1963 mm rlineto
+		2 copy 5.836 mm 185.1357 222.2092 arc
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №7
+		over 4.3227 mm add over 3.9209 mm sub moveto
+		-0.1376 mm 0.1642 mm rlineto
+		-0.4773 mm 0.5 mm rlineto
+		-0.5966 mm 0.5 mm rlineto
+		-0.4731 mm 0.3152 mm rlineto
+		-0.3337 mm 0.1848 mm rlineto
+		-0.3362 mm 0.1572 mm rlineto
+		-0.4941 mm 0.1822 mm rlineto
+		-0.3235 mm 0.0893 mm rlineto
+		-0.3509 mm 0.0713 mm rlineto
+		-0.2774 mm 0.0379 mm rlineto
+		0 1.1963 mm rlineto
+		2 copy 5.836 mm 354.8643 317.7908 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №8
+		over 4.1693 mm sub over 4.0836 mm add moveto
+		0.3229 mm -0.3403 mm rlineto
+		0.5694 mm -0.5 mm rlineto
+		0.2908 mm -0.2132 mm rlineto
+		0.46 mm -0.2868 mm rlineto
+		0.5067 mm -0.2512 mm rlineto
+		0.7071 mm -0.2488 mm rlineto
+		0.438 mm -0.099 mm rlineto
+		0.3521 mm -0.0503 mm rlineto
+		0 -1.5716 mm rlineto
+		2 copy 5.836 mm 174.8643 135.595 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №9
+		over 5.8126 mm add over 0.5224 mm add moveto
+		-5.2903 mm 0 rlineto
+		0 1.5716 mm rlineto
+		0.314 mm 0.0437 mm rlineto
+		0.4761 mm 0.1056 mm rlineto
+		0.4661 mm 0.1512 mm rlineto
+		0.4239 mm 0.1809 mm rlineto
+		0.3238 mm 0.1679 mm rlineto
+		0.3929 mm 0.2412 mm rlineto
+		0.3579 mm 0.2588 mm rlineto
+		0.323 mm 0.2692 mm rlineto
+		0.2464 mm 0.2308 mm rlineto
+		2 copy 5.836 mm 44.405 5.1357 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №10
+		over 3.4098 mm sub over 4.7363 mm add moveto
+		0.4926 mm -0.493 mm rlineto
+		0.6643 mm -0.5 mm rlineto
+		0.141 mm -0.0856 mm rlineto
+		0.4251 mm -0.2193 mm rlineto
+		0.5185 mm -0.1951 mm rlineto
+		0.358 mm -0.0914 mm rlineto
+		0.2879 mm -0.049 mm rlineto
+		2 copy 5.836 mm 95.1351 125.7509 arc
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №11
+		over 3.4098 mm add over 4.7363 mm add moveto
+		-0.2614 mm -0.2764 mm rlineto
+		-0.2312 mm -0.2166 mm rlineto
+		-0.3174 mm -0.2599 mm rlineto
+		-0.3469 mm -0.2401 mm rlineto
+		-0.2877 mm -0.1677 mm rlineto
+		-0.4267 mm -0.2008 mm rlineto
+		-0.3702 mm -0.1315 mm rlineto
+		-0.6459 mm -0.1404 mm rlineto
+		2 copy 5.836 mm 84.8649	54.2491 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №12
+		over 0.5224 mm sub over 6.9736 mm add moveto
+		0 2.0199 mm rlineto
+		-4.7105 mm 0 rlineto
+		0.0357 mm -0.2502 mm rlineto
+		0.0925 mm -0.5 mm rlineto
+		0.1217 mm -0.5 mm rlineto
+		0.1533 mm -0.5 mm rlineto
+		0.1879 mm -0.5 mm rlineto
+		0.227 mm -0.5 mm rlineto
+		0.2724 mm -0.5 mm rlineto
+		2 copy 6.9931 mm 125.8598 94.2837 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №13
+		over 6.6405 mm add over 2.1926 mm add moveto
+		3.8365 mm 6.8008 mm rlineto
+		-4.2176 mm 0 rlineto
+		-0.0326 mm -0.2501 mm rlineto
+		-0.0842 mm -0.5 mm rlineto
+		-0.1102 mm -0.5 mm rlineto
+		-0.1292 mm -0.5 mm rlineto
+		-0.1761 mm -0.5 mm rlineto
+		-0.1996 mm -0.5 mm rlineto
+		-0.2356 mm -0.5 mm rlineto
+		-0.2765 mm -0.5 mm rlineto
+		2 copy 6.9931 mm 45.819 18.2732 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+	grestore 
+	pop pop	% Удалили координаты центра логотипа в предыдущей системе отсчёта
+	pop pop
+%	3.333 mm add swap 10 mm add swap moveto
+%	Times_Bold 2 mm newsize
+%	(АО \253КАЗЭНЕРГОКАБЕЛЬ\273) show
+} def
+
+
+/R { 5 mm mul } def	% Базовый размер знака соответствия выбирается из
+		% ряда 2; 3; 5; 8; 12; 15; 20; 30; 50; 80; 125; 200 мм.
+
+/SertNum (5510317) def % Номер сертификата соответствия
+/Znak_sootv	% Описание знака соответствия Казахстана
+{		% на стеке координаты центра знака соответствия
+
+	0 setgray % плотность заливки фона знака соответствия
+	newpath	% Наружная окружность для заливки фона
+	2 copy 1.4 R 0 360 arc closepath
+	2 copy -0.1 R 0 rmoveto
+	1.3 R 360 0 arcn closepath
+	fill
+
+	newpath	% Контур знака
+	over 0.4 R sub over 0.0373 R sub moveto
+	0 0.4373 R rlineto
+	0.1 R currentpoint 2 index rot swap sub swap 2 index 0 180 arc
+	0 -0.8 R rlineto
+	currentpoint 2 index rot swap add swap rot 180 0 arc
+	0 0.102 R rlineto
+	0.1134 R 0.0952 R rlineto
+	0.5866 R -0.3387 R rlineto
+	2 copy 0.9 R 289.47 45 arcn
+	currentpoint swap 0.0682 R add swap 0.0731 R add 0.1 R 225 45 arc
+	2 copy 1.1 R 45 315 arc
+	currentpoint swap 0.0682 R sub swap 0.0731 R add 0.1 R 315 135 arc
+	2 copy 0.9 R 315 303.749 arcn
+	over 0.5 R add over lineto
+	0.1 R 0 rlineto
+	0.05 R currentpoint 2 index add 2 index 270 90 arc
+	-0.4 R 0 rlineto
+	currentpoint 2 index sub rot 90 270 arc
+	0.1 R 0 rlineto
+	0 -0.2932 R rlineto
+	over 0.111 R sub over 0.0556 R sub lineto
+	0.475 R 0.38 R rlineto
+	currentpoint swap 0.0643 R sub swap 0.0766 R add 0.1 R 320 130 arc
+	closepath
+	fill
+	
+	% Текст номера сертификата соответствия
+	ArialMT_Regular 0.5 R newsize
+
+	over dup 10 sub swap 10 add 2 index 2.6 R sub
+	(КZ.) SertNum Concat_string center_print % Печатает строку по центру
+
+%	0 setgray
+	pop pop
+} def
+
+/bot pole_top def
+
+/dec_bot % Уменьшает значение переменной bot нижняя граница текста
+{
+    bot swap sub /bot swap def
+} def
+
+/Zamena_umnog_show	% На стеке: размер симв. умнож, строка в которой x заменяем символом умножения и печатаем
+{
+	{	% Проходим по каждому символу строки описания структур
+		dup 120 eq
+		{	% Сомвол x заменяем на знак умножения (перекрестьем)
+			pop
+			currentfont	% Сохранили текущий шрифт
+			Zapf 2 index newsize
+			Mult_symbol show
+			setfont	% Востановили текущий шрифт
+		}
+		{
+			1 string dup 0 4 -1 roll put
+		        show
+		} ifelse
+	} forall
+} def
+
+/CabNameStr_print	% Печатает структуру кабеля символы x заменяются на знак умножения (перекрестьем)
+{	% на стеке размер шрифта
+% Добавить при вызове флаг переноса по структурам на другую строку или обрывания многоточием
+	1.5 div	% Уменьшаем размер шрифта символа умножения
+	%CabNameStruct
+	swap Zamena_umnog_show
+	pop	% Удалили со стека размер шрифта символа умножения
+} def
+
+/DocNum_convert	% Заменяет в строке номера нормативного документа - на длиное тире (\227)
+{	
+	0 1 DocNum length 1 sub
+	{	% Проходим по каждому символу строки описания структур. на стеке ind
+		DocNum over get
+		45 eq
+		{	% Сомвол - заменяем на длинное тире код 151
+			DocNum swap 151	 put
+		}
+		{
+			pop
+		} ifelse
+	} for
+} def
+
+/Hor_line % Горизонтальная линия в таблице на полную ширину на стеке координата "y" "x" "l"
+{
+    newpath
+	3 1 roll moveto
+	0 rlineto
+    stroke
+} def
+
+/Vert_line % Вертикальная линия на стеке расстояние от края и длина
+{
+    newpath
+	pole_left rot add 2 index moveto
+	0 swap rlineto
+    stroke
+} def
+
+/Tab1 pole_left 1 mm add def
+/Tab2 pole_left 24 mm add def
+/Tab3 pole_left 61 mm add def
+/Tab4 pole_left 85 mm add def
+
+/Head_Tab	% Заполняет шаплу таблицы на стеке, x1, x2, x3, x4
+{
+    over swap 2 copy bot (Результаты) center_print
+    bot 3.5 mm sub (измерений) center_print
+    over swap 2 copy bot (Требования) center_print
+    bot 3.5 mm sub DocNum center_print
+    2 copy bot (Наименование) center_print
+    bot 3.5 mm sub (параметра) center_print
+} def
+
+/Tab1_mov {Tab1 bot moveto} def
+/Tab4_mov {Tab4 bot moveto} def
+
+/Konez	% Описывает окончани протокола
+{
+    pole_top 114 mm sub /bot swap def
+    pole_left bot moveto
+
+    ArialMT_Regular 10 newsize
+    (Кабель проверен и ) show
+    Kab_Goden
+    {	
+	(соответствует ) show
+    }
+    {	
+	currentfont ArialMT_Bold 10 newsize (не соответствует ) show setfont
+    } ifelse
+    DocNum show
+    3.5 mm dec_bot
+    pole_left bot moveto
+    (Испытания произвёл:) show
+    Operator dup pole_rigth bot rot rigth_print
+    newpath
+	stringwidth pop pole_rigth swap sub 0.5 mm sub bot 1 mm sub 2 copy
+	moveto -30 mm 0 rlineto 0.3 mm setlinewidth
+    stroke
+
+    Times_Italic 7 newsize
+    over 30 mm sub 3 1 roll 2 mm sub Today center_print
+    
+} def
+
+/Print_Norm_Res	% Печатает норму и результат на стеке: x1, x2, x3, y, (Норма), (Результат)
+{
+    4 index 5 -1 roll 4 index 4 -1 roll center_print % Печатаем результат
+    center_print % Печатаем норму
+} def
+
+/One_protokol % Описываем один протокол
+{
+    % Печатаем на фоне Образец №1
+%    gsave
+%	pole_left 148.5 mm translate
+%	30 rotate
+%	0.93 setgray
+%	Times_Regular 22 mm newsize
+%	10 mm 0 moveto (Образец варианта № 1) show
+%    grestore
+    
+    /bot pole_top 3 mm sub def
+    pole_left 5 mm add pole_top 5 mm sub logotip % Отрисовываем логотип
+
+    1.4 R pole_rigth 2 mm add over sub pole_top rot sub Znak_sootv % Отрисовываем знак соответствия
+    %/logo_bot {pole_top} def % Нижняя граница логотипа предприятия
+
+    % Адрес предприятия
+    ArialMT_Regular 10 newsize
+    pole_left pole_rigth bot 3 copy
+    (АО "Казэнергокабель") center_print
+    3.8 mm sub (140000, г. Павлодар северная промзона, тел.: (7182) 39-66-53) center_print
+
+    10 mm dec_bot
+    ArialMT_Bold 12 newsize
+    pole_left pole_rigth bot (Протокол электрических испытаний № ) PortNum Concat_string center_print
+
+    % Марка кабеля
+    5 mm dec_bot
+    pole_left 40 mm add bot moveto
+%    ArialMT_Regular 10 newsize
+    Times_Italic 10 newsize
+    CabName show ( ) show CabNameStruct 10 CabNameStr_print
+    ( ) show DocNum show
+    
+    % Опишем рамку таблицы
+    0.3 mm setlinewidth
+    newpath
+	pole_left pole_top 22 mm sub dup 3 1 roll	
+	moveto
+	0 -81 mm rlineto
+	185 mm 0 rlineto
+	0 81 mm rlineto	
+    closepath
+    stroke
+
+    newpath
+	pole_left 60 mm add over moveto
+	0 -81 mm rlineto
+    stroke
+
+    % Разлиновка ячеек
+    12 mm sub pole_left over 185 mm Hor_line
+    31 mm -69 mm Vert_line
+    84 mm -69 mm Vert_line
+    125 mm -20 mm Vert_line
+    155 mm -20 mm Vert_line
+    8 mm sub pole_left over 185 mm Hor_line
+    12 mm sub pole_left over 185 mm Hor_line
+    6 mm sub pole_left 84 mm add over 101 mm Hor_line
+    134.5 mm -18 mm Vert_line
+    6 mm sub pole_left over 185 mm Hor_line
+    6 mm sub pole_left 84 mm add over 101 mm Hor_line
+    6 mm sub pole_left over 185 mm Hor_line
+    6 mm sub pole_left over 84 mm Hor_line
+    6 mm sub pole_left 84 mm add over 101 mm Hor_line
+%    12 mm sub pole_left 84 mm add over 101 mm Hor_line
+    pop
+
+    % Заполнение таблицы
+    /bot pole_top 22 mm sub def
+    ArialMT_Regular 9 newsize
+    
+    3.5 mm dec_bot
+    Tab1_mov (Длина кабеля:) show
+    Tab2 bot moveto CabelLengt show ( м.) show
+    Tab3 bot moveto (Электрические параметры кабеля пересчитаны на 1 км. при температуре 20) show
+    deg_C show (.) show
+
+    3.5 mm dec_bot
+    Tab1_mov (№ Барабана:) show
+    Tab2 bot moveto BarabanNum show
+    Tab3 bot moveto (Температура при испытании: ) show Temperatur show deg_C show
+    (. ) show
+    (Кабель испытан в процессе производства) show
+
+    3.5 mm dec_bot
+    Tab1_mov (№ Партии:) show
+    Tab2 bot moveto PartNum show
+    Tab3 bot moveto (на герметичность оболочки на аппарате сухого испытания напряжением: ) show U_Obol show ( кВ.) show
+
+    % Шапка таблицы
+    4.75 mm dec_bot
+    pole_left dup
+    31 mm add dup
+    29 mm add dup
+    24 mm add dup 5 1 roll Head_Tab
+    dup 
+    41 mm add dup
+    30 mm add dup
+    30 mm add Head_Tab
+
+    % Первый столбец наименования параметров
+    /bot pole_top 44.5 mm sub def
+    ArialMT_Regular 8 newsize
+
+    Tab1_mov
+    (1. Электрическое) show
+    3 mm dec_bot
+    Tab1_mov
+    (сопротивление) show
+    3 mm dec_bot
+    Tab1_mov
+    (токопроводящих жил,) show
+    3 mm dec_bot
+    pole_left dup 31 mm add bot EdIsm_Rgil center_print
+
+    3 mm dec_bot
+    Tab1_mov
+    (2. Омическая асим-) show
+    3 mm dec_bot
+    Tab1_mov
+    (метрия жил в паре,) show    
+    3 mm dec_bot
+    pole_left dup 31 mm add bot EdIsm_DRgil (,) Concat_string center_print
+    3 mm dec_bot
+    Tab1_mov
+    (не более) show
+    
+    3 mm dec_bot
+    Tab1_mov
+    (3. Электрическое) show
+    3 mm dec_bot
+    Tab1_mov
+    (сопротивление) show
+    3 mm dec_bot
+    Tab1_mov
+    (изоляции, ) show EdIsm_Rizol show (,) show
+    3 mm dec_bot
+    Tab1_mov
+    (не менее) show
+
+    3 mm dec_bot
+    Tab1_mov
+    (4. Рабочая ёмкость,) show
+    3 mm dec_bot
+    pole_left dup 31 mm add bot EdIsm_Cr center_print
+
+    3 mm dec_bot
+    Tab1_mov
+    (5. Коэффициент) show
+    3 mm dec_bot
+    Tab1_mov
+    (затухания, ) show EdIsm_al show (,) show
+    3 mm dec_bot
+    Tab1_mov
+    (не более) show
+    3 mm dec_bot
+    pole_left dup 31 mm add 2 copy 2 copy
+    bot (на частоте ) Freq_1 ( кГц) Concat_string Concat_string
+    center_print
+    3 mm dec_bot
+    bot (на частоте ) Freq_2 ( кГц) Concat_string Concat_string
+    center_print
+    3 mm dec_bot
+    bot (на частоте ) Freq_3 ( кГц) Concat_string Concat_string
+    center_print
+
+    /bot pole_top 44.5 mm sub def
+
+    Tab4_mov
+    (6. Переходное затухание) show
+    3 mm dec_bot
+    Tab4_mov
+    (на ближнем конце между) show
+    3 mm dec_bot
+    Tab4_mov
+    (парами на длине ) show
+    Lpriv_Ao show
+    ( м., ) show
+    EdIsm_Ao show
+    (,) show
+    3 mm dec_bot
+    Tab4_mov
+    (не менее) show
+
+    % Высоковольтные испытания
+    /bot pole_top 58 mm sub def
+    pole_left 84 mm add dup dup 101 mm add bot (Испытание напряжением в течении 1 мин.) center_print
+    6 mm dec_bot
+    dup dup 50.5 mm add dup 3 1 roll bot (Между жилами) center_print
+    dup 50.5 mm add bot (Между жилами и экраном) center_print
+    6 mm dec_bot
+    dup dup 50.5 mm add dup 3 1 roll bot (Постоянный ток) center_print
+    dup 50.5 mm add bot (Постоянный ток) center_print
+    6 mm dec_bot
+    dup 50.5 mm add dup 3 1 roll bot Res_U_gil_gil center_print
+    dup 50.5 mm add bot Res_U_gil_ekr center_print
+
+    % Избыточное давление
+    6 mm dec_bot
+    Tab4_mov 
+    Norm_Pizb show 
+    5 mm dec_bot
+    Tab4_mov PizbData show
+
+    % Сводка по кабелю
+    ArialMT_Regular 10 newsize
+    8.25 mm dec_bot
+    Tab4 4 mm add bot moveto 
+    (Номинальное число пар: ) show CabNameStruct 10 CabNameStr_print
+    4.5 mm dec_bot
+    Tab4 4 mm add bot moveto 
+    (Фактическое число пар: ) show CabNameStruct_fakt 10 CabNameStr_print
+
+    % Добавляем нормы и результаты
+    ArialMT_Regular 9 newsize
+    pole_left 31 mm add dup 29 mm add dup 24 mm add pole_top 49.5 mm sub
+    4 copy Norm_Rgil Res_Rgil Print_Norm_Res
+    12 mm sub 4 copy Norm_DRgil Res_DRgil Print_Norm_Res
+    12 mm sub 4 copy Norm_Rizol Res_Rizol Print_Norm_Res
+    8.5 mm sub 4 copy Norm_Cr Res_Cr Print_Norm_Res
+    13.5 mm sub 4 copy Norm_Freq1 Res_Freq1 Print_Norm_Res
+    3 mm sub 4 copy Norm_Freq2 Res_Freq2 Print_Norm_Res
+    3 mm sub Norm_Freq3 Res_Freq3 Print_Norm_Res
+
+    pole_left 125 mm add dup 30 mm add dup 30 mm add pole_top 49.5 mm sub
+    Norm_Ao Res_Ao Print_Norm_Res
+    
+    Konez
+
+} def
+
+% /Zavod (АО "КЭК") def % Название предприятия сокращённо
+
+/title (Протокол электрических испытаний №) def % Текст заголовка
+
+%---------------------------------------------------------------------------------------------------

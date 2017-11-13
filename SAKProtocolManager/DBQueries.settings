@@ -1,0 +1,51 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SAKProtocolManager" GeneratedClassName="DBQueries">
+  <Profiles />
+  <Settings>
+    <Setting Name="DBName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">bd_isp</Value>
+    </Setting>
+    <Setting Name="SelectTestsList" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SELECT ispytan.IspInd AS id, ispytan.IspData AS tested_at, CONCAT(cables.CabName,' ',cables.CabNameStruct) AS cable_name, cables.StrLengt AS build_length, cables.CabNum AS cable_id, barabany.barabanNum AS baraban_number, ispytan.CabelLengt AS cable_length, ispytan.Brutto AS brutto FROM ispytan LEFT JOIN cables USING(cabNum) LEFT JOIN barabany USING(barabanInd) WHERE ispytan.IspData &gt;= '{0}' AND ispytan.IspData &lt;= '{1}'</Value>
+    </Setting>
+    <Setting Name="MinMaxDateQuery" Type="System.String" Scope="User">
+      <Value Profile="(Default)"> SELECT MAX(IspData) AS max_date, MIN(IspData) AS min_date FROM ispytan</Value>
+    </Setting>
+    <Setting Name="SelectMeasuredParameters" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SELECT 
+	ism_param.ParamInd AS id,
+	ism_param.ParamName AS name,
+	ism_param.Ed_izm AS measure,
+	ism_param.ParamOpis AS description
+FROM ism_param ORDER BY ism_param.ParamInd</Value>
+    </Setting>
+    <Setting Name="SelectFreqRanges" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SELECT 
+	freq_diap.FreqDiapInd AS id, 
+	freq_diap.FreqMin AS min_freq,
+	freq_diap.FreqMax AS max_freq
+FROM freq_diap</Value>
+    </Setting>
+    <Setting Name="SelectBendingTypes" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SELECT 
+	tipy_poviv.StruktNum AS id, 
+	tipy_poviv.StruktTip AS name,
+	tipy_poviv.ColvoGil AS leads_number
+FROM tipy_poviv</Value>
+    </Setting>
+    <Setting Name="SelectDRFormuls" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SELECT 
+	dr_formuls.DRInd AS id,
+	dr_formuls.DRName AS name,
+	dr_formuls.DROpis AS description
+FROM dr_formuls</Value>
+    </Setting>
+    <Setting Name="SelectDRAdductionFormuls" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SELECT 
+	dr_priv_formuls.DRPrivInd AS id,
+	dr_priv_formuls.DRPrivName AS name,
+	dr_priv_formuls.DRPrivOpis AS description
+FROM dr_priv_formuls</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

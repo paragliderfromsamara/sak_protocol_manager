@@ -1,0 +1,3811 @@
+% Программа описания функций формирования протокола атоматизированных испытаний
+% язык: PostScript
+% (C) Давыденко Сергей Владимирович, OOO "НПП "НОРМА" г.Самара 2008г.
+% e-mail: npp_norma@rambler.ru
+%
+% Это свободная программа; вы можете повторно распространять ее и/или
+% модифицировать ее в соответствии с Универсальной Общественной
+% Лицензией GNU, опубликованной Фондом Свободного ПО; либо версии 2,
+% либо (по вашему выбору) любой более поздней версии.
+%
+% Эта программа распространяется в надежде, что она будет полезной,
+% но БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ; даже без подразумеваемых гарантий
+% КОММЕРЧЕСКОЙ ЦЕННОСТИ или ПРИГОДНОСТИ ДЛЯ КОНКРЕТНОЙ ЦЕЛИ.  Для
+% получения подробных сведений смотрите Универсальную Общественную
+% Лицензию GNU.
+%
+% Вы должны были получить копию Универсальной Общественной Лицензии
+% GNU вместе с этой программой; если нет, напишите по адресу: Free
+% Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+% 02111-1307 USA
+ 
+%---------------------------------------------------------------------------------------------------
+% Общие определения
+/mm {2.834646 mul} def % Преобразует мм в пункты
+/deg_C { ( \260C) } def % Печатает знак градусы Цельсия
+/Mult_symbol ( \65 ) def    % Символ умножения (перекрестья) в шрифте ZapfDingbats
+
+/Inf 3.4e38 def % Определили значение плюс бесконечности
+/-Inf -3.4e38 def   % Определили значение минус бесконечности
+
+/pagewidth 210 mm def  % Ширина листа 
+/pageheight 297 mm def  % Высота листа 
+
+/SetPaper   % Устанавливает размер бумаги
+{
+<<
+  /HWResolution [1200 1200]
+  /PageSize [ pagewidth pageheight ]
+>> setpagedevice
+} def
+
+SetPaper
+
+/pole_left 15 mm  def % Левое поле
+/pole_rigth { pagewidth 14.5 mm sub } def % Правое поле
+/pole_top { pageheight 10 mm sub } def  % Верхнее поле
+/pole_bot 9.5 mm def % Нижнее поле
+
+/swap {exch} def
+/over {1 index} def
+/rot {3 -1 roll} def
+
+/Kab_Goden true def % Флаг годности кабеля
+
+/real_format    % Округляет до n знаков после запятой. На стеке: f, n
+{
+    swap over   % На стеке: n, f, n
+    {10 mul} repeat
+    round
+    swap {10 div} repeat
+} def
+
+/01percent_format   % Форматирует вещественное число с точностью до 0.1%. На стеке: f
+{   
+    dup 1000 ge
+    {   % Более или равно 1000
+        round cvi
+    }
+    {   % Менее 1000
+        dup 100 ge
+        {   % Более или равно 100
+            1 real_format
+        }
+        {       % Менее 100
+            dup 10 ge
+            {   % Более или равно 10
+                2 real_format
+            }
+            {   % Менее 10
+                dup 1 ge
+                {   % Более или равно 1
+                        3 real_format
+                }
+                {   % Менее 1
+                        4 real_format
+                } ifelse
+            } ifelse
+        } ifelse
+    } ifelse
+} def
+
+/max    % Берёт на стеке два числа оставляет максимальное
+{
+    2 copy
+    lt {swap} if
+    pop
+} def
+
+/min    % Берёт на стеке два числа оставляет минимальное
+{
+    2 copy
+    gt {swap} if
+    pop
+} def
+
+/sred   % Берёт на стеке два числа оставляет среднее арифметическое
+{
+    add 2 div
+} def
+
+/max_el % Берёт на стеке массив возвращает значение максимального элемента
+{
+    dup 0 get swap  % Предварительно ложим на стек первый элемент массива
+    {max} forall    % Проходим в цикле по всем элементам массива
+} def
+
+/max_znach  % Берёт на стеке массив возвращает значение максимального числового элемента игнорируя все строковые знач.
+{
+    -Inf swap  % Предварительно ложим на стек минус бесконечность на стеке: -Inf, [массив]
+    {   % Проходим в цикле по всем элементам массива
+        dup % На стеке:  тек-max, знач., знач.
+        type dup    % На стеке: тек-max, знач., тип_знач., тип_знач.
+        /integertype eq swap
+        /realtype eq or % На стеке: тек-max, знач., true-числовое
+        {   % Значение на стеке числовое сравниваем с тек-max
+            max
+        }
+        {
+            pop
+        } ifelse
+    } forall
+    dup -Inf eq
+    {   % Получена не минус бесконечность % На стеке:  max
+        pop null
+    } if
+} def
+
+/min_znach  % Берёт на стеке массив возвращает значение минимального числового элемента игнорируя все строковые знач.
+{
+    Inf swap  % Предварительно ложим на стек плюс бесконечность на стеке: Inf, [массив]
+    {   % Проходим в цикле по всем элементам массива
+        dup % На стеке:  тек-min, знач., знач.
+        type dup    % На стеке: тек-min, знач., тип_знач., тип_знач.
+        /integertype eq swap
+        /realtype eq or % На стеке: тек-min, знач., true-числовое
+        {   % Значение на стеке числовое сравниваем с тек-min
+            min
+        }
+        {
+            pop
+        } ifelse
+    } forall
+    dup Inf eq
+    {   % Получена не плюс бесконечность % На стеке:  max
+        pop null
+    } if
+} def
+
+/sred_znach % Берёт на стеке массив возвращает среднее ариф. значение элементов игнорируя все строковые знач.
+{
+    0 0 % Предварительно ложим сумму всех числовых элементов и их количество
+    rot
+    {   % Проходим в цикле по всем элементам массива
+        dup % На стеке:  sum, n, знач., знач.
+        type dup    % На стеке: sum, n, знач., тип_знач., тип_знач.
+        /integertype eq swap
+        /realtype eq or % На стеке: sum, n, знач., true-числовое
+        {   % Значение на стеке числовое складываем с суммой
+            rot add
+            swap 1 add  % Увеличиваем счетчик
+        }
+        {
+            pop
+        } ifelse
+    } forall    % На стеке:  sum, n
+    dup 0 ne
+    {   % Получено не нулевое количество числовых элементов массива % На стеке:  sum, n
+        div
+    }
+    {
+        pop pop null
+    } ifelse
+} def
+
+/summ_el    % Берёт на стеке массив, возвращает сумму всех элементов
+{
+    0 swap {add} forall
+} def
+
+/in_array   % На стеке число и массив, проверяет наличие числа в массиве возвращает true
+{
+    false   % на стеке k, [m_i], false
+    3 1 roll    % на стеке false, k, [m_i] 
+    {               % на стеке false, k, m_i 
+        over eq
+        {
+            swap pop true swap exit
+        } if
+    } forall
+    pop
+} def
+
+/Concat_string  % Складывает две строки лежащие на стеке->возвращает объединённую строку
+{ 
+    2 copy length
+    swap length dup
+    rot add string dup
+    rot 4 -1 roll putinterval
+    dup 0 4 -1 roll putinterval
+} def
+
+/Concat_array   % Складывает двa массива лежащие на стеке->возвращает объединённый массив
+{ 
+    2 copy length
+    swap length dup
+    rot add array dup
+    rot 4 -1 roll putinterval
+    dup 0 4 -1 roll putinterval
+} def
+
+/Null_array % Возвращает true, если все элементы массива типа null, иначе false
+{   % На стеке: проверяемый массив
+    true
+    swap
+    {   type /nulltype ne
+        {   % Элемент массива не пустой
+            pop % Удаляем предварительно положенный true
+            false
+            exit
+        } if
+    } forall
+} def
+
+/center % Размещает объёкт по центру меж x1 x2 на стеке: размер объёкта, x1 x2 возвращает координату x
+{ over sub rot sub 2 div add } def
+
+/center_page % Размещает объёкт по центру страницы на стеке: размер объёкта возвращает координату x
+{ pole_left pole_rigth center } def
+
+/center_print % Печатает строку по центру меж x1 x2 на стеке: x1, x2, y и строка
+{
+    dup         % на стеке: x1, x2, y, строка, строка
+    5 1 roll    % на стеке: строка, x1, x2, y, строка 
+    stringwidth pop % на стеке: строка, x1, x2, y, её длина
+    4 -2 roll   % на стеке: строка, y, её длина, x1, x2
+    center      % на стеке: строка, y, x
+    swap moveto show
+} def
+
+/rigth_print % Печатает строку выравнивая по правому краю на x1 на стеке: x1, y и строка
+{dup stringwidth pop 4 -1 roll swap sub rot moveto show} def
+
+/RowHeigth 4 mm def % Межстрочный интервал
+/PSP   % Проверяет размещение входной строки в границах полей листа, если данная строка 
+            % не поместится, то переносим на следующую строку и печатаем.
+{   % На стеке: (строка)
+    currentpoint swap   % На стеке: (строка), y, x
+    2 index stringwidth pop % На стеке: (строка), y, x, dx
+    add pole_rigth 0.1 add gt
+    {   % Строка не уместится в текущей строке переносим её
+        RowHeigth sub dup pole_bot lt
+        {   % Новая строка не уместится на текущей странице
+            pop
+            NewPage
+            RowHeigth 1.5 mul dec_bot
+            pole_left bot
+        }
+        {
+            pole_left swap
+        } ifelse
+        moveto show ( ) show
+        RowHeigth dec_bot
+    }
+    {   % Строка уместится в текущей строке печатаем её
+        pop show ( ) show
+    } ifelse
+} def
+
+/page_num 1 def % Переменная номер страницы
+
+/newsize % На стеке размер шрифта
+{ scalefont setfont } def
+
+/Times_Regular % Устанавливает шрифт TimesNewRoman
+{/TimesNewRomanPSMT-Regular findfont} def
+/Times_Bold % Устанавливает шрифт TimesNewRoman жирный
+{/TimesNewRomanPSMT-Bold findfont} def
+/Times_Italic % Устанавливает шрифт TimesNewRoman курсив
+{/TimesNewRomanPSMT-Italic findfont} def
+/Textbook_Regular % Устанавливает шрифт TextbookPSCyr-Regular
+{/TextbookPSCyr-Regular findfont} def
+/Academy_Bold % Устанавливает шрифт Academy жирный
+{/AcademyPSCyr-Bold findfont} def
+/ArialMT_Regular % Устанавливает шрифт Arial жирный
+{/ArialMT-Regular findfont} def
+/ArialMT_Bold % Устанавливает шрифт Arial жирный
+{/ArialMT-Bold findfont} def
+/ArialMT_Italic % Устанавливает шрифт Arial курсив
+{/ArialMT-Italic findfont} def
+/Symbol % Устанавливает шрифт Symbol 
+{/Symbol findfont} def
+/Zapf   % Устанавливает шрифт ZapfDingbats
+{/ZapfDingbats findfont} def
+
+
+/a_b % Печатает строку a и строку b как нижний индекс строки a
+{ currentfont 3 1 roll swap show Times_Regular 6 newsize 0 -0.5 mm rmoveto show 0 0.5 mm rmoveto setfont } def
+
+/a^b % Печатает строку a и строку b как верхний индекс строки a
+{ currentfont 3 1 roll swap show Times_Regular 6 newsize 0 1.5 mm rmoveto show 0 -1.5 mm rmoveto setfont } def
+
+/kgs-cm^2   % Печатает единицу измерения давления
+{ (кгс\57см) (2) a^b } def
+
+/f_x    % Печатает частоту с нижним индексом в текущей позиции пера. на стеке (ind), f[кГц]
+{
+    10 string cvs   % значение частоты ввиде строки
+    swap
+    Times_Italic 8 newsize (f) show gsave
+    0 -2 rmoveto Times_Italic 4 newsize show grestore 1 0 rmoveto (=) show
+    Times_Regular 8 newsize
+    1 0 rmoveto show
+    Times_Italic 6 newsize
+    1 0 rmoveto (кГц) show
+} def
+
+/a-b_center_print % На стеке: координаты x1, x2, y, i -> строку ( 2*(i-1)+1-2*(i-1)+2 ) для печати подписи пар
+{   1 sub 2 mul dup 1 add swap 2 add % на стеке пара вычисленых по индексу чисел
+    swap 3 string cvs (\226) rot 3 string cvs   % на стеке три строки с написанием символов дальше изврат, 
+                            % так как не знаю как склеивать строки
+    3 copy stringwidth pop
+    rot stringwidth pop 
+    rot stringwidth pop 
+    add add % на вершине суммарная длина строки
+                           % на стеке: x1, x2, y, (a), (-), (b), len
+    7 -2 roll % на стеке y, (a), (-), (b), len, x1, x2
+    center  % на стеке y, (a), (-), (b), x
+    5 -1 roll moveto -0.15 mm 0 rmoveto  
+    rot  show   % Вывели (a)
+    swap 0.1 mm 0 rmoveto show 0.2 mm 0 rmoveto show    % Вывели (-) и (b)
+} def
+                                                                  
+/String_index_width % Вычисляет размер строки с индексом на стеке две строки (a), (b) ->  размер
+{
+    swap stringwidth pop swap currentfont swap Times_Regular 6 newsize stringwidth pop
+    rot add swap setfont
+} def
+
+/position 
+{   String_index_width 4 -2 roll % Подготовили данные на стеке
+    center swap moveto % Определили координаты начала печати для размещения в центре
+} def
+
+/zpt {Times_Regular 10 newsize (,) show} def % Печатает запятую после параметра
+
+%---------------------------------------------------------------------------------------------------
+% Начертание параметров
+/Rgil_0 {(R) (ж)} def % Определяем написание параметра сопротивление жил
+/Riz_0 {(R) (из)} def % Определяем написание параметра сопротивление изоляции
+/Tiz_0 {(T) (из)} def % Определяем написание параметра времени достижения сопротивление изоляции
+/Cr_0 {(C) (р)} def % Определяем написание параметра рабочей ёмкости
+/Co_0 {(C) (0)} def % Определяем написание параметра ёмкости жилы
+/Ea_0 {(E) (a)} def % Определяем написание параметра ёмкостной ассиметрии жил
+/K1_0 {(K) (1)} def % Определяем написание параметра ёмкостной связи K1
+/K2_0 {(K) (2)} def % Определяем написание параметра ёмкостной связи K2
+/K3_0 {(K) (3)} def % Определяем написание параметра ёмкостной связи K3
+/K9_0 {(K) (9)} def % Определяем написание параметра ёмкостной связи K9
+/K10_0 {(K) (10)} def % Определяем написание параметра ёмкостной связи K10
+/K11_0 {(K) (11)} def % Определяем написание параметра ёмкостной связи K11
+/K12_0 {(K) (12)} def % Определяем написание параметра ёмкостной связи K12
+/al_0 {(a) (l)} def % Определяем написание параметра рабочего затухания
+/A0_0 {(A) (0)} def % Определяем написание параметра переходного затухания на ближнем конце
+/Az_0 {(A) (з)} def % Определяем написание параметра защищенности на дальнем конце
+
+/ParamInd_Nach 1 def
+
+/NumNum % На стеке x1, x2, y печатает строку №/№ по центуру меж x1 b x2 с y координатой
+{
+    Times_Regular 8 newsize (№/№) center_print
+} def
+
+/Rgil % На стеке x1, x2, y печатает параметр сопротивление жил по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    Rgil_0 position 
+    Rgil_0 a_b
+} def % Печатает параметр сопротивление жил
+
+/DR % На стеке x1, x2, y печатает параметр омической ассиметрии жил по центру меж x1 и x2 с y координатой
+{
+    Symbol 10 newsize (D) stringwidth pop Times_Italic 10 newsize (R) stringwidth pop add % определили ширину
+    4 -2 roll % Подготовили данные на стеке
+    center swap moveto % Определили координаты начала печати для размещения в центре
+    Symbol 10 newsize (D) show Times_Italic 10 newsize (R) show
+} def
+
+/Riz % На стеке x1, x2, y печатает параметр сопротивление изоляции жил по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    Riz_0 position
+    Riz_0 a_b
+} def % Печатает параметр сопротивление изоляции
+
+/Tiz % На стеке x1, x2, y печатает параметр время достижения сопротивления изоляции жил по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    Tiz_0 position
+    Tiz_0 currentfont 3 1 roll swap show % Напечатали T
+    Times_Regular 9 newsize
+    gsave 0.5 mm 0.8 mm rmoveto (*) show grestore 
+    Times_Regular 6 newsize
+    0 -0.5 mm rmoveto show 0 0.5 mm rmoveto setfont
+} def % Печатает параметр сопротивление изоляции
+
+/Tiz_prim   % Печатает примечание по сопротивлению изоляции на стеке строка с нормой
+{
+    3 mm dec_bot
+    pole_left bot moveto
+    Times_Regular 9 newsize
+    0 0.8 mm rmoveto (*) show 
+    1 mm -0.8 mm rmoveto 
+    Times_Italic 10 newsize Tiz_0 a_b
+    Times_Regular 8 newsize
+    (\227время достижения сопротивления изоляции свыше ) show
+    show (.) show
+} def
+
+/Cr % На стеке x1, x2, y печатает параметр рабочей ёмкости жил по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    Cr_0 position
+    Cr_0 a_b
+} def % Печатает параметр рабочей ёмкости
+
+/DCr % На стеке x1, y печатает параметр разброс рабочей ёмкости пар  x1 с y координатой
+{
+    moveto % Определили координаты начала печати для размещения в центре
+    Symbol 10 newsize (D) show Times_Italic 10 newsize Cr_0 a_b
+} def
+
+
+/Co % На стеке x1, x2, y печатает параметр ёмкости жилы по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    Co_0 position
+    Co_0 a_b
+} def % Печатает параметр ёмкости жилы
+
+/Ea % На стеке x1, x2, y печатает параметр ёмкостной ассиметрии жилы по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    Ea_0 position
+    Ea_0 a_b
+} def % Печатает параметр ёмкостной ассиметрии жилы
+
+/K1_ % На стеке x1, x2, y печатает параметр ёмкостной связи K1 по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    K1_0 position   
+    K1_0 a_b
+} def % Печатает параметр ёмкостной связи K1
+
+/K2_ % На стеке x1, x2, y печатает параметр ёмкостной связи K2 по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    K2_0 position   
+    K2_0 a_b
+} def % Печатает параметр ёмкостной связи K2
+
+/K3_ % На стеке x1, x2, y печатает параметр ёмкостной связи K3 по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    K3_0 position
+    K3_0 a_b
+} def % Печатает параметр ёмкостной связи K3
+
+/K9_ % На стеке x1, x2, y печатает параметр ёмкостной связи K9 по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    K9_0 position
+    K9_0 a_b
+} def % Печатает параметр ёмкостной связи K9
+
+/K10_ % На стеке x1, x2, y печатает параметр ёмкостной связи K10 по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    K10_0 position
+    K10_0 a_b
+} def % Печатает параметр ёмкостной связи K10
+
+/K11_ % На стеке x1, x2, y печатает параметр ёмкостной связи K11 по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    K11_0 position
+    K11_0 a_b
+} def % Печатает параметр ёмкостной связи K11
+
+/K12_ % На стеке x1, x2, y печатает параметр ёмкостной связи K12 по центру меж x1 и x2 с y координатой
+{
+    Times_Italic 10 newsize % Установили шрифт
+    K12_0 position
+    Times_Italic 10 newsize % Установили шрифт
+    K12_0 a_b
+} def % Печатает параметр ёмкостной связи K12
+
+/al % На стеке x1, x2, y печатает параметр рабочее затухание по центру меж x1 и x2 с y координатой
+{
+    Symbol 10 newsize % Установили шрифт
+    al_0 position
+    al_0 a_b
+} def % Печатает параметр рабочее затухание
+
+/al* % На стеке x1, x2, y печатает параметр рабочее затухание со (* звёздочкой) по центру меж x1 и x2 с y координатой
+{
+    Symbol 10 newsize % Установили шрифт
+    al_0 position
+    al_0 currentfont 3 1 roll swap show % Напечатали T
+    Times_Regular 9 newsize
+    gsave 0.5 mm 0.8 mm rmoveto (*) show grestore 
+    Times_Regular 6 newsize
+    0 -0.5 mm rmoveto show 0 0.5 mm rmoveto setfont
+} def % Печатает параметр расчётное рабочее затухание
+
+/al*_prim   % Печатает примечание про расчётное значение рабочего затухания
+{
+    3 mm dec_bot
+    pole_left bot moveto
+    Times_Regular 9 newsize
+    0 0.8 mm rmoveto (*) show 
+    1 mm -0.8 mm rmoveto 
+    Times_Regular 8 newsize
+    (Расчитанное значение полученное по результатам измерений ) show
+    Times_Italic 10 newsize Rgil_0 a_b 
+    Times_Regular 9 newsize ( и ) show
+    Times_Italic 10 newsize Cr_0 a_b
+    Times_Regular 9 newsize (.) show
+} def
+
+/A0 % На стеке x1, x2, y печатает параметр A0 по центру меж x1 и x2 с y координатой
+{
+    Symbol 10 newsize % Установили шрифт
+    A0_0 position
+    A0_0 a_b
+} def % Печатает параметр переходное затухание на ближнем конце
+
+/Az % На стеке x1, x2, y печатает параметр Az по центру меж x1 и x2 с y координатой
+{
+    Symbol 10 newsize % Установили шрифт
+    Az_0 position
+    Az_0 a_b
+} def % Печатает параметр защищенность на дальнем конце
+
+/Zamena_umnog_show  % На стеке: размер симв. умнож, строка в которой x заменяем символом умножения и печатаем
+{
+    {   % Проходим по каждому символу строки описания структур
+        dup 120 eq
+        {   % Сомвол x заменяем на знак умножения (перекрестьем)
+            pop
+            currentfont % Сохранили текущий шрифт
+            Zapf 2 index newsize
+            Mult_symbol show
+            setfont % Востановили текущий шрифт
+        }
+        {
+            1 string dup 0 4 -1 roll put
+                show
+        } ifelse
+    } forall
+} def
+
+/CabNameStr_print   % Печатает структуру кабеля символы x заменяются на знак умножения (перекрестьем)
+{   % на стеке размер шрифта
+% Добавить при вызове флаг переноса по структурам на другую строку или обрывания многоточием
+    1.5 div % Уменьшаем размер шрифта символа умножения
+    CabNameStruct Zamena_umnog_show
+    pop % Удалили со стека размер шрифта символа умножения
+} def
+
+/DocNum_convert % Заменяет в строке номера нормативного документа - на длиное тире (\227)
+{   
+    0 1 DocNum length 1 sub
+    {   % Проходим по каждому символу строки описания структур. на стеке ind
+        DocNum over get
+        45 eq
+        {   % Сомвол - заменяем на длинное тире код 151
+            DocNum swap 151 put
+        }
+        {
+            pop
+        } ifelse
+    } for
+} def
+
+/ExpStr % на стеке: число
+{
+    dup
+    9999 gt
+    {   % число более 9999 преобразуем его
+        1 swap % порядок числа
+        {       % На стеке p, x
+                dup 10 div
+            10 lt
+            { round 10 div exit } if
+            swap 1 add swap
+            10 div
+        } loop  % На стеке p, x<10
+        10 string cvs (e) Concat_string swap
+        3 string cvs Concat_string
+    } if 
+} def   % По выходу на стеке или число или строка числа в экспоненциальном формате
+
+%---------------------------------------------------------------------------------------------------
+/H_colontitul   % Рисует верхний колонтитул 
+{
+    % Рисуем горизонтальную отделяющую линию
+    newpath
+    pole_left pole_top moveto
+    pole_rigth pole_top lineto
+    0.3 mm setlinewidth
+    stroke
+    
+    % Пишем название завода
+    Times_Regular 8 newsize
+    pole_left pole_top 0.5 mm add moveto
+    Zavod show
+
+    % Пишем марку кабеля и структуру
+    5 mm 0 rmoveto
+    ArialMT_Italic 8 newsize
+    CabName show ( ) show
+    8 CabNameStr_print  % Печатает структуру кабеля. на стеке размер шрифта
+    
+    % Пишем номер барабана
+    Times_Regular 8 newsize
+    pole_rigth 10 mm sub pole_top 0.5 mm add
+
+    PortNum type /nulltype ne
+    {   % Определено значение номера протокола печатаем его
+        (\(Протокол № ) PortNum Concat_string
+    }
+    {
+        (\(Барабан № ) BarabanNum Concat_string
+    } ifelse
+    (\)) Concat_string rigth_print
+
+    % Печатаем номер страницы
+    Times_Regular 10 newsize
+    pole_rigth pole_top 0.5 mm add
+    page_num 2 string cvs
+    rigth_print
+
+} def
+
+/NewPage    % Функция создания новой страницы
+{
+    showpage
+    
+    /page_num 1 page_num add def    % Увеличили номер текущей страницы
+
+    H_colontitul    % Рисует верхний колонтитул 
+
+    % Устанавливаем переменные на странице
+    /bot pole_top def
+    /Yk bot def
+    /Yk_min bot def
+    /Y0 bot def
+} def
+%---------------------------------------------------------------------------------------------------
+% Основные части протокола
+/title (Паспорт качества) def % Текст заголовка
+
+/title_bot pole_top 14 sub def
+
+/PrinTitle % Печатает заголовок протокола
+{
+    Times_Bold 14 newsize % Установили шрифт заголовка
+    % Определяем координаты вывода заголовока
+    title stringwidth pop center_page title_bot moveto
+    title show % Печатаем заголовок
+} def
+
+
+/PortNum null def   % Предопределённое значение номера
+
+/PortNum_print  % Печатает номер протокола 
+{
+    PortNum type /nulltype ne
+    {   % Значение номера протокола определено
+        currentfont % Сохраним текущий шрифт
+
+        ArialMT_Bold 15 newsize % Установили шрифт номера протокола
+        pole_rigth 12 mm sub title_bot PortNum rigth_print
+
+        setfont     % Восстанавливаем исходный шрифт
+    } if
+} def   
+
+/dec_bot % Уменьшает значение переменной bot нижняя граница вывода на листе на число лежащее на стеке
+{
+    bot swap sub /bot swap def
+} def
+
+title_bot 20 sub /bot swap def
+/ZakazNum (______) def % Заготовка для номера заказа
+
+/Head_isp % Печатает заголовок испытания
+{
+    Times_Regular 10 newsize % Установили шрифт
+    15 mm pole_left add bot moveto
+    (Марка кабеля: ) show
+% Добавить проверку не выхода строки поля
+    ArialMT_Italic 10 newsize % До конца первой строки ставим курсив
+    CabName show (  ) show 10 CabNameStr_print  % Печатает структуру кабеля. на стеке размер шрифта
+%   (  ) show
+%   DocNum_convert
+%   DocNum show
+	Times_Regular 10 newsize % Установили шрифт
+	10 dec_bot % Переносим координату вывода вниз на 10 пунктов
+	15 mm pole_left add bot moveto 
+	(Заказ №: ) show ZakazNum show 
+	45 mm pole_left add bot moveto 
+	(№ Барабана: ) show BarabanNum show
+	90 mm pole_left add bot moveto 
+	(Тип барабана: ) show TipName show 
+	10 dec_bot % Переносим координату вывода вниз на 10 пунктов
+	15 mm pole_left add bot moveto 
+	(Длина кабеля: ) show CabelLengt show ( м.) show
+	90 mm pole_left add bot moveto 
+	(Температура: ) show Temperatur show deg_C show
+	10 dec_bot % Переносим координату вывода вниз на 10 пунктов
+	15 mm pole_left add bot moveto 
+	(БРУТТО: ) show Brutto show ( кг.) show
+	90 mm pole_left add bot moveto 
+	(Дата испытания: ) show IspData show
+
+%   130 mm pole_left add bot moveto 
+%   (НЕТТО: ) show 
+%   147 mm pole_left add bot moveto Netto show ( кг.) show
+%   10 dec_bot % Переносим координату вывода вниз на 10 пунктов
+%   20 mm pole_left add bot moveto 
+%   (Тип барабана: ) show TipName show 
+%   68.5 mm pole_left add bot moveto 
+%   (№ Барабана: ) show BarabanNum show
+%   130 mm pole_left add bot moveto 
+%   (БРУТТО: ) show 
+%   147 mm pole_left add bot moveto Brutto show ( кг.) show
+%   10 dec_bot % Переносим координату вывода вниз на 10 пунктов
+%   20 mm pole_left add bot moveto 
+%   (Дата испытания: ) show IspData show
+%   68.5 mm pole_left add bot moveto 
+%   (Температура: ) show Temperatur show deg_C show
+
+    1.5 mm dec_bot
+    /Yk_min bot def
+} def
+
+/Def_col_width 8 mm def % ширина столбца по умолчанию
+
+/graniz_el_cols
+{       % Печатаем отделяющую линию номеров пар
+    2 copy  % Продублировали координаты X элементарных столбцов
+    counttomark 1 add index % Продублировали координату Y
+    newpath
+    1 mm sub moveto 0 4 mm rlineto 
+    counttomark 1 add index % Продублировали координату Y
+    3 mm add
+    lineto 0.15 mm setlinewidth stroke
+} def
+
+/Rama_Head_Table
+{   % Рисуем рамку ограничения шапки таблицы ниже на 1 мм
+
+    dup % на стеке: x0, y0, y, y
+    3 index swap % на стеке: x0, y0, y, x0, y
+    newpath moveto  % на стеке: x0, y0, y
+    XCols ParamInd_Kon  1 add get over lineto % на стеке: x0, y0, y
+    2 copy sub  % на стеке: x0, y0, y, dy
+    0 swap rlineto  % на стеке: x0, y0, y
+    XCols ParamInd_Kon 1 add get % на стеке: x0, y0, y, xk
+    3 index swap sub 0 rlineto
+    closepath
+    0.4 mm setlinewidth stroke  % отрисовали линию толщиной 0.4 мм   на стеке: x0, y0, y
+} def
+
+/Vert_gl_st_head   % на стеке x, y0, y1
+{   % Рисует вертикальную линию отделяющию главные столбцы в шапке таблицы
+    newpath   
+    2 copy sub swap pop 
+    3 1 roll moveto
+    0 swap neg rlineto
+    0.4 mm setlinewidth stroke  % отрисовали линию толщиной 0.4 мм
+} def
+
+/Numbers_Cols_print
+{   % Печатаем столбец номеров на стеке: x0, y0, y
+    2 index
+    Def_col_width add 1 mm sub  % на стеке: x0, y0, y, xr-координата правой границы столбца номеров (жил, пар)
+    0   % Ложим на стек ноль, для удаления 
+    DataInd_Nach 1 DataInd_Nach Kolvo add 1 sub
+    {   % на стеке: x0, y0, y, xr, ind
+        swap pop    % Удалили индекс с предыдущей итерации цикла
+        dup ?FirstNum
+        {   % Первый элемент в пучке по подключению рисуем серый фон
+            4 index 3 index % на стеке: x0, y0, y, xr, ind, x0, y
+            0.3 mm sub
+            gsave
+            newpath moveto
+            Def_col_width 0 rlineto
+            0 3 mm rlineto
+            Def_col_width neg 0 rlineto
+            closepath
+            0.7 setgray fill
+            grestore
+        } if
+        over 3 index    % на стеке: x0, y0, y, xr, ind, xr, y
+        2 index % на стеке: x0, y0, y, xr, ind, xr, y, ind
+        4 string cvs rigth_print % на стеке: x0, y0, y, xr, ind     
+        rot 3 mm sub dup 1 mm sub % на стеке: x0, y0, xr, ind, yi+1, yi+1 - 1mm для сравнения с нижнем полем
+        pole_bot le % на стеке: x0, y0, xr, ind, yi+1
+        {   % Вышли за границу нижнего поля
+            3 1 roll    % на стеке: x0, y0, yi+1, xr, ind
+            exit
+        } if    % Нижнее поле не достигнуто продолжаем далее
+        3 1 roll    % на стеке: x0, y0, yi+1, xr, ind
+    } for
+} def
+
+/Vert_gl_st  % на стеке x, y0, yk
+{   % Рисует вертикальную линию отделяющию главные столбцы данных таблицы
+    newpath   
+    2 copy sub swap pop 
+    3 1 roll moveto
+    0 swap neg rlineto
+    0.3 mm setlinewidth stroke  % отрисовали линию толщиной 0.3 мм
+} def
+
+/Rama_Data_Table
+{   % на стеке: x0, y0, yk
+    % Рисуем замыкающую рамку таблицы
+    dup % на стеке: x0, y0, yk, yk
+    3 index swap % на стеке: x0, y0, yk, x0, yk
+    newpath moveto  % на стеке: x0, y0, yk
+    XCols ParamInd_Kon 1 add get over lineto % на стеке: x0, y0, yk
+    2 copy sub  % на стеке: x0, y0, yk, dy
+    0 swap rlineto  % на стеке: x0, y0, yk
+    XCols ParamInd_Kon 1 add get % на стеке: x0, y0, yk, xk
+    3 index swap sub 0 rlineto
+    closepath
+    0.3 mm setlinewidth stroke  % отрисовали линию толщиной 0.3 мм   на стеке: x0, y0, yk
+} def
+
+/Data_Print % Печатает столбец данных стек оставляет чистым
+{   % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные]
+    Y1  % На стеке x-нач, x-кон, Norm_min, Norm_max, [Данные], y
+    DataInd_Nach 1 DataInd_Kon
+    {   % На стеке: x-нач, x-кон, Nom_min, Nom_max, [Данные], y, ind
+        1 sub
+        2 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, [Данные]
+        swap get    % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач.
+        dup type /stringtype eq
+        {   % Значение является строкой печатаем его
+            6 index 6 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., x-нач, x-кон
+            3 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., x-нач, x-кон, y
+            4 -1 roll   % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, x-нач, x-кон, y, знач.
+            Times_Italic 8 newsize
+            center_print    % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y
+        }
+        {       % Значение не является строкой проверим его на пренадлежность числовому типу
+            % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач.
+            dup % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., знач.
+            type dup    % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., тип_знач., тип_знач.
+            /integertype eq swap
+            /realtype eq or % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., true-числовое
+            {   % Значение на стеке числовое сравниваем с нормами
+                % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач.
+                dup abs dup % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., знач., знач.
+                6 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., знач., знач., Norm_min
+                lt  % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., знач., true-если меньше нормы
+                swap 5 index    % % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., true-если меньше нормы, знач., Norm_max
+                gt  % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., true-если меньше нормы, true-если больше нормы
+                or
+                {   % Значение выходит за нормы
+                    Times_Bold 8 newsize
+                }
+                {   % Значение удовлетворяет нормам
+                    Times_Regular 8 newsize
+                } ifelse
+                % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач.
+                6 index 6 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., x-нач, x-кон
+                3 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., x-нач, x-кон, y
+                4 -1 roll   % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, x-нач, x-кон, y, знач.
+                ExpStr 10 string cvs
+                center_print    % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y
+            }
+            {   % Значение на стеке не числовое печатаем его тип
+                6 index 6 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., x-нач, x-кон
+                3 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, знач., x-нач, x-кон, y
+                4 -1 roll   % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, x-нач, x-кон, y, знач.
+                type 16 string cvs
+                Times_Italic 8 newsize
+                center_print    % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y
+
+            } ifelse
+        } ifelse
+        3 mm sub    % Уменьшили координату Y на Def_row_height стандартную высоту
+    } for
+    pop pop pop pop pop pop % Отчистили стек
+} def
+
+/vline_el_cols  % Рисует вертикальную линию разделяющую элементарные столбцы
+{   Yh Yk
+    newpath
+    2 copy sub swap pop 
+    3 1 roll moveto
+    0 swap neg rlineto
+    0.15 mm setlinewidth stroke  % отрисовали линию толщиной 0.15 мм
+} def
+
+/Part_Table_I % Печатает шапку таблицы первичных параметров для жил на стеке x0, y0 
+{
+
+    dup /Y0 swap def
+    /Captoin_Table1 (Первичные параметры) def
+    /tetx_table (Таблица) def
+    /XCols pole_rigth pole_left sub Def_col_width div floor cvi 2 mul array def % Массив X-координат границ
+                        % главных (ограничивающих разные параметры) столбцов
+
+    over dup XCols 0 rot put % Сохранили x0 в нулевой элемент массива координат
+    over % на стеке x0, y0, x0, y0
+    3.5 mm sub % Строка вывода названий параметров ниже на 3.5 мм (y=y0-3.5mm)
+
+    over Def_col_width add  % Ширина нулевого столбца определена на стеке: x0, y0,  x0, y, x1
+    swap over XCols ParamInd_Nach rot put  % Сохранили в массиве координату дальней границы текущего столбца
+    2 copy  % на стеке: x0, y0,  x0, x1, y, x1, y
+    5 -1 roll 3 1 roll  % на стеке: x0, y0, x1, y, x0, x1, y
+    NumNum
+
+    0 % Для первого удаления со стека в цикле (типа индекс последнего напечатанного элемента)
+
+    ParamInd_Nach 1 Param length 1 sub % На стеке: x0, y0, x0, y, 0, 1, индекс последнего элемента
+    {
+        swap pop    % удалили индекс последнего напечатаного параметра
+        dup 1 add swap dup % Дублируем индекс массива для определения числа столбцов
+        5 1 roll % Для переноса индекса массива
+        Cols swap get Def_col_width mul 
+        3 index add % Ширина столбца определена на стеке: x_ind-1, y, x_ind
+        dup pole_rigth gt  % Проверка выхода за поля страницы
+        {   % Произошел выход за поля страницы
+            pop pop rot 1 sub
+            exit % Выходим из цикла
+        } if    % Поля не достигнуты продолжаем
+        swap over XCols 3 1 roll put  % Сохранили в массиве координату дальней границы текущего столбца
+        swap        % x0, x1, y
+        2 copy          % x0, x1, y, x1, y
+        5 -1 roll       % x1, y, x1, y, x0
+        3 1 roll % x1   % x1, y, x0, x1, y стек готов к вызову процедуры печати по центру меж x_ind-1 x_ind
+        Param 6 index get cvx exec % Извлекает из массива имя функции и выполняет его
+        zpt
+        rot
+    } for % на стеке: x0, y0, xk, y, ind где ind индекс последнего напечатаного параметра в массиве параметров
+
+    /ParamInd_Kon swap def % Сохраняем в переменную IndParam индекс последнего напечатаного параметра в массиве параметров
+
+    % Определим сколько раз можно повторить столбцы таблицы по оси X
+%   /Count_X_copy pole_rigth pole_left sub 3 index 5 index sub div floor cvi def
+
+    % Рисуем верхнюю линию шапки таблицы
+%   newpath % на стеке: x0, y0, xk, y
+%   swap 2 index moveto % установили перо в правый верхний угол таблицы. на стеке: x0, y0, y
+%   2 index 2 index     % скопировали на вершину стека x0, y0
+%   lineto 0.4 mm setlinewidth stroke  % отрисовали линию толщиной 0.4 мм   на стеке: x0, y0, y
+    swap pop
+
+    % Печатаем строку единиц измерения ниже строки параметров на 3.5 мм
+    Times_Regular 6.5 newsize % Установили шрифт 8 пт.
+    3 mm sub % на стеке: x0, y0, y-3.5мм
+
+    % Печатаем строку наименований структур (нулевой столбец)
+    XCols 0 get % на стеке: x0, y0, y, x_0
+    XCols ParamInd_Nach get % на стеке: x0, y0, y, x_0, x_1
+    2 index % на стеке: x0, y0, y, ind, x_i, x_i+1, y
+    EdIsm 0 get
+    center_print
+
+    % Печатаем строку наименований структур (остальные столбцы)
+    ParamInd_Nach 1 ParamInd_Kon
+    {   % на стеке: x0, y0, y, ind
+        XCols over get  % на стеке: x0, y0, y, ind, x_i
+        XCols 2 index 1 add get % на стеке: x0, y0, y, ind, x_i, x_i+1
+        3 index % на стеке: x0, y0, y, ind, x_i, x_i+1, y
+        EdIsm 5 -1 roll get
+        center_print
+    } for   % на стеке: x0, y0, y
+
+    Times_Regular 8 newsize % Установили шрифт 10 пт.
+    % Печатаем строку с номерами жил (пар)
+    % Предваретельно определим максимальное число элементарных столбцов (обычно оно равно числу жил в структуре)
+    Cols max_el dup 
+    1 gt
+    {   % Таблица не по жилам значит печатаем строку нумерации жил
+        % на стеке: x0, y0, y, col_max
+        swap 4.5 mm sub % перенесли строку вывода вниз на 4.5 мм % на стеке: x0, y0, col_max, y
+        mark    % Положили на стек метку под ней лежит координата y
+        ParamInd_Nach 1 ParamInd_Kon
+        {   % Проходим по главным столбцам со второго на стеке: x0, y0, col_max, y, mark, ind
+            XCols over get      % на стеке: x0, y0, col_max, y, mark, ind, x_нач главного столбца
+            Cols rot get    % получили число элементарных столбцов n, на стеке: x0, y0, col_max, y, mark, x_i, n
+            dup 1 gt  
+            {   % Главный столбец содежит элементарные столбцы. на стеке: x0, y0, col_max, y, mark, x_i, n
+                % Определим как печатать номера элементарных столбцов
+                dup counttomark 2 add index swap    % на стеке: x0, y0, col_max, y, mark, x_i, n, col_max, n
+                idiv 1 gt   % на стеке: x0, y0, y, mark, x_i, n, (col_max/n > 1)
+                {   % Печатаем как для пар на стеке: x0, y0, y, mark, x_i, n
+                    1 1 rot
+                    {   % на стеке: x0, y0, col_max, y, mark, x_i, ...,xel_i ind_el
+                        swap dup Def_col_width add  % на стеке: x0, y0, col_max, y, mark, x_i, ..., ind_el, xel_i, xel_i+1
+                        2 copy % на стеке: x0, col_max, y0, y, mark, x_i, ..., ind_el, xel_i, xel_i+1, xel_i, xel_i+1
+                        counttomark 1 add index % на стеке: x0, y0, col_max, y, mark, x_i, ..., ind_el, xel_i, xel_i+1, xel_i, xel_i+1, y
+                        6 -1 roll   % на стеке: x0, y0, col_max, y, mark, x_i, ..., xel_i, xel_i+1, xel_i, xel_i+1, y, ind_el
+                        a-b_center_print
+                        graniz_el_cols  % Печатаем отделяющую линию номеров пар 
+                    } for
+                }
+                {   % Печатаем как для жил
+                    1 1 rot
+                    {   % на стеке: x0, y0, col_max, y, mark, x_i, ...,xel_i ind_el
+                        swap dup Def_col_width add  % на стеке: x0, y0, col_max, y, mark, x_i, ..., ind_el, xel_i, xel_i+1
+                        2 copy % на стеке: x0, y0, col_max, y, mark, x_i, ..., ind_el, xel_i, xel_i+1, xel_i, xel_i+1
+                        counttomark 1 add index % на стеке: x0, y0, col_max, y, mark, x_i, ..., ind_el, xel_i, xel_i+1, xel_i, xel_i+1, y
+                        6 -1 roll   % на стеке: x0, y0, col_max, y, mark, x_i, ..., xel_i, xel_i+1, xel_i, xel_i+1, y, ind_el
+                        4 string cvs center_print   % на стеке: x0, y0, col_max, y, mark, x_i, xel_i+1
+                        graniz_el_cols  % Печатаем отделяющую линию номеров жил 
+                    } for
+                } ifelse                
+            }
+            {pop pop}   % Удаляем со стека n и x-нач главного столбца
+            ifelse
+        } for 
+
+        % Сохраняем координаты X елементарных столбцов в массиве
+        counttomark array /XCols_el swap def
+        counttomark 1 sub -1 0
+        { XCols_el swap rot put
+        } for
+        pop % Удалили метку
+        swap pop % Удалили col_max
+        % на стеке: x0, y0, y
+    }
+    {
+        pop % Удаляем максимальное число элементарных столбцов на стеке: x0, y0, y
+    } ifelse
+    
+    
+    1 mm sub % на стеке: x0, y0, y 
+
+    % Рисуем вертикальные линии отделяющие главные столбцы в шапке таблицы
+
+    ParamInd_Nach 1 ParamInd_Kon
+    {
+        XCols swap get
+        2 index 2 index
+        Vert_gl_st_head     
+    } for
+
+    % Рисуем рамку ограничения шапки таблицы ниже на 1 мм
+    Rama_Head_Table
+    
+    Times_Regular 8 newsize
+
+    dup /Yh swap def    % Сохранили в переменную Yh координату нижней границы шапки таблицы
+    
+    3 mm sub dup    % на стеке: x0, y0, y, y
+    /Y1 swap def    % Сохранили в переменную Y1 координату первой строки таблицы
+
+    % Печатаем столбец номеров на стеке: x0, y0, y
+    Numbers_Cols_print
+    
+    /DataInd_Kon swap def   % Сохранили индекс последнего напечатаного номера (жилы, пары)
+    pop % Удалили xr
+    2.5 mm add  % Нижняя координата таблицы ниже последенй выведенной строки на 1 мм
+%   dup Yk lt   % Для таблиц выставляемых по столбцам необходимо проверять чтобы нижняя очередного столбца не 
+%           % была выше предыдущих выводов этой же таблицы для подрисовки ровной грницы таблиц
+%   { /Yk swap def }
+%   { pop } ifelse  % Сохранили в переменную Yk нижнюю координату таблицы
+
+    dup /Yk swap def    % Сохранили в переменную Yk нижнюю координату таблицы
+    dup Yk_min min /Yk_min swap def % Сохранили в переменную Yk_min самую нижнюю координату таблицы
+
+    % на стеке: x0, y0
+%   Yk  % на стеке: x0, y0, yk
+
+    % Рисуем вертикальные линии отделяющие главные столбцы данных таблицы
+    ParamInd_Nach 1 ParamInd_Kon
+    {
+        XCols swap get
+        2 index 2 index
+        Vert_gl_st
+    } for
+
+    Rama_Data_Table % Рисуем замыкающую рамку таблицы
+    % на стеке: x0, y0, yk
+
+    % Рисуем вертикальные линии разделяющие элементарные столбцы
+    Cols max_el
+    1 gt
+    {
+        XCols_el { vline_el_cols } forall
+    } if
+
+    % на стеке: x0, y0, yk
+
+        % Печатаем столбцы данных
+        ParamInd_Nach 1 ParamInd_Kon
+    {       % Проходим по главным столбцам начиная с индекса печатаемого параметра на стеке: x0, y0, yk, ind
+                XCols over get          % на стеке: x0, y0, yk, ind, x_нач главного столбца
+                Cols 2 index get    % получили число элементарных столбцов n, на стеке: x0, y0, y, ind, x_нач, n
+                dup 1 gt
+                {       % Главный столбец содежит элементарные столбцы. на стеке: x0, y0, y, ind, x_нач, n
+            % Определим название параметра и нормы
+            Param 4 -1 roll get 10 string cvs   % на стеке: x0, y0, y, x_нач, n, (Парам)
+            dup (Norm) swap Concat_string dup   % на стеке: x0, y0, y, x_нач, n, (Парам), (NormПарам), (NormПарам)
+            (Min) Concat_string cvx exec    % на стеке: x0, y0, y, x_нач, n, (Парам), (NormПарам), NormПарамMin
+            swap (Max) Concat_string cvx exec   % на стеке: x0, y0, y, x_нач, n, (Парам), NormПарамMin, NormПарамMax
+                        1 1 6 -1 roll
+            {   % Проходим по элементарным столбцам. 
+                % на стеке: x0, y0, y, x_нач, (Парам), NormПарамMin, NormПарамMax, ind_el
+                    5 -1 roll   % на стеке: x0, y0, y, (Парам), NormПарамMin, NormПарамMax, ind_el, x_нач
+                dup Def_col_width add   % на стеке: x0, y0, y, (Парам), NormПарамMin, NormПарамMax, ind_el, x_нач, x_кон
+                dup % на стеке: x0, y0, y, (Парам), NormПарамMin, NormПарамMax, ind_el, x_нач, x_кон, x_кон
+                7 1 roll    % на стеке: x0, y0, y, x_кон, (Парам), NormПарамMin, NormПарамMax, ind_el, x_нач, x_кон
+                4 index 4 index % на стеке: x0, y0, y, x_кон, (Парам), NormПарамMin, NormПарамMax, ind_el, x_нач, x_кон, NormПарамMin, NormПарамMax
+                7 index % на стеке: x0, y0, y, x_кон, (Парам), NormПарамMin, NormПарамMax, ind_el, x_нач, x_кон, NormПарамMin, NormПарамMax, (Парам)
+                6 -1 roll   % на стеке: x0, y0, y, x_кон, (Парам), NormПарамMin, NormПарамMax, x_нач, x_кон, NormПарамMin, NormПарамMax, (Парам), ind_el
+                2 string cvs Concat_string cvx exec
+                % на стеке: x0, y0, y, x_кон, (Парам), NormПарамMin, NormПарамMax, x_нач, x_кон, NormПарамMin, NormПарамMax, [Парамind_el]
+                Data_Print  % на стеке: x0, y0, y, x_кон, (Парам), NormПарамMin, NormПарамMax
+            } for
+            pop pop pop pop % на стеке: x0, y0, y
+                }
+                {   % Печатаем данные по главному столбцу
+            % на стеке: x0, y0, y, ind, x_нач, n
+            pop % на стеке: x0, y0, y, ind, x_нач
+            dup Def_col_width add   % на стеке: x0, y0, y, ind, x_нач, x_кон
+            Param 4 -1 roll get 10 string cvs   % на стеке: x0, y0, y, x_нач, x_кон, (Парам)
+            dup (Norm) swap Concat_string dup   % на стеке: x0, y0, y, x_нач, x_кон, (Парам), (NormПарам), (NormПарам)
+            (Min) Concat_string cvx exec    % на стеке: x0, y0, y, x_нач, x_кон, (Парам), (NormПарам), NormПарамMin
+            swap (Max) Concat_string cvx exec   % на стеке: x0, y0, y, x_нач, x_кон, (Парам), NormПарамMin, NormПарамMax
+            rot 1 2 string cvs Concat_string cvx exec   % на стеке: x0, y0, y, x_нач, x_кон, NormПарамMin, NormПарамMax, [Парам1]
+            Data_Print
+        }       
+                ifelse  % на стеке: x0, y0, yk
+        } for
+
+        rot pop swap pop
+    XCols ParamInd_Kon 1 add get
+    swap    % На стеке: xk, yk  
+} def
+
+/Yn bot def % Предуcтановили в переменной Yn координату нижней части таблицы статистики
+
+/Stat_Table_I   % Рисует таблицу статистических данных и норм для первичных параметров
+{   % Печатаем нулевой столбец статистики 
+    XCols 0 get dup Def_col_width add Yk    % На стеке: x0, x1, yk
+    2.5 mm sub  % Перенесли y в низ на 4 мм
+    Times_Italic 8 newsize
+    3 copy (max) center_print
+    2.5 mm sub  % Перенесли y в низ на 3 мм
+    3 copy (Средн.) center_print
+    2.5 mm sub  % Перенесли y в низ на 3 мм
+    (min) center_print  % стек освобожден
+
+    % Печатаем статистику по параметрам
+    Times_Regular 8 newsize
+    ParamInd_Nach 1 ParamInd_Kon
+    {   % На стеке индекс параметра
+        dup XCols swap get  % на стеке ind, x-нач
+        over 1 add XCols swap get % на стеке: ind, x-нач, x-кон
+        Param 3 index get 10 string cvs % на стеке: ind, x-нач, x-кон, (Парам)
+        Cols 5 -1 roll get  % на стеке: x-нач, x-кон, (Парам), число элем столбцов
+        1 1 rot
+        {   % проходим по всем элем. столбцам. на стеке: x-нач, x-кон, (Парам), ind
+            dup 2 string cvs swap   % на стеке: x-нач, x-кон, (Парам), (ind), ind
+            1 gt
+            {   % Не первый элем. столбец на стеке: x-нач, x-кон, [Объед. по парам], (Парам), (ind)
+                over swap Concat_string
+                cvx exec    % на стеке: x-нач, x-кон, [Объед. по парам], (Парам), [Парамind]
+                rot Concat_array swap % на стеке: x-нач, x-кон, [Объед. по парам с тек.], (Парам)
+            }
+            {       % Первый элем. столбец на стеке: x-нач, x-кон, (Парам), (ind)
+                over swap Concat_string
+                cvx exec    % на стеке: x-нач, x-кон, (Парам), [Парам1]
+                swap    % на стеке: x-нач, x-кон, [Парам1], (Парам)
+            } ifelse
+        } for
+        % на стеке: x-нач, x-кон, [Объед. по парам с тек.], (Парам)
+        pop % Удалили строку названия параметра на стеке: x-нач, x-кон, [Объед. по парам с тек.]
+        dup max_znach dup
+        type /nulltype eq
+        {   % Максимальное значение не определено
+            pop (нет.)
+        }
+        {
+            ExpStr 10 string cvs    % на стеке: x-нач, x-кон, [Объед. по парам с тек.], (max_знач)
+        } ifelse
+        Yk 2.5 mm sub dup   % на стеке: x-нач, x-кон, [Объед. по парам с тек.], (max_знач), y, y
+        5 index 5 index % на стеке: x-нач, x-кон, [Объед. по парам с тек.], (max_знач), y, y, x-нач, x-кон
+        rot 5 -1 roll center_print  % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y
+        2.5 mm sub
+        over    % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y, [Объед. по парам с тек.]
+        sred_znach dup
+        type /nulltype eq
+        {   % Среднее значение не определено
+            pop (нет.)
+        }
+        {
+            01percent_format ExpStr 10 string cvs   % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y, (сред_знач)
+        } ifelse
+        4 index 4 index % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y, (сред_знач), x-нач, x-кон
+        3 index 4 -1 roll center_print  % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y
+        2.5 mm sub swap
+        min_znach dup
+        type /nulltype eq
+        {   % Минимальное значение не определено
+            pop (нет.)
+        }
+        {
+            ExpStr 10 string cvs    % на стеке: x-нач, x-кон, y, (мин_знач)
+        } ifelse
+        center_print
+        
+%       Param 4 -1 roll get 10 string cvs   % на стеке: x-нач, x-кон, (Парам)
+%       (Ism) swap Concat_string    % на стеке: x-нач, x-кон, (IsmПарам)
+%       3 1 roll    % на стеке: (IsmПарам), x-нач, x-кон
+%       Yk 4 mm sub % на стеке: (IsmПарам), x-нач, x-кон, y
+%       3 copy  % на стеке: (IsmПарам), x-нач, x-кон, y, x-нач, x-кон, y
+%       6 index (Max) Concat_string cvx exec 10 string cvs
+%       center_print
+%       3 mm sub
+%       3 copy  % на стеке: (IsmПарам), x-нач, x-кон, y, x-нач, x-кон, y
+%       6 index (Sred) Concat_string cvx exec 10 string cvs
+%       center_print
+%       3 mm sub
+%       % на стеке: (IsmПарам), x-нач, x-кон, y
+%       4 -1 roll (Min) Concat_string cvx exec 10 string cvs
+%       center_print
+    } for
+
+    % Отрисовываем разделительные линии главных стоблцов статискики
+    Yk dup 8 mm sub
+    ParamInd_Nach 1 ParamInd_Kon
+    {   % На стеке yk, y, ind
+        XCols swap get
+        2 index 2 index
+        Vert_gl_st
+    } for
+    /Ys swap def    % Сохранили в переменной Ys координату нижней части таблицы статистики
+    pop % Удалили со стека значение yk
+
+    % Рисуем горизотнтальный разделитель для норм
+    XCols 0 get dup
+    XCols ParamInd_Kon 1 add get
+    swap sub dup rot Ys
+    newpath moveto 0 rlineto
+    0 -2.5 mm rlineto
+    neg 0 rlineto
+    closepath
+    0.3 mm setlinewidth
+    stroke
+    
+    % Подпись нормы
+    XCols 0 get 3 mm add Ys 1.8 mm sub
+    Times_Regular 6 newsize
+    moveto (Нормы(100%)) show
+
+    % Печатаем нулевой столбец норм 
+    XCols 0 get dup Def_col_width add Ys    % На стеке: x0, x1, ys
+    5 mm sub    % Перенесли y в низ на 7 мм
+    Times_Italic 8 newsize
+    3 copy (max) center_print
+    2.5 mm sub  % Перенесли y в низ на 3 мм
+    (min) center_print  % стек освобожден
+
+    % Печатаем нормы по параметрам
+    Times_Regular 8 newsize
+    ParamInd_Nach 1 ParamInd_Kon
+    {   % На стеке индекс параметра
+        dup XCols swap get  % на стеке ind, x-нач
+        over 1 add XCols swap get % на стеке: ind, x-нач, x-кон
+        Param 4 -1 roll get 10 string cvs   % на стеке: x-нач, x-кон, (Парам)
+        (Norm) swap Concat_string   % на стеке: x-нач, x-кон, (NormПарам)
+        3 1 roll    % на стеке: (NormПарам), x-нач, x-кон
+        Ys 5 mm sub % на стеке: (NormПарам), x-нач, x-кон, y
+        3 copy  % на стеке: (IsmПарам), x-нач, x-кон, y, x-нач, x-кон, y
+        6 index (Max) Concat_string cvx exec    % на стеке: (IsmПарам), x-нач, x-кон, y, x-нач, x-кон, y, Знач максимальной нормы
+        dup
+        Inf eq
+        {   % Максимальная норма не задана не печатаем ничего
+            pop pop pop pop
+        }
+        {
+            10 string cvs
+            center_print
+        } ifelse
+        2.5 mm sub
+        % на стеке: (NormПарам), x-нач, x-кон, y
+        4 -1 roll (Min) Concat_string cvx exec 
+        dup -Inf eq
+        {
+            pop pop pop pop
+        }
+        {
+            10 string cvs
+            center_print
+        } ifelse
+    } for
+
+    % Отрисовываем разделительные линии главных стоблцов статискики
+    Ys 2.5 mm sub dup 5.5 mm sub
+    ParamInd_Nach 1 ParamInd_Kon
+    {
+        XCols swap get
+        2 index 2 index
+        Vert_gl_st
+    } for
+%   Yk min
+    /Yn swap def    % Сохранили в переменной Yn координату нижней части таблицы статистики
+    pop % Удалили со стека значение y
+
+    % Рисуем замыкающую рамку таблицы статистики и норм
+    XCols 0 get Yk
+    2 copy
+    newpath
+    moveto
+    Yn swap sub dup
+    0 swap rlineto
+    swap XCols ParamInd_Kon 1 add get
+    swap sub 0 rlineto
+    0 swap neg rlineto
+    closepath
+    0.3 mm setlinewidth
+    stroke
+} def
+
+/Print_Table_I  % Размещает таблицу первичных параметров по левому полю и на координате bot
+{   % Определим число строк данных выводимой таблицы
+    Param 1 get % на стеке: Парам
+    10 string cvs (1) Concat_string cvx exec
+    length /Data_count swap def % Сохранили в переменную Data_count число элементов в массиве данных
+
+    /ParamInd_Kon 0 def
+    {   % Проходим по не напечатанным частям таблицы
+        /DataInd_Kon 0 def
+        /ParamInd_Nach ParamInd_Kon 1 add def
+        Cols ParamInd_Nach Cols length ParamInd_Nach sub getinterval    % На стеке: оставшаяся часть массива столбцов
+        summ_el 1 add   % Определили число столбцов таблицы
+        Def_col_width mul   % Определили ширину оставшейся части таблицы
+        pole_rigth pole_left sub swap div % Определили число раз расположения таблицы K (число колонок)
+        floor   % Округлили к меньшему целому 0 таблица целиком не уместится, 1 уместится, K уместится
+        % Таблицу можно разместить в одной или более колонках
+        bot 25 mm sub pole_bot lt
+        {   % Таблица выводится в нижней части страницы и для не допускания висячей шапки переносим на др. стр.
+            NewPage
+            1 mm dec_bot
+        } if
+        % на стеке: K
+        {
+            /Data_ost Data_count DataInd_Kon sub def
+            Data_ost 4 le
+            {   % В таблице менее 4 строк данных, то она выводится в одну колонку
+                pop 1   % На стеке: 1
+            } if
+            dup Data_ost ge
+            {   % Может быть размещено колонок больше чем выводимых данных
+                pop Data_ost
+            } if
+                
+            dup % на стеке: K, K
+            % Определим число строк данных в одной колонке
+            1 gt
+            {   % Более одной колонки
+                dup Data_ost swap div ceiling cvi   % На стеке: K, Число строк в колонке из расчета размещения на одной стр.
+                /RowCount swap def  % Сохранили в переменную число строк в одной колонке
+            }
+            {   % Одна и менее колонок
+                /RowCount Data_ost def  % Сохранили в переменную число строк в одной колонке
+                pop 1
+            } ifelse
+
+            % Печатаем таблицу, если она не умещается на текущем листе, то переносим на след. стараницу
+            % На стеке: K (число колонок)
+            dup
+            0 1 rot 1 sub
+            {   % Проходим по колонкам
+                /DataInd_Nach DataInd_Kon 1 add def % Устанавливаем индекс начала данных печати
+                % На стеке: K, ind
+                RowCount Data_count DataInd_Kon sub
+                le
+                {   % Число не отпечатаных строк в таблице больше чем размер столбца
+                    /Kolvo RowCount def
+                }
+                {       % Число строк данных для распечатки меньше чем осталось
+                    /Kolvo Data_count DataInd_Kon sub def   % Установили в переменную количества оставшееся
+                                        % число строк данных
+                } ifelse    % на стеке: K, ind
+
+                Kolvo 0 ne
+                {
+                    0 eq
+                    {   % Печатаем первую колонку. на стеке: 
+                        pole_left bot   % Положили на стек координаты начала таблицы
+                        Part_Table_I
+                        pop     % Удалили yk
+                    }
+                    {   % Печатаем остальные колонки
+                        % на стеке: xk 
+                        bot
+                        Part_Table_I
+                        pop     % Удалили yk на стеке: xk               
+                    } ifelse
+                }
+                {
+                    pop exit
+                } ifelse
+            } for
+            pop % Удалили xk последней таблицы
+            DataInd_Kon Data_count lt
+            {   % Не все данные отпечатаны
+                NewPage
+                1 mm dec_bot
+            }
+            {   % Все данные отпечатаны
+                exit
+            } ifelse
+        } loop
+        % Проверяем размещение на текущем листе таблицы статистики
+        Yk 22 mm sub pole_bot lt
+        {   % Таблица статистики не уместится на текущем листе
+            NewPage
+            4 mm dec_bot
+            XCols ParamInd_Kon 1 add get bot (Окончание таблицы) rigth_print
+            1 mm dec_bot
+            /Yk bot def
+        } if
+
+        Stat_Table_I    % Печатаем таблицу статистики и норм
+        /bot Yn Yk_min min def  % Запишем в переменную bot нижнюю границу таблицы норм  
+        
+        ParamInd_Kon Param length 1 sub lt  % Сравниваем индекс последнего напечатанного параметра с длиной массива параметров
+        {   % Не все параметры напечатаны
+            1 mm dec_bot    % Следующая часть параметров выводится ниже на 5 мм             
+        }
+        {   % Все параметры напечатаны
+            exit
+        } ifelse    
+    } loop
+
+    % Ложим на стек xk, yk для дальнейшего использования
+    XCols ParamInd_Kon 1 add get Yn
+} def
+
+/Komb_Riz
+{   % Вставляет таблицу комбинационных измерений сопротивления изоляции
+    % на стеке: x0, y0
+    /ParamInd_Nach 1 def
+    /DataInd_Nach 1 def
+    dup 40 mm sub pole_bot lt
+    {   % таблица комбинационных испытаний не уместится на текущем листе
+        NewPage
+        1 mm dec_bot
+        pop pop pole_left bot
+    } if
+
+    over pole_left ne %sub abs 0.1 le
+    {   % таблица выводится не по левому полю поднимим её на один уровень с предыдущей таблицей
+        pop 1 mm add Y0
+    } if
+    
+    over Def_col_width 2 mul add pole_rigth gt
+    {   % таблица не уместится по ширине листа перенесём её к левому полю
+        1 mm dec_bot
+        pop pop pole_left bot
+    } if
+
+    % Определим число строк данных выводимой таблицы
+    Param 1 get % на стеке: Парам
+    10 string cvs (1) Concat_string cvx exec
+    length /Kolvo swap def % Сохранили в переменную Kolvo число элементов в массиве данных
+
+    2 copy
+    Part_Table_I    % На стеке: x0, y0, xk, yk
+    3 mm sub    % На стеке: x0, y0, xk, y
+    4 -1 roll
+    over    % На стеке: y0, xk, y, x0, y
+    Times_Italic 8 newsize 
+    moveto Riz_0 a_b 
+    Times_Regular 8 newsize
+    ( Норма:) show  % На стеке: y0, xk, y
+    rot pop % На стеке: xk, y
+    3 mm sub
+    2 copy  
+
+    NormRizMin 10 string cvs  ( ) Concat_string
+    EdIsmNormRiz Concat_string
+    rigth_print % На стеке: xk, y
+    % Проверим какая таблица заканчивается ниже
+    Yn min bot min
+    dup /bot swap def
+} def
+
+/Def_col_width_al 15 mm def % ширина столбца по умолчанию
+
+/al_ind_data    % Определяет индекс первого или единственного массива данных рабочего затух. в двумерном массиве данных
+{   % На стеке индекс главного столбца
+    dup
+    -1
+    1 1 4 -1 roll
+    {
+        Cols swap get add
+    } for
+    Cols rot get
+    1 sub sub
+} def
+
+/Num_al* null def   % Индекс параметра рабочего затухания полученный расчётно
+
+/Part_Table_al % Печатает часть таблицы рабочего затухания. на стеке x0, y0 
+{
+
+    dup /Y0 swap def
+    /Captoin_Table1 (Рабочее затухание) def
+    /tetx_table (Таблица) def
+    /XCols pole_rigth pole_left sub Def_col_width div floor cvi 2 mul array def % Массив X-координат границ
+                        % главных (ограничивающих разные параметры) столбцов
+
+    over dup XCols 0 rot put % Сохранили x0 в нулевой элемент массива координат
+    over % на стеке x0, y0, x0, y0
+    3.5 mm sub % Строка вывода названий параметров ниже на 3.5 мм (y=y0-3.5mm)
+
+    over Def_col_width add  % Ширина нулевого столбца определена на стеке: x0, y0,  x0, y, x1
+    swap over XCols ParamInd_Nach rot put  % Сохранили в массиве координату дальней границы текущего столбца
+    2 copy  % на стеке: x0, y0,  x0, x1, y, x1, y
+    5 -1 roll 3 1 roll  % на стеке: x0, y0, x1, y, x0, x1, y
+    NumNum
+
+    0 % Для первого удаления со стека в цикле (типа индекс последнего напечатанного элемента)
+
+    ParamInd_Nach 1 Cols length 1 sub % На стеке: x0, y0, x0, y, 0, 1, индекс последнего элемента
+    {
+        swap pop    % удалили индекс последнего напечатаного параметра
+        dup 1 add swap dup % Дублируем индекс массива для определения числа столбцов
+        5 1 roll % Для переноса индекса массива
+        Cols swap get
+        dup
+        1 gt
+        {   % Главный столбец содержит элементарные столбцы
+            Def_col_width mul
+        }
+        {
+            pop Def_col_width_al
+        } ifelse
+         
+        3 index add % Ширина столбца определена на стеке: x_ind-1, y, x_ind
+        dup pole_rigth gt  % Проверка выхода за поля страницы
+        {   % Произошел выход за поля страницы
+            pop pop rot 1 sub
+            exit % Выходим из цикла
+        } if    % Поля не достигнуты продолжаем
+        swap over XCols 3 1 roll put  % Сохранили в массиве координату дальней границы текущего столбца
+        swap        % x0, x1, y
+        3 copy          % x0, x1, y, x0, x1, y
+        6 -1 roll pop   % ind, x1, y, x0, x1, y стек готов к вызову процедуры печати по центру меж x_ind-1 x_ind
+        Num_al* type /nulltype ne
+        {   % Индекс расчётного параметра установлен
+            Num_al* type /arraytype eq
+            {
+                5 index Num_al* in_array
+                {   % Выводится столбец с расчётным параметром
+                    al*
+                }
+                {
+                    al
+                } ifelse
+            }
+            {
+                5 index Num_al* eq
+                {   % Выводится столбец с расчётным параметром
+                    al*
+                }
+                {
+                    al
+                } ifelse
+            } ifelse
+        }
+        {
+            al  % Печатаем обозначение рабочего затухания
+        } ifelse
+        zpt
+        rot
+    } for % на стеке: x0, y0, xk, y, ind где ind индекс последнего напечатаного параметра в массиве параметров
+
+    /ParamInd_Kon swap def % Сохраняем в переменную IndParam индекс последнего напечатаного параметра в массиве параметров
+    swap pop
+
+    % Печатаем строку единиц измерения ниже строки параметров на 3.5 мм
+    Times_Regular 8 newsize % Установили шрифт 8 пт.
+    3.5 mm sub % на стеке: x0, y0, y-3.5мм
+
+    % Печатаем строку наименований структур (нулевой столбец)
+    XCols 0 get % на стеке: x0, y0, y, x_0
+    XCols ParamInd_Nach get % на стеке: x0, y0, y, x_0, x_1
+    2 index % на стеке: x0, y0, y, ind, x_i, x_i+1, y
+    StructTip center_print
+
+    % Печатаем строку единиц измерения (остальные столбцы)
+    ParamInd_Nach 1 ParamInd_Kon
+    {   % на стеке: x0, y0, y, ind
+        XCols over get  % на стеке: x0, y0, y, ind, x_i
+        XCols 2 index 1 add get % на стеке: x0, y0, y, ind, x_i, x_i+1
+        3 index % на стеке: x0, y0, y, ind, x_i, x_i+1, y
+        4 -1 roll
+        Num_al* type /nulltype ne
+        {   % Индекс расчётного параметра установлен
+            Num_al* type /arraytype eq
+            {
+                Num_al* in_array
+                {   % Выводится столбец с расчётным параметром
+                    (дБ/км)
+                }
+                {
+                    EdIsm_al
+                } ifelse
+            }
+            {
+                Num_al* eq
+                {   % Выводится столбец с расчётным параметром
+                    (дБ/км)
+                }
+                {
+                    EdIsm_al
+                } ifelse
+            } ifelse
+        }
+        {
+            pop
+            EdIsm_al
+        } ifelse
+        center_print
+    } for   % на стеке: x0, y0, y
+
+    3.5 mm sub % на стеке: x0, y0, y-3.5мм
+    % Печатаем строку частот (остальные столбцы)
+    dup 1.5 mm sub /Yh swap def % сохранили значение координаты Y предположительного окончания шапки табл.
+    ParamInd_Nach 1 ParamInd_Kon
+    {   % на стеке: x0, y0, y, ind
+        XCols over get  % на стеке: x0, y0, y, ind, x_i
+        2 index % на стеке: x0, y0, y, ind, x_i, y
+
+        Freq_min 3 index 1 sub get  % на стеке: x0, y0, y, ind, x_i, y, f_min
+        dup type /nulltype eq
+        {   % Минимальная частота не задана
+            pop pop pop pop
+        }
+        {       % Минимальная частота задана проверяем заданность максимальной частоты
+            Freq_max 4 index 1 sub get % на стеке: x0, y0, y, ind, x_i, y, f_min, f_max
+            dup type /nulltype eq
+            {   % Максимальная частота не задана
+                pop % Удаляем остатки значение (null) от не заданой f_max
+                % на стеке: x0, y0, y, ind, x_i, y, f_min
+                rot 1.5 mm add rot 4 sub % на стеке: x0, y0, y, ind, f_min, x_i, y
+                dup 1.5 mm sub Yh min /Yh swap def  % сохранили значение координаты Y
+                                    % предположительного окончания шапки табл.
+                moveto  % на стеке: x0, y0, y, ind, f_min
+                swap 4 string cvs swap  % на стеке: x0, y0, y, (ind), f_min
+                f_x % на стеке: x0, y0, y
+            }
+            {       % Максимальная частота задана печатаем оба значения частоты
+                % на стеке: x0, y0, y, ind, x_i, y, f_min, f_max
+                4 -1 roll 1.5 mm add    % на стеке: x0, y0, y, ind, y, f_min, f_max, x
+                4 -1 roll 2 copy    % на стеке: x0, y0, y, ind, f_min, f_max, x, y, x, y
+                moveto  % на стеке: x0, y0, y, ind, f_min, f_max, x, y
+                (min) 5 -1 roll % на стеке: x0, y0, y, ind, f_max, x, y, (min), f_min
+                f_x
+                3.5 mm sub  % на стеке: x0, y0, y, ind, f_max, x, y
+                dup 1.5 mm sub Yh min /Yh swap def  % сохранили значение координаты Y
+                                    % предположительного окончания шапки табл.
+                moveto  % на стеке: x0, y0, y, ind, f_max
+                (max) swap f_x pop  % на стеке: x0, y0, y
+            } ifelse
+        } ifelse
+
+    } for   % на стеке: x0, y0, y
+    pop Yh
+    
+    Times_Regular 8 newsize % Установили шрифт 10 пт.
+    % Печатаем строку с номерами жил (пар)
+    % Предваретельно определим максимальное число элементарных столбцов (обычно оно равно числу жил в структуре)
+    Cols max_el dup 
+    1 gt
+    {   % Таблица не по жилам значит печатаем строку нумерации жил
+        % на стеке: x0, y0, y, col_max
+        swap 3.5 mm sub % перенесли строку вывода вниз на 3.5 мм % на стеке: x0, y0, col_max, y
+        mark    % Положили на стек метку под ней лежит координата y
+        ParamInd_Nach 1 ParamInd_Kon
+        {   % Проходим по главным столбцам со второго на стеке: x0, y0, col_max, y, mark, ind
+            XCols over get      % на стеке: x0, y0, col_max, y, mark, ind, x_нач главного столбца
+            Cols rot get    % получили число элементарных столбцов n, на стеке: x0, y0, col_max, y, mark, x_i, n
+            dup 1 gt  
+            {   % Главный столбец содежит элементарные столбцы. на стеке: x0, y0, col_max, y, mark, x_i, n
+                % Определим как печатать номера элементарных столбцов
+                dup counttomark 2 add index swap    % на стеке: x0, y0, col_max, y, mark, x_i, n, col_max, n
+                idiv 1 gt   % на стеке: x0, y0, y, mark, x_i, n, (col_max/n > 1)
+                {   % Печатаем как для пар на стеке: x0, y0, y, mark, x_i, n
+                    1 1 rot
+                    {   % на стеке: x0, y0, col_max, y, mark, x_i, ...,xel_i ind_el
+                        swap dup Def_col_width add  % на стеке: x0, y0, col_max, y, mark, x_i, ..., ind_el, xel_i, xel_i+1
+                        2 copy % на стеке: x0, col_max, y0, y, mark, x_i, ..., ind_el, xel_i, xel_i+1, xel_i, xel_i+1
+                        counttomark 1 add index % на стеке: x0, y0, col_max, y, mark, x_i, ..., ind_el, xel_i, xel_i+1, xel_i, xel_i+1, y
+                        6 -1 roll   % на стеке: x0, y0, col_max, y, mark, x_i, ..., xel_i, xel_i+1, xel_i, xel_i+1, y, ind_el
+                        a-b_center_print
+                        graniz_el_cols  % Печатаем отделяющую линию номеров пар 
+                    } for
+                }
+                {   % Печатаем как для жил
+                    1 1 rot
+                    {   % на стеке: x0, y0, col_max, y, mark, x_i, ...,xel_i ind_el
+                        swap dup Def_col_width add  % на стеке: x0, y0, col_max, y, mark, x_i, ..., ind_el, xel_i, xel_i+1
+                        2 copy % на стеке: x0, y0, col_max, y, mark, x_i, ..., ind_el, xel_i, xel_i+1, xel_i, xel_i+1
+                        counttomark 1 add index % на стеке: x0, y0, col_max, y, mark, x_i, ..., ind_el, xel_i, xel_i+1, xel_i, xel_i+1, y
+                        6 -1 roll   % на стеке: x0, y0, col_max, y, mark, x_i, ..., xel_i, xel_i+1, xel_i, xel_i+1, y, ind_el
+                        a-b_center_print
+%                       4 string cvs center_print   % на стеке: x0, y0, col_max, y, mark, x_i, xel_i+1
+                        graniz_el_cols  % Печатаем отделяющую линию номеров жил 
+                    } for
+                } ifelse                
+            }
+            {pop pop}   % Удаляем со стека n и x-нач главного столбца
+            ifelse
+        } for 
+
+        % Сохраняем координаты X елементарных столбцов в массиве
+        counttomark array /XCols_el swap def
+        counttomark 1 sub -1 0
+        { XCols_el swap rot put
+        } for
+        pop % Удалили метку
+        swap pop % Удалили col_max
+        % на стеке: x0, y0, y
+        1 mm sub Yh min
+        /Yh swap def
+
+    }
+    {
+        pop pop % Удаляем максимальное число элементарных столбцов на стеке: x0, y0
+    } ifelse
+
+%   1 mm sub Yh min
+%   /Yh swap def
+    Yh
+
+    ParamInd_Nach 1 ParamInd_Kon
+    {
+        XCols swap get
+        2 index 2 index
+        Vert_gl_st_head     
+    } for
+
+        Times_Regular 8 newsize % Установили шрифт 10 пт.
+    % Рисуем рамку ограничения шапки таблицы ниже на 1 мм
+    Rama_Head_Table
+
+    3 mm sub dup    % на стеке: x0, y0, y, y
+    /Y1 swap def    % Сохранили в переменную Y1 координату первой строки таблицы
+
+    % Печатаем столбец номеров
+    Numbers_Cols_print
+
+    /DataInd_Kon swap def   % Сохранили индекс последнего напечатаного номера (жилы, пары)
+    pop % Удалили xr
+    2.5 mm add  % Нижняя координата таблицы ниже последней выведенной строки на 1 мм
+    dup /Yk swap def    % Сохранили в переменную Yk нижнюю координату таблицы
+    dup Yk_min min  /Yk_min swap def    % Сохранили в переменную Yk_min самую нижнюю координату таблицы
+
+    % на стеке: x0, y0
+%   Yk  % на стеке: x0, y0, yk
+    % Рисуем вертикальные линии отделяющие главные столбцы данных таблицы
+    ParamInd_Nach 1 ParamInd_Kon
+    {
+        XCols swap get
+        2 index 2 index
+        Vert_gl_st
+    } for
+
+    Rama_Data_Table % Рисуем замыкающую рамку таблицы
+    % на стеке: x0, y0, yk
+
+    % Рисуем вертикальные линии разделяющие элементарные столбцы
+    Cols max_el
+    1 gt
+    {
+        XCols_el { vline_el_cols } forall
+    } if
+
+    % на стеке: x0, y0, yk
+
+    % Печатаем столбцы данных
+    ParamInd_Nach 1 ParamInd_Kon
+    {       % Проходим по главным столбцам начиная с индекса печатаемого параметра на стеке: x0, y0, yk, ind
+                XCols over get          % на стеке: x0, y0, yk, ind, x_нач главного столбца
+                Cols 2 index get    % получили число элементарных столбцов n, на стеке: x0, y0, y, ind, x_нач, n
+                dup 1 gt
+                {       % Главный столбец содежит элементарные столбцы. на стеке: x0, y0, y, ind, x_нач, n
+            NormalMax 3 index 1 sub get % на стеке: x0, y0, y, ind, x_нач, n, NormMax
+            4 -1 roll   % на стеке: x0, y0, y, x_нач, n, NormMax, ind       
+            al_ind_data % на стеке: x0, y0, y, x_нач, n, NormMax, data_ind_el1
+            0 1 5 -1 roll 1 sub
+            {   % Проходим по элементарным столбцам.
+                % на стеке: x0, y0, y, x_нач, NormMax, data_ind_el1, ind_el
+                over add    % на стеке: x0, y0, y, x_нач, NormMax, data_ind_el1, data_ind_el
+                4 -1 roll   % на стеке: x0, y0, y, NormMax, data_ind_el1, data_ind_el, x_нач
+                                dup Def_col_width add   % на стеке: x0, y0, y, NormMax, data_ind_el1, data_ind_el, x_нач, x_кон
+                dup 6 1 roll    % на стеке: x0, y0, y, x_кон, NormMax, data_ind_el1, data_ind_el, x_нач, x_кон
+                0 5 index   % на стеке: x0, y0, y, x_кон, NormMax, data_ind_el1, data_ind_el, x_нач, x_кон, 0, NormMax
+                al_data 6 -1 roll get
+                Data_Print  % на стеке: x0, y0, y, x_кон, NormMax, data_ind_el1
+            } for
+            pop pop pop % на стеке: x0, y0, y
+                }
+                {   % Печатаем данные по главному столбцу
+            % на стеке: x0, y0, y, ind, x_нач, n
+            pop % на стеке: x0, y0, y, ind, x_нач
+            dup Def_col_width_al add    % на стеке: x0, y0, y, ind, x_нач, x_кон
+            0 NormalMax 4 index 1 sub get         % на стеке: x0, y0, y, ind, x_нач, x_кон, 0, NormMax
+            al_data 6 -1 roll al_ind_data get   % на стеке: x0, y0, y, ind, x_нач, x_кон, 0, NormMax, [данные]
+            Data_Print
+        }       
+                ifelse  % на стеке: x0, y0, yk
+    } for
+
+        rot pop swap pop
+    XCols ParamInd_Kon 1 add get
+    swap    % На стеке: xk, yk  
+} def
+
+/Stat_Table_al  % Рисует таблицу статистических данных и норм для рабочего затухания
+{   % Печатаем нулевой столбец статистики 
+    XCols 0 get dup Def_col_width add Yk    % На стеке: x0, x1, yk
+    2.5 mm sub  % Перенесли y в низ на 4 мм
+    Times_Italic 8 newsize
+    3 copy (max) center_print
+    2.5 mm sub  % Перенесли y в низ на 3 мм
+    3 copy (Средн.) center_print
+    2.5 mm sub  % Перенесли y в низ на 3 мм
+    (min) center_print  % стек освобожден
+
+    % Печатаем статистику по параметрам
+    Times_Regular 8 newsize
+    ParamInd_Nach 1 ParamInd_Kon
+    {   % На стеке индекс параметра
+        dup XCols swap get  % на стеке: ind, x-нач
+        over 1 add XCols swap get % на стеке: ind, x-нач, x-кон
+        Cols 3 index get    % на стеке: ind, x-нач, x-кон, n число элем столбцов
+        4 -1 roll al_ind_data   % на стеке: x-нач, x-кон, n число элем столбцов, data_ind_el1
+        swap
+        0 1 rot 1 sub
+        {   % проходим по всем элем. столбцам. на стеке: x-нач, x-кон, data_ind_el1, ind_el
+            dup 0 gt
+            {   % Не первый элем. столбец на стеке: x-нач, x-кон, data_ind_el1, [данные], ind_el
+                2 index add % на стеке: x-нач, x-кон, data_ind_el1, [данные], data_ind_el
+                al_data swap get    % на стеке: x-нач, x-кон, data_ind_el1, [данные], [данныеind_el]
+                Concat_array    % на стеке:  x-нач, x-кон, data_ind_el1, [Объед. по частоте]
+            }
+            {       % Первый элем. столбец на стеке: x-нач, x-кон, data_ind_el1, ind_el
+                pop
+                al_data over get    % на стеке: x-нач, x-кон, data_ind_el1, [данные]
+            } ifelse
+        } for
+        % на стеке: x-нач, x-кон, data_ind_el1, [Объед. по частоте]
+        swap pop    % Удалили строку названия параметра на стеке: x-нач, x-кон, [Объед. по частоте]
+        dup max_znach dup
+        type /nulltype eq
+        {   % Максимальное значение не определено
+            pop (нет.)
+        }
+        {
+            10 string cvs   % на стеке: x-нач, x-кон, [Объед. по парам с тек.], (max_знач)
+        } ifelse
+        Yk 2.5 mm sub dup   % на стеке: x-нач, x-кон, [Объед. по парам с тек.], (max_знач), y, y
+        5 index 5 index % на стеке: x-нач, x-кон, [Объед. по парам с тек.], (max_знач), y, y, x-нач, x-кон
+        rot 5 -1 roll center_print  % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y
+        2.5 mm sub
+        over    % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y, [Объед. по парам с тек.]
+        sred_znach dup
+        type /nulltype eq
+        {   % Среднее значение не определено
+            pop (нет.)
+        }
+        {
+            01percent_format 10 string cvs  % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y, (сред_знач)
+        } ifelse
+        4 index 4 index % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y, (сред_знач), x-нач, x-кон
+        3 index 4 -1 roll center_print  % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y
+        2.5 mm sub swap
+        min_znach dup
+        type /nulltype eq
+        {   % Минимальное значение не определено
+            pop (нет.)
+        }
+        {
+            10 string cvs   % на стеке: x-нач, x-кон, y, (мин_знач)
+        } ifelse
+        center_print
+    } for
+
+    % Отрисовываем разделительные линии главных стоблцов статискики
+    Yk dup 8 mm sub
+    ParamInd_Nach 1 ParamInd_Kon
+    {   % На стеке yk, y, ind
+        XCols swap get
+        2 index 2 index
+        Vert_gl_st
+    } for
+    /Ys swap def    % Сохранили в переменной Ys координату нижней части таблицы статистики
+    pop % Удалили со стека значение yk
+
+    % Рисуем горизотнтальный разделитель для норм
+    XCols 0 get dup
+    XCols ParamInd_Kon 1 add get
+    swap sub dup rot Ys
+    newpath moveto 0 rlineto
+    0 -2.5 mm rlineto
+    neg 0 rlineto
+    closepath
+    0.3 mm setlinewidth
+    stroke
+    
+    % Подпись нормы
+    XCols 0 get 3 mm add Ys 1.8 mm sub
+    Times_Regular 6 newsize
+    moveto (Нормы(100%)) show
+
+    % Печатаем нулевой столбец норм 
+    XCols 0 get dup Def_col_width add Ys    % На стеке: x0, x1, ys
+    5 mm sub    % Перенесли y в низ на 7 мм
+    Times_Italic 8 newsize
+    3 copy (max) center_print
+
+    % Печатаем нормы по параметрам
+    Times_Regular 8 newsize
+    ParamInd_Nach 1 ParamInd_Kon
+    {   % На стеке индекс параметра
+        dup XCols swap get  % на стеке ind, x-нач
+        over 1 add XCols swap get % на стеке: ind, x-нач, x-кон
+        NormalMax 4 -1 roll 1 sub get 10 string cvs % на стеке: x-нач, x-кон, (Норма al max)
+        Ys 5 mm sub swap    % на стеке: x-нач, x-кон, y, (Норма al max)
+        center_print
+    } for
+
+    % Отрисовываем разделительные линии главных стоблцов статискики
+    Ys 2.5 mm sub dup 3 mm sub
+    ParamInd_Nach 1 ParamInd_Kon
+    {
+        XCols swap get
+        2 index 2 index
+        Vert_gl_st
+    } for
+    /Yn swap def    % Сохранили в переменной Yn координату нижней части таблицы статистики
+    pop % Удалили со стека значение y
+
+    % Рисуем замыкающую рамку таблицы статистики и норм
+    XCols 0 get Yk
+    2 copy
+    newpath
+    moveto
+    Yn swap sub dup
+    0 swap rlineto
+    swap XCols ParamInd_Kon 1 add get
+    swap sub 0 rlineto
+    0 swap neg rlineto
+    closepath
+    0.3 mm setlinewidth
+    stroke
+} def
+
+/Print_Table_al
+{   % Печатает таблицу рабочего затухания
+    % Определим число строк данных выводимой таблицы
+%   5 mm dec_bot
+    al_data 0 get % на стеке: [al]
+    length /Data_count swap def % Сохранили в переменную Data_count число элементов в массиве данных
+
+    Cols    % На стеке: массив столбцов
+    % Определим ширину всей таблицы
+    Def_col_width swap
+    {
+        dup
+        1 gt
+        {   % В текущем столбце существуют элементарные столбцы
+            Def_col_width mul   % Определили ширину необходимую для отображения главного столбца
+            add
+        }
+        {   % В текущем столбце нет элементарных столбцов
+            pop
+            Def_col_width_al add
+        } ifelse
+    } forall    % Определили ширину необходимую для отображения всей таблицы
+
+    swap pop    % Удалили yk с предыдущего вывода таблицы
+    /XNach rot 
+    dup pole_left sub abs 0.1 mm ge
+    {   % Таблица выводится не по левому полю тогда делаем отступ
+        1 mm add
+    } if
+    def % Попробуем вывести таблицу справа с отступом 5 мм.
+    pole_rigth 0.1 add XNach sub    % на стеке: Ширина таблицы, ширина свободной области печати
+    gt
+    {   % Оставшаяся часть листа меньше ширины таблицы
+        /XNach pole_left def    % Таблица выводится по левому краю
+        /YNach bot 1 mm sub def
+    }
+    {   % Таблица может быть выведена справа
+        /YNach Y0 def
+    } ifelse
+    YNach 35 mm sub pole_bot lt
+    {   % Таблица выводится в нижней части страницы и для не допускания висячей шапки переносим на др. стр.
+        NewPage
+        1 mm dec_bot
+        /XNach pole_left def    % Таблица выводится по левому краю
+        /YNach bot def
+    } if
+
+    /ParamInd_Kon 0 def
+    {   % Проходим по не напечатанным частям таблицы
+        /DataInd_Kon 0 def
+        /ParamInd_Nach ParamInd_Kon 1 add def
+        Cols ParamInd_Nach Cols length ParamInd_Nach sub getinterval    % На стеке: оставшаяся часть массива столбцов
+        % Определим ширину оставшейся части таблицы
+        Def_col_width swap
+        {
+            dup
+            1 gt
+            {   % В текущем столбце существуют элементарные столбцы
+                Def_col_width mul   % Определили ширину необходимую для отображения главного столбца
+                add
+            }
+            {   % В текущем столбце нет элементарных столбцов
+                pop
+                Def_col_width_al add
+            } ifelse
+        } forall    % Определили ширину необходимую для отображения оставшейся таблицы
+
+        pole_rigth XNach sub swap div % Определили число раз расположения таблицы K (число колонок)
+        floor   % Округлили к меньшему целому 0 таблица целиком не уместится, 1 уместится, K уместится
+        % Таблицу можно разместить в одной или более колонках
+        bot 35 mm sub pole_bot lt
+        {   % Таблица выводится в нижней части страницы и для не допускания висячей шапки переносим на др. стр.
+            NewPage
+            1 mm dec_bot
+            /XNach pole_left def    % Таблица выводится по левому краю
+            /YNach bot def
+        } if
+        % на стеке: K
+        {
+            /Data_ost Data_count DataInd_Kon sub def
+            Data_ost 4 le
+            {   % В таблице менее 4 строк данных, то она выводится в одну колонку
+                pop 1   % На стеке: 1
+            } if
+            dup Data_ost ge
+            {   % Может быть размещено колонок больше чем выводимых данных
+                pop Data_ost
+            } if
+                
+            dup % на стеке: K, K
+            % Определим число строк данных в одной колонке
+            1 gt
+            {   % Более одной колонки
+                dup Data_ost swap div ceiling cvi   % На стеке: K, Число строк в колонке из расчета размещения на одной стр.
+                /RowCount swap def  % Сохранили в переменную число строк в одной колонке
+            }
+            {   % Одна и менее колонок
+                /RowCount Data_ost def  % Сохранили в переменную число строк в одной колонке
+                pop 1
+            } ifelse
+
+            % Печатаем таблицу, если она не умещается на текущем листе, то переносим на след. стараницу
+            % На стеке: K (число колонок)
+            dup
+            0 1 rot 1 sub
+            {   % Проходим по колонкам
+                /DataInd_Nach DataInd_Kon 1 add def % Устанавливаем индекс начала данных печати
+                % На стеке: K, ind
+                RowCount Data_count DataInd_Kon sub
+                le
+                {   % Число не отпечатаных строк в таблице больше чем размер столбца
+                    /Kolvo RowCount def
+                }
+                {       % Число строк данных для распечатки меньше чем осталось
+                    /Kolvo Data_count DataInd_Kon sub def   % Установили в переменную количества оставшееся
+                                        % число строк данных
+                } ifelse    % на стеке: K, ind
+
+                                Kolvo 0 ne
+                {       % Не все данные отпечатаны
+                    0 eq
+                    {   % Печатаем первую колонку. на стеке: 
+                        XNach YNach
+%                       pole_left bot   % Положили на стек координаты начала таблицы
+                        Part_Table_al
+                        pop     % Удалили yk
+                    }
+                    {   % Печатаем остальные колонки
+                        % на стеке: xk 
+%                       bot
+                        YNach
+                        Part_Table_al
+                        pop     % Удалили yk на стеке: xk               
+                    } ifelse
+                }
+                {
+                    pop
+                    exit
+                } ifelse
+            } for
+            pop % Удалили xk последней таблицы
+            DataInd_Kon Data_count lt
+            {   % Не все данные отпечатаны
+                NewPage
+                1 mm dec_bot
+                /YNach bot def
+            }
+            {   % Все данные отпечатаны
+                exit
+            } ifelse
+        } loop
+        % Проверяем размещение на текущем листе таблицы статистики
+        Yk 19 mm sub pole_bot lt
+        {   % Таблица статистики не уместится на текущем листе
+            NewPage
+            4 mm dec_bot
+            XCols ParamInd_Kon 1 add get bot (Окончание таблицы) rigth_print
+            1 mm dec_bot
+            /Yk bot def
+        } if
+
+        Stat_Table_al   % Печатаем таблицу статистики и норм
+        /bot Yk_min Yn min def  % Запишем в переменную bot нижнюю границу таблицы норм  
+        
+        ParamInd_Kon Cols length 1 sub lt  % Сравниваем индекс последнего напечатанного параметра с длиной массива параметров
+        {   % Не все параметры напечатаны
+            1 mm dec_bot    % Следующая часть параметров выводится ниже на 5 мм
+            /YNach bot def
+        }
+        {   % Все параметры напечатаны
+            exit
+        } ifelse    
+    } loop
+
+    % Ложим на стек xk, yk для дальнейшего использования
+    Num_al* type /nulltype ne
+    {   % Индекс расчётного параметра установлен
+        al*_prim
+    } if 
+    XCols ParamInd_Kon 1 add get Yn
+} def
+
+/Def_col_width_Az 8 mm def  % Ширина столбца в шахматке
+/Def_row_height_Az 3.5 mm def   % Высота строки в шахматке
+
+/Horiz_line % Рисуем горизонтальную линию
+{
+    newpath
+    over swap   % на стеке: x0, y0, x1, xk, y, x1, xk, xk, y
+    moveto sub 0 rlineto
+} def
+
+/Horiz_line_gl_row  % Рисуем горизонтальную линию отделяющую главные строки данных
+{
+    Horiz_line
+    0.3 mm setlinewidth stroke
+} def
+
+/Horiz_line_el_row  % Рисуем горизонтальную линию отделяющую элементарные строки данных
+{
+    Horiz_line
+    0.15 mm setlinewidth stroke
+} def
+
+/Part_Table_A0z % Печатает таблицу (шахматку) параметров влияния
+{   % на стеке: x0, y0
+
+    dup /Y0 swap def
+    /XCols pole_rigth pole_left sub Def_col_width_Az div floor cvi 4 mul array def % Массив X-координат границ
+                                % главных (ограничивающих разные параметры) столбцов
+
+    over dup XCols 0 rot put % Сохранили x0 в нулевой элемент массива координат
+    over    % на стеке x0, y0, x0, y0
+    3 mm sub % Строка вывода названий параметров ниже на 3.5 мм (y=y0-3.5mm)
+
+    swap 
+    Cols max_el
+    1 gt
+    {   % Таблица содержит элементарные столбцы и строки значит нулевой столбец шире
+        Def_col_width_Az 2 mul
+    }
+    {
+        Def_col_width_Az
+    } ifelse
+    add % Ширина нулевого столбца определена. на стеке: x0, y0, y, x1
+    swap over XCols ParamInd_Nach rot put  % Сохранили в массиве координату дальней границы текущего столбца
+    % на стеке: x0, y0, x1, y
+    
+    % Печатаем номер в углу таблицы
+    3 index 2 index 2 index NumNum
+    
+    Cols ParamInd_Nach Cols length ParamInd_Nach sub getinterval    % На стеке: оставшаяся часть массива столбцов
+    summ_el 2 le
+    {   % Элементарных столбцов меньше или равно 2
+        /Def_col_width_Az 15 mm def
+    }
+    {
+        /Def_col_width_Az 8 mm def
+    } ifelse
+    
+    0
+    ParamInd_Nach 1 Cols length 1 sub
+    {   
+        swap pop
+        % на стеке: x0, y0, x1, y, ind
+        dup Cols swap get       
+        Def_col_width_Az mul    % на стеке: x0, y0, x1, y, ind, dx
+        3 index add % на стеке: x0, y0, x1, y, ind, x_i+1
+        dup pole_rigth 0.1 add gt
+        {   % Очередной столбец не поместится на ширину страницы
+            pop 1 sub exit % по выходу на стеке x0, y0, x0, xk, y, индекс последнего напечатаного столбца
+        } if
+        % на стеке: x0, y0, x1, y, ind, x_i+1
+        dup XCols 3 index 1 add rot put % Сохранили в массив координату главного столбца
+        % на стеке: x0, y0, x0, x1, y, ind, x_i+1
+        4 -1 roll pop   % на стеке: x0, y0, y, ind, x_i+1
+        3 1 roll    % на стеке: x0, y0, x_i+1, y, ind
+    } for
+    /ParamInd_Kon swap def  % на стеке: x0, y0, xk, y
+
+    % Печатаем заголовок таблицы
+    XCols ParamInd_Nach get % на стеке: x0, y0, xk, y, x1
+    3 1 roll    % на стеке: x0, y0, x1, xk, y
+    3 copy  % на стеке: x0, y0, x1, xk, y, x1, xk, y
+    ParamNameA0z % на стеке: x0, y0, x1, xk, y, x1, xk, y, (A0)
+    (_0) Concat_string  % на стеке: x0, y0, x1, xk, y, x1, xk, y, (A0_0)
+    dup % на стеке: x0, y0, x1, xk, y, x1, xk, y, (A0_0), (A0_0)
+    cvx exec % zpt
+    String_index_width % Вычисляет размер строки с индексом на стеке две строки (a), (b) ->  размер
+    % на стеке: x0, y0, x1, xk, y, x1, xk, y, (A0_0), размер
+    Times_Regular 10 newsize (, ) stringwidth pop swap add  % на стеке: x0, y0, x1, xk, y, x1, xk, y, (A0_0), размер
+    Times_Regular 8 newsize EdIsm_A0z stringwidth pop add
+    5 -1 roll 5 -1 roll
+    2 copy swap sub 39 mm lt
+    {   % Ширина столбцов данных меньше 39 мм выравниваем вправо
+        rot sub 1 mm sub
+        swap pop
+    }
+    {   % Ширина столбцов данных больше или равна 39 мм выравниваем по центру
+        center  % на стеке: x0, y0, x1, xk, y, y, (A0_0), x
+    } ifelse
+    rot % на стеке: x0, y0, x1, xk, y, (A0_0), x, y
+    Times_Regular 10 newsize
+    moveto cvx exec a_b zpt ( ) show Times_Regular 8 newsize EdIsm_A0z show % на стеке: x0, y0, x1, xk, y
+
+    2 index 1 mm add over 0.5 mm add moveto Times_Italic 8 newsize () show % в скобках было приёмник
+
+    % Печатаем значения частот. на стеке: x0, y0, x1, xk, y
+    3 mm sub    % на стеке: x0, y0, x1, xk, y
+    Freq_min type /nulltype ne
+    {   % Минимальная частота задана
+        Freq_max type /nulltype eq
+        {   % Максимальная частота не задана
+            15 mm 3 index 3 index center over   % на стеке: x0, y0, x1, xk, y, x, y
+            moveto  % на стеке: x0, y0, x1, xk, y
+                        () Freq_min f_x
+        }
+        {   % Максимальная частота задана
+            30 mm 3 index 3 index center over   % на стеке: x0, y0, x1, xk, y, x, y
+            moveto  % на стеке: x0, y0, x1, xk, y
+            gsave
+            1.5 mm 0 rmoveto (min) Freq_min f_x
+            grestore
+            16.5 mm 0 rmoveto (max) Freq_max f_x
+        } ifelse
+    } if    % на стеке: x0, y0, x1, xk, y
+
+    % Рисуем горизонтальную линию отделяющую заголовок от номеров структур
+    1 mm sub    % на стеке: x0, y0, x1, xk, y
+    /Yh1 over def   % Сохранили координату y в переменную Yh1
+    3 copy  % на стеке: x0, y0, x1, xk, y, x1, xk, y
+    newpath
+    over swap   % на стеке: x0, y0, x1, xk, y, x1, xk, xk, y
+    moveto sub 0 rlineto
+    0.4 mm setlinewidth stroke
+
+    % Печатаем имя стуктуры
+    Times_Regular 8 newsize
+    3 mm sub    % на стеке: x0, y0, x1, xk, y
+    4 index 3 index 2 index
+    StructTip center_print
+    
+    % Печатаем номера структур по горизонтали
+    Times_Regular 8 newsize
+%   /Puch_Nach PuchNum 1 sub Cols length 1 sub mul def  % Номер нулевого элемента пучка расчитывается 
+                        % по номеру пучка  структуры пучка используя размер пучка определённый
+                        %  по количеству элементов структуры (главных столбцов)
+%   Начало пучка вычисляется во внешней программе
+    ParamInd_Nach 1 ParamInd_Kon
+    {   % Проходим по главным столбцам
+        % на стеке: x0, y0, x1, xk, y, ind
+        XCols over get  % на стеке: x0, y0, x1, xk, y, ind, x_i
+        XCols 2 index 1 add get % на стеке: x0, y0, x1, xk, y, ind, x_i, x_i+1
+        3 index
+        4 -1 roll
+        Puch_Nach add 
+        4 string cvs center_print
+    } for
+    swap pop swap pop   %  на стеке: x0, y0, y
+    1 mm sub dup
+    /Yh swap def    % Сохранили в переменную Yh координату нижней границы шапки таблицы
+
+
+    % Печатаем строку с номерами пар для многопарных структур
+    % Предваретельно определим максимальное число элементарных столбцов (обычно оно равно числу жил в структуре)
+    Cols max_el dup 
+    1 gt
+    {   % Таблица содержит элементарные столбцы значит печатаем строку нумерации пар
+        % на стеке: x0, y0, y, col_max
+        swap 3 mm sub   % перенесли строку вывода вниз на 3.5 мм % на стеке: x0, y0, col_max, y
+        mark    % Положили на стек метку под ней лежит координата y
+        ParamInd_Nach 1 ParamInd_Kon
+        {   % Проходим по главным столбцам со второго на стеке: x0, y0, col_max, y, mark, ind
+            XCols over get      % на стеке: x0, y0, col_max, y, mark, ind, x_нач главного столбца
+            Cols rot get    % получили число элементарных столбцов n, на стеке: x0, y0, col_max, y, mark, x_i, n
+            dup 1 gt  
+            {   % Главный столбец содежит элементарные столбцы. на стеке: x0, y0, col_max, y, mark, x_i, n
+                % Печатаем как для пар на стеке: x0, y0, y, mark, x_i, n
+                1 1 rot
+                {   % на стеке: x0, y0, col_max, y, mark, x_i, ...,xel_i ind_el
+                    swap dup Def_col_width_Az add   % на стеке: x0, y0, col_max, y, mark, x_i, ..., ind_el, xel_i, xel_i+1
+                    2 copy % на стеке: x0, col_max, y0, y, mark, x_i, ..., ind_el, xel_i, xel_i+1, xel_i, xel_i+1
+                    counttomark 1 add index % на стеке: x0, y0, col_max, y, mark, x_i, ..., ind_el, xel_i, xel_i+1, xel_i, xel_i+1, y
+                    6 -1 roll   % на стеке: x0, y0, col_max, y, mark, x_i, ..., xel_i, xel_i+1, xel_i, xel_i+1, y, ind_el
+                    a-b_center_print
+                    graniz_el_cols  % Печатаем отделяющую линию номеров пар 
+                } for               
+            }
+            {pop pop}   % Удаляем со стека n и x-нач главного столбца
+            ifelse
+        } for 
+
+        % Сохраняем координаты X элементарных столбцов в массиве
+        counttomark array /XCols_el swap def
+        counttomark 1 sub -1 0
+        { XCols_el swap rot put
+        } for
+        pop % Удалили метку
+        swap pop % Удалили col_max
+        % на стеке: x0, y0, y
+
+        % Пишем подпись пары для элементарных пар
+        XCols ParamInd_Nach get dup
+        XCols 0 get sred swap 2 copy
+        4 index Times_Regular 8 newsize (пара) center_print
+        swap dup 3 index
+        newpath
+        1 mm sub moveto 0 4 mm rlineto
+        sub 0 rlineto
+        0.15 mm setlinewidth stroke
+
+        1 mm sub Yh min
+        /Yh swap def    % Сохранили в переменную Yh координату нижней границы шапки таблицы
+    }
+    {
+        pop pop % Удаляем максимальное число элементарных столбцов на стеке: x0, y0
+    } ifelse
+
+    % Рисуем вертикальные линии отделяющие главные столбцы в шапке таблицы
+    Yh1 Yh
+    ParamInd_Nach 1 ParamInd_Kon
+    {
+        dup ParamInd_Nach eq
+        {   % Рисуем отделитель первого главного столбца
+            XCols swap get
+            3 index 2 index
+            Vert_gl_st_head     
+        }
+        {
+            XCols swap get
+            2 index 2 index
+            Vert_gl_st_head     
+        } ifelse
+    } for
+    swap pop
+
+    % Пишем подпись генератор повёрнуто на 90 градусов
+    % на стеке: x0, y0, y
+    gsave   % Запомнили состояние графики
+    2 index over translate  % Перенесли начало координат в левый нижний угол шапки таблицы
+    90 rotate   % Повернули оси координат
+    -1 mm -2.5 mm Times_Italic 8 newsize () rigth_print % в скобках было генератор
+    grestore    % Восстановили состояние графики
+    
+    Times_Regular 8 newsize
+        
+    2.7 mm sub dup  % на стеке: x0, y0, y, y
+    /Y1 swap def    % Сохранили в переменную Y1 координату первой строки таблицы
+        
+    % Определяем разметку строк
+    /YRows Cols length array def    % Массив координат Y разделяющих строк данных
+    YRows 0 Yh put  % Сохранили в нулевой элемент координату y шапки таблицы
+
+    % Печатаем столбец номеров структур (нулевой столбец)
+    Cols max_el 1 gt
+    {   % Таблица содержит элементарные строки значит печатаем и столбец нумерации пар
+        XCols 0 get
+        XCols ParamInd_Nach get
+        sred 1 mm sub   % на стеке: x0, y0, y, xr-координата правой границы столбца номеров (жил, пар)
+        0   % Ложим на стек ноль, для удаления 
+        DataInd_Nach 1 Cols length 1 sub
+        {   % Проходим по всем главным строкам
+            % на стеке: x0, y0, y, xr, ind_old, ind
+            swap pop    % Удалили индекс с предыдущей итерации цикла
+            dup Cols swap get   % на стеке: x0, y0, y, xr, ind, n
+            1 1 2 index
+            {   % на стеке: x0, y0, y, xr, ind, n, ind_el
+                4 index % на стеке: x0, y0, y, xr, ind, n, ind_el, y
+                over 1 sub Def_row_height_Az mul sub
+                XCols ParamInd_Nach get dup XCols 0 get sred swap rot
+                            % на стеке: x0, y0, y, xr, ind, n, ind_el, x01, x1, y
+                4 -1 roll a-b_center_print
+            } for
+            % на стеке: x0, y0, y, xr, ind, n
+            % Определим координату y вывода номера структуры
+            4 -1 roll dup rot 1 sub Def_row_height_Az mul sub
+            dup % на стеке: x0, y0, xr, ind, y, y_низ, y_низ
+            5 1 roll    % на стеке: x0, y0, y_низ, xr, ind, y, y_низ
+            sred
+            % на стеке: x0, y0, y_низ, xr, ind, y_сред
+            2 index swap    % на стеке: x0, y0, y_низ, xr, ind, xr, y_сред
+            2 index 
+            Puch_Nach add
+            4 string cvs rigth_print % на стеке: x0, y0, y_низ, xr, ind
+                
+            % Проверим уместится ли следующая главная строка на листе
+            dup Cols length 1 sub lt
+            {   % Выведена не последняя главная строка
+                % на стеке: x0, y0, y_низ, xr, ind
+                Cols over 1 add get % на стеке: x0, y0, y_низ, xr, ind, n_i+1
+                Def_row_height_Az mul   % на стеке: x0, y0, y_низ, xr, ind, dy
+                3 index swap sub 0.8 mm sub
+                pole_bot lt
+                {   % Следующая главная строка не уместится на текущем листе
+                        rot 0.8 mm sub
+                    YRows 2 index 2 index put
+                    3 1 roll
+                    exit    % на стеке: x0, y0, y_низ, xr, ind
+                } if
+                rot % на стеке: x0, y0, xr, ind, y_низ
+                dup YRows 3 index rot 0.8 mm sub put    % Сохраняем в массиве коордунату Y текущей разделительной линии
+                Def_row_height_Az sub
+                3 1 roll % на стеке: x0, y0, y_низ, xr, ind
+            } 
+            {   
+                rot % на стеке: x0, y0, xr, ind, y_низ
+                0.8 mm sub
+                dup YRows 3 index rot put   % Сохраняем в массиве коордунату Y текущей разделительной линии
+                3 1 roll % на стеке: x0, y0, y_низ, xr, ind
+            } ifelse
+        } for
+        /DataInd_Kon swap def
+        pop % на стеке: x0, y0, yi+1
+        
+        % Сохраняем координаты элементарных строк
+        /YRows_el Cols summ_el array def    % Создали массив координат y элементарных строк
+        /Row_Ind_el 0 def   % Счетчик элементарной строки
+
+        DataInd_Nach 1 DataInd_Kon
+        {   % Проходим по главным строкам. на стеке: ind
+            Cols over get   % на стеке: ind, n
+            dup 1 gt
+            {   % Строка содержит элементарные строки вычислим и сохраним их координаты
+                % на стеке: ind, n
+                1 sub -1 1 
+                {   % на стеке: ind, ind_el
+                    YRows 2 index get   % на стеке: ind, ind_el, y_нач
+                    swap Def_row_height_Az mul add  % на стеке: ind, y_ел
+                    YRows_el Row_Ind_el rot put % Сохранили координату элементарной строки
+                    /Row_Ind_el Row_Ind_el 1 add def    % Инкрементировали счётчик елементарной строки
+                } for
+                pop
+            }
+            {
+                pop pop
+            } ifelse
+        } for
+        /YRows_el YRows_el 0 Row_Ind_el getinterval def % Сохранили массив по количеству не пустых элементов
+    }
+    {
+        XCols ParamInd_Nach get
+        1 mm sub    % на стеке: x0, y0, y, xr-координата правой границы столбца номеров (жил, пар)
+        0   % Ложим на стек ноль, для удаления 
+        DataInd_Nach 1 Cols length 1 sub
+        {   % на стеке: x0, y0, y, xr, ind
+            swap pop    % Удалили индекс с предыдущей итерации цикла
+            over 3 index    % на стеке: x0, y0, y, xr, ind, xr, y
+            2 index % на стеке: x0, y0, y, xr, ind, xr, y, ind
+            Puch_Nach add
+            4 string cvs rigth_print % на стеке: x0, y0, y, xr, ind
+            rot dup Def_row_height_Az sub dup 0.8 mm sub % на стеке: x0, y0, xr, ind, yi, yi+1, yi+1 - 1.3mm для сравнения с нижнем полем           
+            pole_bot le % на стеке: x0, y0, xr, ind, yi, yi+1
+            {   % Вышли за границу нижнего поля
+                pop
+                0.8 mm sub
+                YRows 2 index 2 index put
+                3 1 roll    % на стеке: x0, y0, yi, xr, ind
+                exit
+            } if    % Нижнее поле не достигнуто продолжаем далее
+            % на стеке: x0, y0, xr, ind, yi, yi+1
+            over YRows 4 index rot 0.8 mm sub put   % Сохраняем в массиве коордунату Y текущей разделительной строки
+            2 index Cols length 1 sub lt
+            {   % Не последняя главная строка
+                % на стеке: x0, y0, xr, ind, yi, yi+1
+                swap pop
+                3 1 roll    % на стеке: x0, y0, yi+1, xr, ind
+            }
+            {   % на стеке: x0, y0, xr, ind, yi, yi+1
+                pop 0.8 mm sub
+                3 1 roll    % на стеке: x0, y0, yi, xr, ind
+            } ifelse
+        } for
+        /DataInd_Kon swap def
+        pop % на стеке: x0, y0, yi+1
+    } ifelse    % на стеке: x0, y0, yi+1
+
+    % Закрашиваем главную диагональ 30 % серым
+    /Diag_box   % Закрашивает прямоугольник размером с элементарную ячейку
+    {
+        gsave
+        newpath moveto
+        Def_col_width_Az 0 rlineto
+        0 Def_row_height_Az rlineto
+        Def_col_width_Az neg 0 rlineto
+        closepath
+        0.7 setgray fill
+        grestore
+    } def
+
+    Cols max_el
+    1 gt
+    {   % С элементарными столбцами
+                ParamInd_Nach 1 ParamInd_Kon
+        {   % Проходим по столбцам. на стеке: ind_col
+            DataInd_Nach 1 DataInd_Kon
+            {   % Проходим по строкам. на стеке: ind_col, ind_row
+                2 copy eq
+                {   % Для равных индексов
+                    XCols 2 index get YRows rot get
+                    Cols 3 index get 1 sub dup
+                    0 1 rot
+                    {   % Проходим по элементарным ячейкам
+                        % На стеке: ind_col, x_i, y_i, n-1, ind_el
+                        dup Def_col_width_Az mul    % На стеке: ind_col, x_i, y_i, n-1, ind_el, dx
+                        4 index add % На стеке: ind_col, x_i, y_i, n-1, ind_el, x
+                        2 index rot % На стеке: ind_col, x_i, y_i, n-1, x, n-1, ind_el
+                        sub Def_row_height_Az mul   % На стеке: ind_col, x_i, y_i, n-1, x, dy
+                        3 index add % На стеке: ind_col, x_i, y_i, n-1, x, y
+                        Diag_box    % На стеке: ind_col, x_i, y_i, n-1
+                    } for
+                    pop pop pop
+                    exit
+                }
+                {
+                    pop
+                } ifelse
+            } for
+            pop
+        } for
+    }
+    {   % Без элементарных столбцов
+        ParamInd_Nach 1 ParamInd_Kon
+        {   % Проходим по столбцам. на стеке: ind_col
+            DataInd_Nach 1 DataInd_Kon
+            {   % Проходим по строкам. на стеке: ind_col, ind_row
+                2 copy eq
+                {   % Для равных индексов
+                    XCols 2 index get YRows rot get
+                    Diag_box    % Закрашивает прямоугольник размером с элементарную ячейку
+                    exit
+                }
+                {
+                    pop
+                } ifelse
+            } for
+            pop
+        } for
+    } ifelse
+
+    % Рисуем рамку ограничения шапки таблицы
+    2 index 2 index Yh
+    Rama_Head_Table pop pop pop
+    
+    % Рисуем горизонтальные разделительные линии оделяющие главные строки
+    Cols max_el 1 gt
+    {   % Таблица содержит элементарные строки значит рисуем от середины нулевого столбца
+        XCols ParamInd_Nach get
+        XCols 0 get sred
+    }
+    {
+        XCols ParamInd_Nach get
+    } ifelse
+    XCols ParamInd_Kon 1 add get % на стеке: x0, y0, yi+1, x1, xk
+
+    DataInd_Nach 1 DataInd_Kon 1 sub
+    {   % на стеке: x0, y0, yi+1, x1, xk, ind
+        YRows swap get % на стеке: x0, y0, yi+1, x1, xk, y_i
+        2 index 2 index rot Horiz_line_gl_row
+    } for
+
+    % Рисуем горизонтальные разделительные линии оделяющие элементарные строки
+    Cols max_el 1 gt
+    {   % Таблица содержит элементарные строки значит рисуем от середины нулевого столбца
+        YRows_el
+        {
+            2 index 2 index rot Horiz_line_el_row
+        } forall
+    } if
+    pop pop % Удаляем координаты x1, xk
+
+    dup /Yk swap def    % Сохранили в переменную Yk нижнюю координату таблицы
+
+    % на стеке: x0, y0, yk
+    % Рисуем вертикальные линии отделяющие главные столбцы данных таблицы
+    ParamInd_Nach 1 ParamInd_Kon
+    {
+        XCols swap get
+        Yh 2 index
+        Vert_gl_st
+    } for
+
+    Rama_Data_Table % Рисуем замыкающую рамку таблицы
+    % на стеке: x0, y0, yk
+
+    % Рисуем вертикальные линии разделяющие элементарные столбцы
+    Cols max_el
+    1 gt
+    {
+        XCols_el { vline_el_cols } forall
+        XCols 0 get XCols ParamInd_Nach get sred vline_el_cols
+    } if
+
+    % на стеке: x0, y0, yk
+    
+    % Рисуем рамку окружающую нулевой столбец
+    newpath
+    2 index Yh moveto
+    XCols ParamInd_Nach get dup Yh lineto
+    Yk lineto
+    2 index Yk lineto closepath
+    0.4 mm setlinewidth stroke
+
+    /Data_Print_PV  % Печатает столбец данных стек оставляет чистым
+    {   % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные]
+        Y1  % На стеке x-нач, x-кон, Norm_min, Norm_max, [Данные], y
+        DataInd_Nach 1 DataInd_Kon
+        {   % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind
+            dup Cols swap get   % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, n
+            0 1 rot 1 sub
+            {   % Проходим по элементарным строкам или один раз по главной строке
+                % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, ind_el
+                over al_ind_data add    % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, ind_данных
+                3 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, [Данные]
+                swap get    % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач.
+                dup type /stringtype eq
+                {   % Значение является строкой печатаем его
+                    7 index 7 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., x-нач, x-кон
+                    4 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., x-нач, x-кон, y
+                    4 -1 roll   % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, x-нач, x-кон, y, знач.
+                    Times_Italic 8 newsize
+                    center_print    % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind
+                }
+                {       % Значение не является строкой проверим его на пренадлежность числовому типу
+                    % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач.
+                    dup % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., знач.
+                    type dup    % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., тип_знач., тип_знач.
+                    /integertype eq swap
+                    /realtype eq or % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., true-числовое
+                    {   % Значение на стеке числовое сравниваем с нормами
+                        % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач.
+                        dup dup % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., знач., знач.
+                        7 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., знач., знач., Norm_min
+                        lt  % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., знач., true-если меньше нормы
+                        swap 6 index    % % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., true-если меньше нормы, знач., Norm_max
+                        gt  % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., true-если меньше нормы, true-если больше нормы
+                        or
+                        {   % Значение выходит за нормы
+                            Times_Bold 8 newsize
+                        }           
+                        {   % Значение удовлетворяет нормам
+                            Times_Regular 8 newsize
+                        } ifelse
+                        % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач.
+                        7 index 7 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., x-нач, x-кон
+                        4 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., x-нач, x-кон, y
+                        4 -1 roll   % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, x-нач, x-кон, y, знач.
+                        10 string cvs
+                        center_print    % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind
+                    }
+                    {   % Значение на стеке не числовое печатаем его тип
+                        7 index 7 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., x-нач, x-кон
+                        4 index % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, знач., x-нач, x-кон, y
+                        4 -1 roll   % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind, x-нач, x-кон, y, знач.
+                        type 16 string cvs
+                        Times_Italic 8 newsize
+                        center_print    % На стеке: x-нач, x-кон, Norm_min, Norm_max, [Данные], y, ind
+                    } ifelse
+                } ifelse
+                swap
+                Def_row_height_Az sub   % Уменьшили координату Y на Def_row_height стандартную высоту
+                swap
+            } for
+            pop
+        } for
+        pop pop pop pop pop pop % Отчистили стек
+    } def
+
+
+    % Печатаем столбцы данных
+    ParamInd_Nach 1 ParamInd_Kon
+    {       % Проходим по главным столбцам начиная с индекса печатаемого параметра на стеке: x0, y0, yk, ind
+                XCols over get          % на стеке: x0, y0, yk, ind, x_нач главного столбца
+                Cols 2 index get    % получили число элементарных столбцов n, на стеке: x0, y0, y, ind, x_нач, n
+                dup 1 gt
+                {       % Главный столбец содежит элементарные столбцы. на стеке: x0, y0, y, ind, x_нач, n
+            NormPVMin   % на стеке: x0, y0, y, ind, x_нач, n, NormMax
+            4 -1 roll   % на стеке: x0, y0, y, x_нач, n, NormMax, ind       
+            al_ind_data % на стеке: x0, y0, y, x_нач, n, NormMax, data_ind_el1
+            0 1 5 -1 roll 1 sub
+            {   % Проходим по элементарным столбцам.
+                % на стеке: x0, y0, y, x_нач, NormMax, data_ind_el1, ind_el
+                over add    % на стеке: x0, y0, y, x_нач, NormMax, data_ind_el1, data_ind_el
+                4 -1 roll   % на стеке: x0, y0, y, NormMax, data_ind_el1, data_ind_el, x_нач
+                                dup Def_col_width_Az add    % на стеке: x0, y0, y, NormMax, data_ind_el1, data_ind_el, x_нач, x_кон
+                dup 6 1 roll    % на стеке: x0, y0, y, x_кон, NormMax, data_ind_el1, data_ind_el, x_нач, x_кон
+                4 index Inf % на стеке: x0, y0, y, x_кон, NormMax, data_ind_el1, data_ind_el, x_нач, x_кон, 0, NormMax
+                PV_Data 6 -1 roll get
+                Data_Print_PV   % на стеке: x0, y0, y, x_кон, NormMax, data_ind_el1
+            } for
+            pop pop pop % на стеке: x0, y0, y
+                }
+                {   % Печатаем данные по главному столбцу
+            % на стеке: x0, y0, y, ind, x_нач, n
+            pop % на стеке: x0, y0, y, ind, x_нач
+            dup Def_col_width_Az add    % на стеке: x0, y0, y, ind, x_нач, x_кон
+            NormPVMin Inf         % на стеке: x0, y0, y, ind, x_нач, x_кон, NormMin, NormMax
+            PV_Data 6 -1 roll al_ind_data get   % на стеке: x0, y0, y, ind, x_нач, x_кон, NormMin, NormMax, [данные]
+            Data_Print_PV
+        }       
+                ifelse  % на стеке: x0, y0, yk
+    } for
+
+        rot pop swap pop
+    XCols ParamInd_Kon 1 add get
+    swap    % На стеке: xk, yk
+
+    /Def_col_width_Az 8 mm def  % Ширина столбца в шахматке
+} def
+
+/Stat_Table_PV  % Рисует таблицу статистических данных и норм для параметров влияния
+{   % Печатаем нулевой столбец статистики 
+    XCols 0 get XCols ParamInd_Nach get  Yk % На стеке: x0, x1, yk
+    2.5 mm sub  % Перенесли y в низ на 4 мм
+    Times_Italic 8 newsize
+    3 copy (max) center_print
+    2.5 mm sub  % Перенесли y в низ на 3 мм
+    3 copy (Средн.) center_print
+    2.5 mm sub  % Перенесли y в низ на 3 мм
+    (min) center_print  % стек освобожден
+
+    % Печатаем статистику по параметрам влияния
+    Times_Regular 8 newsize
+    XCols ParamInd_Nach get % на стеке: x-нач
+    XCols ParamInd_Kon 1 add get    % на стеке: x-нач, x-кон
+    0 1 PV_Data length 1 sub
+    {   % Проходим по всем столбцам данных параметров влияния. На стеке индекс столбца
+            dup 0 gt
+        {   % Не первый столбец данных. на стеке: [данные], ind
+            PV_Data swap get    % на стеке: [данные], [данные1]
+            Concat_array    % на стеке: [Объед. данные]
+        }
+        {   % Первый столбец данных. на стеке: ind
+            PV_Data swap get    % на стеке: [данные]
+        } ifelse
+    } for   % на стеке: x-нач, x-кон, [Объед. данные]
+    dup max_znach dup
+    type /nulltype eq
+    {   % Максимальное значение не определено
+        pop (нет.)
+    }
+    {
+        10 string cvs   % на стеке: x-нач, x-кон, [Объед. по парам с тек.], (max_знач)
+    } ifelse
+    Yk 2.5 mm sub dup   % на стеке: x-нач, x-кон, [Объед. по парам с тек.], (max_знач), y, y
+    5 index 5 index % на стеке: x-нач, x-кон, [Объед. по парам с тек.], (max_знач), y, y, x-нач, x-кон
+    rot 5 -1 roll center_print  % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y
+    2.5 mm sub
+    over    % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y, [Объед. по парам с тек.]
+    sred_znach dup
+    type /nulltype eq
+    {   % Среднее значение не определено
+        pop (нет.)
+    }
+    {
+        01percent_format 10 string cvs  % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y, (сред_знач)
+    } ifelse
+    4 index 4 index % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y, (сред_знач), x-нач, x-кон
+    3 index 4 -1 roll center_print  % на стеке: x-нач, x-кон, [Объед. по парам с тек.], y
+    2.5 mm sub swap
+    min_znach dup
+    type /nulltype eq
+    {   % Минимальное значение не определено
+        pop (нет.)
+    }
+    {
+        10 string cvs   % на стеке: x-нач, x-кон, y, (мин_знач)
+    } ifelse
+    center_print
+
+        % Отрисовываем разделительные линии главных столбцов статискики
+    Yk dup 8 mm sub
+    % На стеке yk, y
+    XCols ParamInd_Nach get
+    rot 2 index
+    Vert_gl_st
+    /Ys swap def    % Сохранили в переменной Ys координату нижней части таблицы статистики
+
+    % Рисуем горизотнтальный разделитель для норм
+    XCols 0 get dup
+    XCols ParamInd_Kon 1 add get
+    swap sub dup rot Ys
+    newpath moveto 0 rlineto
+    0 -2.5 mm rlineto
+    neg 0 rlineto
+    closepath
+    0.3 mm setlinewidth
+    stroke
+    
+    % Подпись нормы
+    XCols 0 get 3 mm add Ys 1.8 mm sub
+    Times_Regular 6 newsize
+    moveto (Норма(100%)) show
+
+    % Печатаем нулевой столбец норм 
+    XCols 0 get dup XCols ParamInd_Nach get Ys  % На стеке: x0, x1, ys
+    5 mm sub    % Перенесли y в низ на 7 мм
+    Times_Italic 8 newsize
+    3 copy (min) center_print
+
+    % Печатаем нормы по параметрам
+    Times_Regular 8 newsize
+    XCols ParamInd_Nach get % на стеке: x-нач
+    XCols ParamInd_Kon 1 add get    % на стеке: x-нач, x-кон
+    Ys 5 mm sub % на стеке: x-нач, x-кон, y
+    NormPVMin 10 string cvs % на стеке: x-нач, x-кон, y, (Норма Парам. Вл.)
+    center_print
+
+    % Отрисовываем разделительные линии главных столбцов норм
+    Ys 2.5 mm sub dup 3 mm sub
+    XCols ParamInd_Nach get
+    rot 2 index
+    Vert_gl_st
+    /Yn swap def    % Сохранили в переменной Yn координату нижней части таблицы статистики
+
+    % Рисуем замыкающую рамку таблицы статистики и норм
+    XCols 0 get Yk
+    2 copy
+    newpath
+    moveto
+    Yn swap sub dup
+    0 swap rlineto
+    swap XCols ParamInd_Kon 1 add get
+    swap sub 0 rlineto
+    0 swap neg rlineto
+    closepath
+    0.3 mm setlinewidth
+    stroke
+} def
+
+/First_Print_Az true def    % Таблица параметров влияния печатается первый раз
+
+/Print_Table_A0z
+{   % Размещает и печатает таблицу параметров влияния
+    % Определим число строк данных выводимой таблицы
+    Cols length 1 sub
+    /Data_count swap def % Сохранили в переменную Data_count число элементов в массиве данных
+    /ParamInd_Kon 0 def
+    {   % Проходим по не напечатанным частям таблицы
+        /DataInd_Kon 0 def
+        /ParamInd_Nach ParamInd_Kon 1 add def
+        Cols ParamInd_Nach Cols length ParamInd_Nach sub getinterval    % На стеке: оставшаяся часть массива столбцов
+        % Определим ширину оставшейся части таблицы
+        % Определим ширину нулевого столбца
+        dup max_el 
+        1 gt
+        {   % В таблице есть элементарные строки
+            Def_col_width_Az 2 mul
+        }
+        {
+            Def_col_width_Az
+        } ifelse    % На стеке ширина нулевого столбца
+        swap
+        {
+            dup
+            1 gt
+            {   % В таблице существуют элементарные столбцы
+                Def_col_width_Az mul    % Определили ширину необходимую для отображения главного столбца
+                add
+            }
+            {   % В таблице нет элементарных столбцов
+                pop
+                Def_col_width_Az add
+            } ifelse
+        } forall    % Определили ширину необходимую для отображения оставшейся части таблицы
+
+        First_Print_Az
+        {   % Таблица параметров влияния печатается впервые. на стеке: Ширина оставшейся части таблицы
+            pole_rigth pole_left sub    % на стеке: Ширина оставшейся части таблицы, ширина области печати
+            /XNach pole_left def    % Таблица выводится по левому краю
+            /YNach bot 1 mm sub def
+        }
+        {   % Таблица параметров влияния печатается не впервые для текущей структуры кабеля
+            3 1 roll    % Временно перемещаем в стеке ширину оставшейся части таблицы
+            pop % Удаляем yk предыдущего вывода таблицы
+            /XNach swap 1 mm add def    % Попробуем вывести таблицу справа с отступом 1 мм.
+            /YNach Y0 def
+        } ifelse
+        pole_rigth XNach sub    % на стеке: Ширина оставшейся части таблицы, ширина свободной области печати
+        gt
+        {   % Оставшаяся часть листа или ширина от поля до поля меньше ширины таблицы
+            /XNach pole_left def    % Таблица выводится по левому краю
+            /YNach bot 1 mm sub def
+        } if 
+        YNach 49 mm sub pole_bot lt
+        {   % Таблица выводится в нижней части страницы и для не допускания висячей шапки переносим на др. стр.
+            NewPage
+            1 mm dec_bot
+            /XNach pole_left def    % Таблица выводится по левому краю
+            /YNach bot def
+        } if
+        % на стеке: 
+        {
+            % Одна и менее колонок
+            % Печатаем таблицу, если она не умещается на текущем листе, то переносим на след. стараницу
+
+            /DataInd_Nach DataInd_Kon 1 add def % Устанавливаем индекс начала данных печати
+
+            % Печатаем первую колонку. на стеке: 
+            XNach YNach % Положили на стек координаты начала таблицы
+            Part_Table_A0z
+            /First_Print_Az false def   % Сбросили флаг первичной печати таблицы параметров влияния
+                
+            DataInd_Kon Data_count lt
+            {   % Не все данные отпечатаны
+                NewPage
+                1 mm dec_bot
+                /XNach pole_left def    % Таблица выводится по левому краю
+                /YNach bot def
+            }
+            {   % Все данные отпечатаны
+                exit
+            } ifelse
+        } loop
+
+        /bot bot Yk min def % Устанавливаем переменную bot равной нижней части таблицы
+
+        
+        ParamInd_Kon Cols length 1 sub ge  % Сравниваем индекс последнего напечатанного параметра с длиной массива параметров
+        {   % Все столбцы напечатаны
+            exit
+        } if
+    } loop
+
+    % Проверяем размещение на текущем листе таблицы статистики
+    Yk 19 mm sub pole_bot lt
+    {   % Таблица статистики не уместится на текущем листе
+        NewPage
+        4 mm dec_bot
+        over bot (Окончание таблицы) rigth_print
+        1 mm dec_bot
+        /Yk bot def
+        /Y0 bot def
+    } if
+
+        Stat_Table_PV   % Печатаем таблицу статистики и норм
+    /bot bot Yn min def % Запишем в переменную bot нижнюю границу таблицы норм
+
+    % Ложим на стек xk, yk для дальнейшего использования
+    XCols ParamInd_Kon 1 add get Yn
+} def
+
+/Def_row_height_Percent 5 mm def    % Высота строки в таблице процентных оценок
+
+/Part_Table_Percent % Печатает часть таблицы процентных оценок
+{   % На стеке: x0, y0
+    % Рисуем шапку таблицы процентных оценок
+
+    /XCols 6 array def  % Массив координат X главных столбцов
+    XCols 0 3 index put                    % на стеке: x0, y0
+    over Freq_max Null_array
+    {   % Массив максимальных частот не содержит данных, нулевой столбец 20 мм
+        20 mm
+    }
+    {       % Массив максимальных частот содержит данные, нулевой столбец 35 мм
+        35 mm
+    } ifelse
+    add
+    1 1 5
+    {   % Проходим по всем главным столбцам. на стеке: x0, y0, x1, ind
+        XCols swap 2 index put  % Сохранили в массив координату
+        20 mm add
+    } for
+    pop
+    % Пишем текст шапки таблицы
+    Times_Regular 10 newsize
+    dup 3.5 mm sub  % на стеке: x0, y0, y
+    dup dup Def_row_height_Percent sub sred % на стеке: x0, y0, y, y_сред
+    XCols 0 get XCols 1 get rot (Параметр) center_print
+    dup XCols 1 get XCols 2 get rot (Норма) center_print
+    dup Def_row_height_Percent sub
+    Times_Italic 10 newsize
+    XCols 1 get dup 10 mm add dup 3 1 roll 3 index (min) center_print
+    XCols 2 get rot (max) center_print
+    Times_Regular 10 newsize
+    2.5 sub
+    dup XCols 2 get XCols 3 get rot (Единица) center_print
+    dup XCols 3 get XCols 4 get rot (Задано,) center_print
+    dup XCols 4 get XCols 5 get rot (Измерено,) center_print
+    10 sub
+        dup XCols 2 get XCols 3 get rot (измерения) center_print
+    dup XCols 3 get XCols 4 get rot (%) center_print
+    XCols 4 get XCols 5 get rot (%) center_print
+    % на стеке: x0, y0
+
+    % Рисуем разделители главных столбцов
+    dup Def_row_height_Percent 2 mul sub    % на стеке x0, y0, yk
+    XCols
+    {
+        2 index 2 index % на стеке x0, y0, yk, x, y0, yk
+        Vert_gl_st_head  % на стеке x0, y0, yk
+    } forall
+
+    % Рисуем рамку шапки таблицы
+    newpath
+    2 index 2 index moveto  % на стеке x0, y0, yk
+    2 copy sub 0 over neg rlineto   % на стеке x0, y0, yk, dy
+    XCols 5 get 2 index lineto
+    0 swap rlineto  % на стеке x0, y0, yk
+    closepath
+    0.4 mm setlinewidth stroke  % на стеке x0, y0, yk
+
+    % Рисуем разделитель норм
+    2 copy sred % на стеке x0, y0, yk, y-сред
+    newpath
+    XCols 1 get over moveto
+    XCols 2 get over lineto
+    0.15 mm setlinewidth stroke % на стеке x0, y0, yk, y-сред
+    newpath
+    XCols 1 get XCols 2 get sred dup
+    rot moveto
+    over lineto
+    0.15 mm setlinewidth stroke % на стеке x0, y0, yk
+
+    /Yh swap def    % Установили переменную Yh
+
+    Yh dup
+    3.7 mm sub  % на стеке: x0, y0, yh, y
+    /Y1 swap def    % Сохранили в переменную Y1 координату первой строки таблицы
+    
+    % Определяем разметку строк
+
+    % Печатаем столбец наименований параметров (нулевой столбец)
+    ParamInd_Nach 1 Rows length 1 sub
+    {   % проходим по параметрам. на стеке: x0, y0, y, ind
+        swap 3.7 mm sub swap
+        /ParamInd_Kon over def  % Сохранили индекс последнего напечатанного параметра
+        /ParamInd_el_Kon 0 def  % Сбросили индекс последней напечатаной элементарной строки
+        Rows over get   % на стеке: x0, y0, y, ind, n
+        dup 1 gt
+        {   % Параметр содержит элементарные строки определим координату главной строки
+            % на стеке: x0, y0, y, ind, n
+            2 index 1.3 mm sub % на стеке: x0, y0, y, ind, n, y_el
+            2 index ParamInd_Nach eq
+            {   % Для первого параметра индекс начала элементарных сторок
+                ParamInd_el_Nach
+            }
+            {   % Для остальных параметров индекс начала элементарных сторок
+                0
+            } ifelse
+            1 4 -1 roll 2 sub
+            {   % Проходим по элементарным строкам рисуем разделители
+                % на стеке: x0, y0, y, ind, y_el, ind_el
+                /ParamInd_el_Kon swap def   % Сохранили индекс элементарной строки
+                XCols 1 get XCols 5 get 2 index
+                Horiz_line_el_row   % Рисуем горизонтальную линию отделяющую элементарные строки данных
+                % на стеке: x0, y0, y, ind, y_el
+                dup
+                Def_row_height_Percent sub
+                dup pole_bot 0.1 sub lt
+                {   % Следующая строка не уместится на текущем листе
+                    % на стеке: x0, y0, y, ind, y_el, y_el+1
+                    pop
+                    exit    % на стеке: x0, y0, y, ind, y_el
+                }
+                {
+                    swap pop    % на стеке: x0, y0, y, ind, y_el+1
+                    /ParamInd_el_Kon ParamInd_el_Kon 1 add def
+                } ifelse
+            } for
+            dup 1.3 mm add 4 -1 roll sred   % на стеке: x0, y0, ind, y_el+1, y_текста
+        }
+        {       % на стеке: x0, y0, y, ind, n
+            pop
+            over    % на стеке: x0, y0, y, ind, y
+            1.3 mm sub  % на стеке: x0, y0, y, ind, y_gl
+            rot % на стеке: x0, y0, ind, y_gl, y
+        } ifelse
+        % Печатаем название параметра
+
+        Freq_min 3 index get    % на стеке: x0, y0, ind, y_gl, y, f_min
+        dup type /nulltype eq
+        {   % Минимальная частота не задана значит печатаем как обычный параметр
+            pop % Удалили остатки f_min
+            XCols 0 get XCols 1 get rot % на стеке: x0, y0, ind, y_gl, x0, x1, y
+            Param 6 -1 roll get cvx exec    % на стеке: x0, y0, y_gl
+        }
+        {       % Минимальная частота задана проверяем заданность максимальной частоты
+            Freq_max 4 index get % на стеке: x0, y0, ind, y_gl, y, f_min, f_max
+            XCols 0 get dup 5 mm add dup 
+            3 1 roll 5 index
+            Param 10 -1 roll get cvx exec (\() show
+            4 -1 roll moveto
+            dup type /nulltype eq
+            {   % Максимальная частота не задана
+                pop % Удаляем остатки значение (null) от не заданой f_max
+                % на стеке: x0, y0, y_gl, f_min
+                () swap % на стеке: x0, y0, y_gl, (), f_min
+                f_x % на стеке: x0, y0, y_gl
+            }
+            {       % Максимальная частота задана печатаем оба значения частоты
+                % на стеке: x0, y0, y_gl, f_min, f_max
+                (min) rot   % на стеке: x0, y0, y_gl, f_max, (min), f_min
+                f_x zpt ( ) show    % на стеке: x0, y0, y_gl, f_max
+                (max) swap f_x  % на стеке: x0, y0, y_gl
+            } ifelse
+            Times_Regular 10 newsize
+            (\)) show
+        } ifelse
+
+        % Рисуем горизонтальную строку разделителя главных строк
+        XCols 0 get XCols 5 get 2 index Horiz_line_gl_row   % на стеке: x0, y0, y_gl
+        dup 
+                Def_row_height_Percent sub  % на стеке: x0, y0, y_gl, y_gl+1
+        pole_bot 0.1 sub lt
+        {   % Следующая строка не уместится на текущем листе
+            % на стеке: x0, y0, y_gl
+            exit    % на стеке: x0, y0, y_gl
+        } if        
+    } for
+    
+    /Yk swap def    % Сохранили в Yk координату нижней части таблицы процентной оценки
+
+    % на стеке: x0, y0
+    % Рисуем линии разделители главных столбцов
+    Yh Yk   % на стеке: x0, y0, yh, yk
+    XCols
+    {
+        2 index 2 index Vert_gl_st
+    } forall    % на стеке: x0, y0, yh, yk
+    
+    XCols 1 get XCols 2 get sred vline_el_cols  % Рисует вертикальную линию разделяющую элементарные столбцы
+    % на стеке: x0, y0, yh, yk
+
+    % Рисуем замыкающую рамку таблицы процентных оценок
+    newpath
+    3 index 2 index moveto
+    3 index over lineto
+    XCols 5 get dup 2 index lineto
+    rot lineto closepath
+    0.3 mm setlinewidth stroke
+    % на стеке: x0, y0, yk
+
+    /Percent_ind_data   % Определяет индекс первой или единственной строки данных (массива) процентных оценок.
+                % в двумерном массиве данных
+    {   % На стеке индекс параметра
+        dup
+        -1
+        0 1 4 -1 roll
+        {
+            Rows swap get add
+        } for
+        Rows rot get
+        1 sub sub
+    } def
+
+    /Print_Data_string  % Печатает строку данных таблицы процентных оценок
+    {   % На стеке: y, ind
+        Percent_Data swap get   % Получили строку данных из массива
+        XCols 1 get XCols 2 get % Порочитали координаты границ столбцов
+        2 copy sred dup 4 -1 roll   % на стеке: y, [Data], x2, x_ср, x_ср, x1
+        swap 5 index 5 index    % на стеке: y, [Data], x2, x_ср, x1, x_ср, y, [Data]
+        0 get 10 string cvs center_print    % Напечатали значение Min. на стеке: y, [Data], x2, x_ср
+        over 4 index 4 index    % на стеке: y, [Data], x2, x_ср, x2, y, [Data]
+        1 get 10 string cvs center_print    % Напечатали значение Max. на стеке: y, [Data], x2
+        XCols 3 get dup 3 1 roll    % на стеке: y, [Data], x3, x2, x3
+        4 index 4 index 2 get center_print  % Напечатали единицу измерения. на стеке: y, [Data], x3
+        XCols 4 get dup 3 1 roll    % на стеке: y, [Data], x4, x3, x4
+        4 index 4 index 3 get dup   % на стеке: y, [Data], x4, x3, x4, y, %Зад, %Зад
+        6 1 roll                        % на стеке: y, [Data], %Зад, x4, x3, x4, y, %Зад
+        10 string cvs center_print  % Напечатали % Заданный. на стеке: y, [Data], %Зад, x4
+        XCols 5 get 5 -2 roll   % на стеке: %Зад, x4, x5, y, [Data]
+        4 get dup   % на стеке: %Зад, x4, x5, y, %Изм, %Изм
+        10 string cvs swap  % на стеке: %Зад, x4, x5, y, (%Изм), %Изм
+        5 index % на стеке: %Зад, x4, x5, y, (%Изм), %Изм, %Зад
+        lt  % на стеке: %Зад, x4, x5, y, (%Изм), %Зад
+        {   % Процент измеренных значений меньше, процента заданых значений печатаем жирным шрифтом и бракуем кабель если %зад не 100% 
+            currentfont 5 1 roll
+            Times_Bold 10 newsize
+            center_print
+            setfont
+            100 lt
+            {   % Заданный процент < 100% бракуем кабель по процентной норме
+                /Kab_Goden false def    % Сбросили флаг годности кабеля
+            } if
+        }
+        {
+                    center_print    % Напечатали процент измеренных значений
+            pop % Удалили заданный процент
+        } ifelse
+    } def
+    
+    Y1  % Ложим на стек координату y первой строки
+    % Печатаем строки таблицы процентной оценки
+    Times_Regular 10 newsize
+    ParamInd_Nach 1 ParamInd_Kon
+    {   % Проходим по параметрам. на стеке: y, ind
+        Rows over get % на стеке: y, ind, n
+        over ParamInd_Nach eq
+        {   % Печатается первый параметр
+            over ParamInd_Kon ne
+            {   % Первый параметр не является последним
+                                ParamInd_el_Nach 1 rot 1 sub
+            }
+            {   % Первый параметр также является последним
+                            pop
+                ParamInd_el_Nach 1 ParamInd_el_Kon
+            } ifelse
+        }
+        {
+            over ParamInd_Kon ne
+            {   % Печатается не последний параметр
+                0 1 rot 1 sub
+            }
+            {   % Печатается последний параметр
+                pop
+                0 1 ParamInd_el_Kon
+            } ifelse        
+        } ifelse
+        {   % Проходим по элементарным строкам. на стеке: y, ind, ind_el
+            over Percent_ind_data add 2 index swap Print_Data_string
+            swap Def_row_height_Percent sub swap
+        } for
+        pop
+    } for
+    % на стеке: x0, y0, yk
+
+    Yk over def % Сохранили Yk
+    rot pop swap pop    % Удалили со стека x0, y0
+    XCols 5 get swap    % на стеке: xk, yk
+} def
+
+/Print_Table_Percent    % Размещает и печатает таблицу процентных оценок
+{
+    /ParamInd_Kon 0 def
+    /ParamInd_el_Kon -1 def % Предустанавливаем значения индексов
+    {   % Повторяем пока не достигнем конца списка параметров
+                % Определим ширину таблицы
+                Freq_max Null_array
+        {   % Массив максимальных частот не содержит данных, ширина таблицы 100 мм
+            100 mm
+        }
+        {       % Массив максимальных частот содержит данные, ширина таблицы 115 мм
+            115 mm
+        } ifelse    % На стеке ширина таблицы
+        
+        swap pop    % Удалили yk с предыдущего вывода таблицы
+        /XNach rot 1 mm add def % Попробуем вывести таблицу справа с отступом 5 мм.
+        pole_rigth 0.1 add XNach sub    % на стеке: Ширина таблицы, ширина свободной области печати
+        gt
+        {   % Оставшаяся часть листа меньше ширины таблицы
+            /XNach pole_left def    % Таблица выводится по левому краю
+            /YNach bot 1 mm sub def
+        }
+        {   % Таблица может быть выведена справа
+            /YNach Y0 def
+        } ifelse
+        YNach 25.5 mm sub pole_bot lt
+        {   % Таблица выводится в нижней части страницы и для не допускания висячей шапки переносим на др. стр.
+            NewPage
+            1 mm dec_bot
+            /XNach pole_left def    % Таблица выводится по левому краю
+            /YNach bot def
+        } if
+        % Определим индексы параметров
+        Rows ParamInd_Kon get   % Определим число элементарных строк последней печатаемой главной строки
+        1 sub
+        ParamInd_el_Kon gt
+        {   % Не все элементарные строки напечатаны
+            /ParamInd_Nach ParamInd_Kon def % Индекс главного параметра не изменяем
+            /ParamInd_el_Nach ParamInd_el_Kon 1 add def % Инкрементируем индекс элементарной строки
+        }
+        {   % В ранее напечатанном параметре отпечатаны все эл. строки
+            /ParamInd_Nach ParamInd_Kon 1 add def   % Инкрементируем индекс главного параметра не изменяем
+            /ParamInd_el_Nach 0 def % Сбрасываем индекс элементарной строки
+        } ifelse
+
+        XNach YNach Part_Table_Percent
+
+        /bot bot Yk min def % Устанавливаем переменную bot равной нижней части таблицы
+
+        ParamInd_Kon Rows length 1 sub lt  % Сравниваем индекс последнего напечатанного параметра с длиной массива параметров
+        {   % Не все параметры отпечатаны
+            NewPage
+            /XNach pole_left def    % Таблица выводится по левому краю
+            /YNach bot def 
+        }
+        {   % Все параметры напечатаны
+            exit
+        } ifelse 
+    } loop
+} def
+
+/Konez  % Печатает завершающее сообщение в протоколе
+{
+    4 mm dec_bot
+    bot 21 mm sub pole_bot lt
+    {   % Блок вывода окончания протокола не поместится на текущем листе
+        NewPage
+        4 mm dec_bot
+    } if
+    pole_left 10 mm add bot moveto
+    Times_Italic 10 newsize
+    currentfont
+    (Значения измеренных параметров вышедшие за установленные нормы выделены ) show
+    Times_Bold 10 newsize
+    (жирным ) show setfont (шрифтом.) show
+
+%Bottom_This
+    
+    Times_Regular 10 newsize
+    4 mm dec_bot pole_left bot moveto
+    (Кабель: ) show currentfont
+    ArialMT_Italic 10 newsize % ставим курсив
+    CabName show (  ) show 10 CabNameStr_print  % Печатает структуру кабеля. на стеке размер шрифта
+        currentfont swap setfont ( ) show (признан) PSP
+    Kab_Goden
+    {   
+        (годным) PSP
+    }
+    {   
+        currentfont Times_Bold 10 newsize (не годным) PSP setfont
+    } ifelse
+    (в) PSP (соответствии) PSP (с) PSP
+    currentfont swap setfont
+    DocNum PSP setfont (.) show
+    
+    currentpoint /bot swap def pop
+    10 mm dec_bot
+    pole_left bot moveto
+    Times_Regular 12 newsize
+    (Оператор:) show
+    Operator dup pole_rigth bot rot rigth_print
+    newpath
+    stringwidth pop pole_rigth swap sub 0.5 mm sub bot 1 mm sub 2 copy
+    moveto -30 mm 0 rlineto 0.3 mm setlinewidth stroke
+    
+    Times_Italic 8 newsize
+    over 30 mm sub 3 1 roll 2.5 mm sub Today center_print
+} def
+
+/Vysokovoltnye_isp  % Выводит результаты высоковольтных испытаний структуры
+{
+    3.5 mm dec_bot
+    bot 12 mm sub pole_bot lt
+    {   % Блок вывода результатов высоковольтных испытаний не поместится на текущем листе
+        NewPage
+        3.5 mm dec_bot
+    } if
+    pole_left bot moveto
+    Times_Regular 10 newsize
+    (Испытательное напряжение (постоянный ток) в течение 1 мин, приложенное:) show
+    U_gil_gil 0 gt
+    {   % Задано значение испытательного напряжения жила-жила
+        3 mm dec_bot
+        pole_left 10 mm add bot moveto 
+        (- между жилами) show
+    } if
+    (- между жилами и экраном) dup stringwidth pop pole_left 25 mm add add dup
+    U_gil_gil 0 gt
+    {   % Задано значение испытательного напряжения жила-жила
+        bot U_gil_gil 10 string cvs ( В) Concat_string rigth_print
+    }
+    {
+        pop
+    } ifelse
+    U_gil_ekr 0 gt
+    {   % Задано значение испытательного напряжения жила-экран
+        3 mm dec_bot
+        bot U_gil_ekr 10 string cvs ( В) Concat_string rigth_print
+        pole_left 10 mm add bot moveto show
+    }
+    {
+        pop pop
+    } ifelse
+    Probit_Num length 0 gt
+    {   % Существуют пробитые элементы структуры
+        3 mm dec_bot
+        pole_left bot moveto
+        (Пробитые ) show StructTip show ( №№: ) show
+        currentfont
+        Times_Bold 10 newsize
+        Probit_Num length 1 sub
+        0 1 2 index
+        {   % Печатаем номера пробитых элементов структуры
+            Probit_Num over get
+            4 string cvs
+            swap 2 index lt
+            {   % Печатаем не последнюю структуру
+                (,)
+            }
+            {
+                (.)
+            } ifelse
+            Concat_string PSP
+        } for
+        pop
+        setfont
+    }
+    {       % Высоковольтные испытания выдержал
+        3 mm dec_bot
+        pole_left 5 mm add bot moveto
+        (Выдержал) show
+    } ifelse
+} def
+
+/Strukt_Header  % Пишет заголовок структуры на стеке строка описания структуры
+{
+    5 mm dec_bot
+    bot 50 mm sub pole_bot lt
+    {   % Для недопускания висячих заголовков структур
+        NewPage
+        5 mm dec_bot
+    } if
+    
+    pole_left bot moveto
+    Times_Bold 12 newsize
+    pole_left bot moveto
+    (Параметры по структуре: ) show
+    Times_Regular 12 newsize
+    14 1.5 div swap
+    Zamena_umnog_show
+    pop
+    2 mm dec_bot
+
+    /Num_al* null def   % Индекс параметра рабочего затухания полученный расчётно
+} def
+
+/Svodka_Str % Добавляет сводку по структуре кабеля на стеке n1, n2, n3 соответственно количество номинальное, 
+{       % фактическое, годных элементов структуры
+    % Сравним число годных и номинальное число элементов структуры
+    dup 3 index lt
+    {   % число годных элементов структуры меньше номинального, бракуем кабель
+        /Kab_Goden false def    % Сбросили флаг годности кабеля
+    } if
+
+    3.5 mm dec_bot
+    bot 10 mm sub pole_bot lt
+    {   % Для не выхода за поля сводки по структурам
+        NewPage
+        3.5 mm dec_bot
+    } if
+    Times_Regular 10 newsize
+    pole_left bot moveto (Номинальное количество ) show StruktTip show (:) show
+    5 mm 0 rmoveto currentpoint     % На стеке: n1, n2, n3, x, y
+    5 -1 roll 5 string cvs show % На стеке: n2, n3, x, y
+    3 mm dec_bot
+    pole_left bot moveto (Фактическое количество ) show StruktTip show (:) show
+    3 mm sub 2 copy moveto
+    4 -1 roll 5 string cvs show     % На стеке: n3, x, y
+    3 mm sub 2 copy moveto
+    rot 5 string cvs show     % На стеке: x, y
+    swap 5 mm sub swap
+    (годных ) StruktTip (:) Concat_string Concat_string rigth_print
+    currentpoint /bot swap def pop
+} def
+
+/GruppCap   % Добавляет запись о принадлежности к группе по рабочей ёмкости структуры кабеля на стеке (группа)
+{
+    3.5 mm dec_bot
+    bot pole_bot lt
+    {   % Для не выхода за поля описания групп рабоей ёмкости
+        NewPage
+        3.5 mm dec_bot
+    } if
+    Times_Regular 10 newsize
+    pole_left bot moveto (Структура соответствует  ) show show ( группе по рабочей ёмкости.) show
+} def
+
+/PrintDCr   % Добавляет запись о соответствии диапазону изменения рабочей ёмкости на стеке: норма, измерен
+{
+    3.5 mm dec_bot
+    bot pole_bot lt
+    {   % Для не выхода за поля описания групп рабоей ёмкости
+        NewPage
+        3.5 mm dec_bot
+    } if
+    pole_left bot DCr
+    Times_Regular 10 newsize
+    ( \(Норма: ) show over 10 string cvs show ( ) show CrEdIsm show (\) Измерено: ) show
+    dup 10 string cvs 3 1 roll  % на стеке: (измерен), норма, измерен
+    lt
+    {       % Норма превышена
+        currentfont swap
+        Times_Bold 10 newsize
+        show
+        setfont
+        /Kab_Goden false def    % Сбросили флаг годности кабеля
+    }
+    {
+        show
+    } ifelse
+    ( ) show CrEdIsm show (.) show
+} def
+
+/?FirstNum  % Проверяет является ли номер на стеке началом пучка по подключению
+{       % на стеке: n -> true / false
+    FirstNum    % 
+    {   % на стеке: n, FirstNum[i]
+        over % на стеке: n, FirstNum[i], n
+        eq      % на стеке: n
+        {   % Элемент найден
+            true exit % на стеке: n, true
+        } if
+    } forall
+    dup type    % проверим тип на вершине стека
+    /booleantype eq
+    {   % выход из цикла по найденному элементу на стеке: n, true
+        swap pop    % на стеке: true
+    }
+    {
+        pop false
+    } ifelse
+} def
+
+/R_iz3_zagl % Пишет заголовок для абсолютного значения комбинационных испытаний
+{   % 
+    4 mm dec_bot
+    bot 10 mm sub pole_bot lt
+    {   % Для не выхода за поля
+        NewPage
+        3.5 mm dec_bot
+    } if 
+    pole_left bot moveto
+    Times_Regular 10 newsize
+    (Сопротивление изоляции комбинации за время \() show 
+    Time_Riz show
+    (\), ) show
+    EdIsm_Riz show (:) show
+} def
+
+/R_iz4_zagl % Пишет заголовок для времени достижения нормы комбинационных испытаний
+{   % 
+    4 mm dec_bot
+    bot 10 mm sub pole_bot lt
+    {   % Для не выхода за поля
+        NewPage
+        3.5 mm dec_bot
+    } if 
+    pole_left bot moveto
+    Times_Regular 10 newsize
+    (Время достижения нормы сопротивления изоляции комбинации \() show 
+    Norma_Riz show
+    (\), ) show
+    EdIsm_Riz show (:) show
+} def
+
+/Komb_str   % Выводит в строку 
+{
+    3.5 mm dec_bot
+    bot 10 mm sub pole_bot lt
+    {   % Для не выхода за поля
+        NewPage
+        3.5 mm dec_bot
+    } if
+    pole_left 5 mm add bot moveto
+    Times_Regular 10 newsize
+    (Пучок №) show PuchNum show
+    3 mm dec_bot
+    NormRizMin NormRizMax   
+    Times_Regular 8 newsize
+    pole_left bot moveto
+    0 1 Riz1 length 1 sub
+    {   % Проходим по элементам данных на стеке: Norm_min, Norm_max, ind
+        currentpoint pop 18 mm add pole_rigth gt
+        {   % Очередной элемент не уместится на строке
+            3 mm dec_bot
+            pole_left bot moveto
+            bot pole_bot lt
+            {   % Для не выхода за поля
+                NewPage
+                3 mm dec_bot
+                pole_left bot moveto
+            } if
+        } if
+        dup (Кмб.) show 1 add 3 string cvs show ( = ) show
+        Riz1 swap get % на стеке значение сопротивления изоляции
+                dup type /stringtype eq
+        {   % Значение является строкой печатаем его
+            show
+        }
+        {   % Значение не является строкой проверим его на пренадлежность числовому типу
+            % На стеке: Norm_min, Norm_max, знач.
+            dup % На стеке: Norm_min, Norm_max, знач., знач.
+            type dup    % На стеке: Norm_min, Norm_max, знач., тип_знач., тип_знач.
+            /integertype eq swap
+            /realtype eq or % На стеке: Norm_min, Norm_max, знач., true-числовое
+            {   % Значение на стеке числовое сравниваем с нормами
+                % На стеке: Norm_min, Norm_max, знач.
+                dup abs dup % На стеке: Norm_min, Norm_max, знач., знач., знач.
+                4 index % На стеке: Norm_min, Norm_max, знач., знач., знач., Norm_min
+                lt  % На стеке: Norm_min, Norm_max, знач., знач., true-если меньше нормы
+                swap 3 index    % % На стеке: Norm_min, Norm_max, знач., true-если меньше нормы, знач., Norm_max
+                gt  % На стеке: Norm_min, Norm_max, знач., true-если меньше нормы, true-если больше нормы
+                or
+                {   % Значение выходит за нормы
+                    Times_Bold 8 newsize
+                }
+                {   % Значение удовлетворяет нормам
+                    Times_Regular 8 newsize
+                } ifelse
+                % На стеке: Norm_min, Norm_max, знач.
+                ExpStr 10 string cvs
+                show    % На стеке: Norm_min, Norm_max
+            }
+            {   % Значение на стеке не числовое печатаем его тип
+                type 16 string cvs
+                Times_Italic 8 newsize
+                show    % На стеке: Norm_min, Norm_max
+
+            } ifelse
+        } ifelse
+        Times_Regular 8 newsize
+        (; ) show
+    } for
+    pop pop
+} def
+
+/Print_Riz_str_Norm % Печатает норму для строчной записи сопротивления изоляции
+{   % На стеке параметр Tiz_0 или Riz_0
+    3 mm dec_bot
+    bot pole_bot lt
+    {   % Для не выхода за поля
+        NewPage
+        3 mm dec_bot
+    } if
+    pole_left bot moveto
+    Times_Regular 8 newsize
+    (Норма(100%) ) show
+    Times_Italic 10 newsize
+    dup cvx exec  
+    a_b
+    Times_Italic 8 newsize
+    /Riz_0 eq
+    {   % Для сопротивления изоляции
+        (min = ) show NormRizMin
+    }
+    {   % Для времени достижения
+        (max = ) show NormRizMax
+    } ifelse
+    Times_Regular 8 newsize
+    10 string cvs show
+    ( ) show EdIsm_Riz show
+    2 mm dec_bot
+    pole_left bot  /Y0 bot def
+} def
+
+/RowHeigth 3.5 mm def
+
+/Print_U_Obol   % Печатает строку об испытании оболочки кабеля на пробой
+{
+    4 mm dec_bot
+    bot 7 mm sub pole_bot lt
+    {   % Блок вывода об испытании оболочки кабеля на пробой не поместится на текущем листе
+        NewPage
+        3.5 mm dec_bot
+    } if
+    pole_left bot moveto
+    Times_Regular 10 newsize
+    (Кабель испытан в процессе производства на герметичность оболочки на аппарате сухого испытания ) PSP
+    (напряжением: ) U_Obol Concat_string ( кВ.) Concat_string
+    PSP
+} def
+
+/Print_Pizb % Печатает строку об избыточном давлении газа
+{
+    4 mm dec_bot
+    bot 7 mm sub pole_bot lt
+    {   % Блок вывода избыточного давления не поместится на текущем листе
+        NewPage
+        3.5 mm dec_bot
+    } if
+    pole_left bot moveto
+    Times_Regular 10 newsize
+    (Кабель имеет избыточное давление воздуха ) show Norm_Pizb show kgs-cm^2
+    (: )  show P_izb show kgs-cm^2 (. ) 
+    PSP
+} def
+
+
+%---------------------------------------------------------------------------------------------------
+% Первая страница протокола
+PrinTitle
+
+/CabName (ТПппПЗ) def
+/CabNameStruct (10x2x0,4) def
+/DocNum (ТУ 16.К17\226048\2262005) def
+/CabelLengt (2200) def
+/Netto (193.6) def
+/TipName (12) def
+/BarabanNum (100851958) def
+/ZakazNum () def
+/SertNum () def
+/Brutto (293) def
+/IspData (19.06.2008) def
+/Temperatur (28) def
+
+Head_isp
+
+/Operator (Кирина Т.И.) def
+
+/Today (2.11.2017 г.) def
+/FirstNum [ ] def
+
+/Y0 bot def pole_left bot
+
+/Param [ /NumNum /Rgil /Cr ] def
+/EdIsm [ (Пары) (Ом/км) (нФ/км) ] def
+/Cols  [ 1 2 1 ] def
+
+/NormRgilMin 130 def
+/NormRgilMax 148 def
+/Rgil1 [ 137.5 137.9 138.1 136.7 137.9 137.5 132.7 136.5 136.7 137.0 ] def
+/Rgil2 [ 135.6 137.1 135.3 136.4 135.8 137.7 135.9 135.4 136.6 135.1 ] def
+
+/NormCrMin 45 def
+/NormCrMax 55 def
+/Cr1 [ 50.77 50.36 51.20 49.27 49.82 49.53 50.96 49.38 49.26 49.48 ] def
+
+Print_Table_I
+
+/Param [ /NumNum /Tiz ] def
+/EdIsm [ (Комб.) (сек) ] def
+/Cols  [ 1 1 ] def
+
+/NormTizMin -Inf def
+/NormTizMax 180 def
+/Tiz1 [ 122 132 102 101 93 21 ] def
+
+/NormRizMin 5000 def
+/EdIsmNormRiz (МОм/км) def
+
+Komb_Riz
+
+/Param [ /Rgil /Cr ] def
+/Rows [ 1 1 ] def
+/Freq_min [ null null ] def
+/Freq_max [ null null ] def
+
+/Percent_Data [
+[ 130 148 (Ом/км) 100 100 ]
+[ 45 55 (нФ/км) 100 100 ]
+] def
+
+
+Print_Table_Percent
+
+/StructTip (пары) def
+
+/U_gil_gil 1500 def /U_gil_ekr 750 def
+/Probit_Num [ ] def
+
+Vysokovoltnye_isp
+
+/StruktTip (пар) def
+10 10 10 Svodka_Str
+
+Konez
+showpage

@@ -1,0 +1,307 @@
+%---------------------------------------------------------------------------------------------------
+% Программа описания логотипа используется для специального протокола
+% форматом A5 
+% язык: PostScript
+% Печатаем логотип для АО "Казэнергокабель"
+
+/logo_linwidth 0.5 mm def % толщина линии логотипа
+
+/logotip	% Печатает логотип на стеке: x, y Центра логотипа
+{
+	2 copy moveto	% установили текущую точку
+	gsave	% запомнили состояние графики
+		[ 1 0 0.3639 0.833 0 0 ] concat	% смаштабировали и наломили координатные оси
+		currentpoint	% определили координаты текущей точки в носой системе отсчёта
+		
+		newpath	% Рисуем внешний контур
+		over 6.2619 mm sub over 9.7567 mm sub moveto
+		6.7843 mm 0 rlineto
+		2 copy 6.9931 mm 274.2837 306.1432 arc
+		over 4.1246 mm add over 5.6473 mm sub lineto
+		0.0572 mm -0.1094 mm rlineto
+		0.2337 mm -0.5 mm rlineto
+		0.1929 mm -0.5 mm rlineto
+		0.1571 mm -0.5 mm rlineto
+		0.1248 mm -0.5 mm rlineto
+		0.095 mm -0.5 mm rlineto
+		0.0625 mm -0.5 mm rlineto
+		0.0438 mm -0.5 mm rlineto
+		0.0131 mm -0.5 mm rlineto
+		7.3537 mm 0 rlineto
+		2 copy 6.9931 mm 354.3256 6.0831 arc
+		over 6.9537 mm add over 0.741 mm add lineto
+		5.4449 mm 9.4786 mm rlineto
+		-7.087 mm 0 rlineto
+		-0.0118 mm -0.4763 mm rlineto
+		-0.0379 mm -0.5 mm rlineto
+		-0.0647 mm -0.5 mm rlineto
+		-0.0925 mm -0.5 mm rlineto
+		-0.1217 mm -0.5 mm rlineto
+		-0.1533 mm -0.5 mm rlineto
+		-0.1825 mm -0.5 mm rlineto
+		-0.2324 mm -0.5 mm rlineto
+		-0.2724 mm -0.5 mm rlineto
+		2 copy 6.9931 mm 54.1402 85.7163 arc
+		over 0.5224 mm add over 6.9735 mm add lineto
+		0 3.2461 mm rlineto
+		-6.8538 mm 0 rlineto
+		0.0108 mm -0.4763 mm rlineto
+		0.0347 mm -0.5 mm rlineto
+		0.0591 mm -0.5 mm rlineto
+		0.0842 mm -0.5 mm rlineto
+		0.1085 mm -0.5 mm rlineto
+		0.1396 mm -0.5 mm rlineto
+		0.1674 mm -0.5 mm rlineto
+		0.1997 mm -0.5 mm rlineto
+		0.2355 mm -0.5 mm rlineto
+		0.2765 mm -0.5 mm rlineto
+		2 copy 6.9931 mm 134.181 224.4076 arc
+		over 4.9957 mm sub over 4.8935 mm sub lineto
+		-0.2011 mm -0.3632 mm rlineto
+		-0.2408 mm -0.5 mm rlineto
+		-0.204 mm -0.5 mm rlineto
+		-0.171 mm -0.5 mm rlineto
+		-0.1409 mm -0.5 mm rlineto
+		-0.1128 mm -0.5 mm rlineto
+		-0.0863 mm -0.5 mm rlineto
+		-0.0609 mm -0.5 mm rlineto
+		-0.0363 mm -0.5 mm rlineto
+		-0.0121 mm -0.5 mm rlineto
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №2
+		newpath
+		2 copy 6.9931 mm 233.8568 265.7163 arc
+		over 0.5224 mm sub over 6.9735 mm sub lineto
+		0 -1.8067 mm rlineto
+		-4.532 mm 0 rlineto
+		0.0024 mm 0.0236 mm rlineto
+		0.0667 mm 0.5 mm rlineto
+		0.095 mm 0.5 mm rlineto
+		0.1248 mm 0.5 mm rlineto
+		0.1571 mm 0.5 mm rlineto
+		0.1929 mm 0.5 mm rlineto
+		0.2337 mm 0.5 mm rlineto
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath	% Отрисуем кривую №3
+		2 copy 6.9931 mm 315.5924 341.9445 arc
+		over 6.6487 mm add over 2.1675 mm sub lineto
+		3.8591 mm -6.6128 mm rlineto
+		-4.292 mm 0 rlineto
+		-0.0023 mm 0.0236 mm rlineto
+		-0.0609 mm 0.5 mm rlineto
+		-0.0863 mm 0.5 mm rlineto
+		-0.1128 mm 0.5 mm rlineto
+		-0.1409 mm 0.5 mm rlineto
+		-0.171 mm 0.5 mm rlineto
+		-0.204 mm 0.5 mm rlineto
+		-0.2408 mm 0.5 mm rlineto
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №4
+		over 3.4953 mm sub over 4.6735 mm sub moveto
+		0.3561 mm 0.4168 mm rlineto
+		0.5364 mm 0.5 mm rlineto
+		0.4157 mm 0.3022 mm rlineto
+		0.336 mm 0.1978 mm rlineto
+		0.6057 mm 0.264 mm rlineto
+		0.7231 mm 0.1742 mm rlineto
+		2 copy 5.836 mm 264.8649 233.207 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №5
+		over 3.4953 mm add over 4.6735 mm sub moveto
+		-0.3561 mm 0.4168 mm rlineto
+		-0.5364 mm 0.5 mm rlineto
+		-0.4157 mm 0.3022 mm rlineto
+		-0.336 mm 0.1978 mm rlineto
+		-0.4189 mm 0.1946 mm rlineto
+		-0.4061 mm 0.1378 mm rlineto
+		-0.5038 mm 0.1058 mm rlineto
+		2 copy 5.836 mm 275.1351 306.793 arc
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №6
+		over 4.3227 mm sub over 3.9209 mm sub moveto
+		0.1376 mm 0.1642 mm rlineto
+		0.4773 mm 0.5 mm rlineto
+		0.5966 mm 0.5 mm rlineto
+		0.4731 mm 0.3152 mm rlineto
+		0.3337 mm 0.1848 mm rlineto
+		0.5662 mm 0.249 mm rlineto
+		0.4979 mm 0.1572 mm rlineto
+		0.4406 mm 0.0938 mm rlineto
+		0.2774 mm 0.0379 mm rlineto
+		0 1.1963 mm rlineto
+		2 copy 5.836 mm 185.1357 222.2092 arc
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №7
+		over 4.3227 mm add over 3.9209 mm sub moveto
+		-0.1376 mm 0.1642 mm rlineto
+		-0.4773 mm 0.5 mm rlineto
+		-0.5966 mm 0.5 mm rlineto
+		-0.4731 mm 0.3152 mm rlineto
+		-0.3337 mm 0.1848 mm rlineto
+		-0.3362 mm 0.1572 mm rlineto
+		-0.4941 mm 0.1822 mm rlineto
+		-0.3235 mm 0.0893 mm rlineto
+		-0.3509 mm 0.0713 mm rlineto
+		-0.2774 mm 0.0379 mm rlineto
+		0 1.1963 mm rlineto
+		2 copy 5.836 mm 354.8643 317.7908 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №8
+		over 4.1693 mm sub over 4.0836 mm add moveto
+		0.3229 mm -0.3403 mm rlineto
+		0.5694 mm -0.5 mm rlineto
+		0.2908 mm -0.2132 mm rlineto
+		0.46 mm -0.2868 mm rlineto
+		0.5067 mm -0.2512 mm rlineto
+		0.7071 mm -0.2488 mm rlineto
+		0.438 mm -0.099 mm rlineto
+		0.3521 mm -0.0503 mm rlineto
+		0 -1.5716 mm rlineto
+		2 copy 5.836 mm 174.8643 135.595 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №9
+		over 5.8126 mm add over 0.5224 mm add moveto
+		-5.2903 mm 0 rlineto
+		0 1.5716 mm rlineto
+		0.314 mm 0.0437 mm rlineto
+		0.4761 mm 0.1056 mm rlineto
+		0.4661 mm 0.1512 mm rlineto
+		0.4239 mm 0.1809 mm rlineto
+		0.3238 mm 0.1679 mm rlineto
+		0.3929 mm 0.2412 mm rlineto
+		0.3579 mm 0.2588 mm rlineto
+		0.323 mm 0.2692 mm rlineto
+		0.2464 mm 0.2308 mm rlineto
+		2 copy 5.836 mm 44.405 5.1357 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №10
+		over 3.4098 mm sub over 4.7363 mm add moveto
+		0.4926 mm -0.493 mm rlineto
+		0.6643 mm -0.5 mm rlineto
+		0.141 mm -0.0856 mm rlineto
+		0.4251 mm -0.2193 mm rlineto
+		0.5185 mm -0.1951 mm rlineto
+		0.358 mm -0.0914 mm rlineto
+		0.2879 mm -0.049 mm rlineto
+		2 copy 5.836 mm 95.1351 125.7509 arc
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №11
+		over 3.4098 mm add over 4.7363 mm add moveto
+		-0.2614 mm -0.2764 mm rlineto
+		-0.2312 mm -0.2166 mm rlineto
+		-0.3174 mm -0.2599 mm rlineto
+		-0.3469 mm -0.2401 mm rlineto
+		-0.2877 mm -0.1677 mm rlineto
+		-0.4267 mm -0.2008 mm rlineto
+		-0.3702 mm -0.1315 mm rlineto
+		-0.6459 mm -0.1404 mm rlineto
+		2 copy 5.836 mm 84.8649	54.2491 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №12
+		over 0.5224 mm sub over 6.9736 mm add moveto
+		0 2.0199 mm rlineto
+		-4.7105 mm 0 rlineto
+		0.0357 mm -0.2502 mm rlineto
+		0.0925 mm -0.5 mm rlineto
+		0.1217 mm -0.5 mm rlineto
+		0.1533 mm -0.5 mm rlineto
+		0.1879 mm -0.5 mm rlineto
+		0.227 mm -0.5 mm rlineto
+		0.2724 mm -0.5 mm rlineto
+		2 copy 6.9931 mm 125.8598 94.2837 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+		newpath % Отрисуем кривую №13
+		over 6.6405 mm add over 2.1926 mm add moveto
+		3.8365 mm 6.8008 mm rlineto
+		-4.2176 mm 0 rlineto
+		-0.0326 mm -0.2501 mm rlineto
+		-0.0842 mm -0.5 mm rlineto
+		-0.1102 mm -0.5 mm rlineto
+		-0.1292 mm -0.5 mm rlineto
+		-0.1761 mm -0.5 mm rlineto
+		-0.1996 mm -0.5 mm rlineto
+		-0.2356 mm -0.5 mm rlineto
+		-0.2765 mm -0.5 mm rlineto
+		2 copy 6.9931 mm 45.819 18.2732 arcn
+		closepath logo_linwidth setlinewidth stroke
+
+	grestore 
+	pop pop	% Удалили координаты центра логотипа в предыдущей системе отсчёта
+
+	5 mm add swap 15 mm add swap moveto
+	Times_Bold 2 mm newsize
+	(АО \253КАЗЭНЕРГОКАБЕЛЬ\273) show
+} def
+
+
+/R { 5 mm mul } def	% Базовый размер знака соответствия выбирается из
+		% ряда 2; 3; 5; 8; 12; 15; 20; 30; 50; 80; 125; 200 мм.
+
+/Znak_sootv	% Рисует знак соответствия Казахстана
+{		% на стеке координаты центра знака соответствия
+
+	0 setgray % плотность заливки фона знака соответствия
+	newpath	% Наружная окружность для заливки фона
+	2 copy 1.4 R 0 360 arc closepath
+	2 copy -0.1 R 0 rmoveto
+	1.3 R 360 0 arcn closepath
+	fill
+
+	newpath	% Контур знака
+	over 0.4 R sub over 0.0373 R sub moveto
+	0 0.4373 R rlineto
+	0.1 R currentpoint 2 index rot swap sub swap 2 index 0 180 arc
+	0 -0.8 R rlineto
+	currentpoint 2 index rot swap add swap rot 180 0 arc
+	0 0.102 R rlineto
+	0.1134 R 0.0952 R rlineto
+	0.5866 R -0.3387 R rlineto
+	2 copy 0.9 R 289.47 45 arcn
+	currentpoint swap 0.0682 R add swap 0.0731 R add 0.1 R 225 45 arc
+	2 copy 1.1 R 45 315 arc
+	currentpoint swap 0.0682 R sub swap 0.0731 R add 0.1 R 315 135 arc
+	2 copy 0.9 R 315 303.749 arcn
+	over 0.5 R add over lineto
+	0.1 R 0 rlineto
+	0.05 R currentpoint 2 index add 2 index 270 90 arc
+	-0.4 R 0 rlineto
+	currentpoint 2 index sub rot 90 270 arc
+	0.1 R 0 rlineto
+	0 -0.2932 R rlineto
+	over 0.111 R sub over 0.0556 R sub lineto
+	0.475 R 0.38 R rlineto
+	currentpoint swap 0.0643 R sub swap 0.0766 R add 0.1 R 320 130 arc
+	closepath
+	fill
+	
+	% Текст номера сертификата соответствия
+	ArialMT_Regular 0.5 R newsize
+
+	over dup 10 sub swap 10 add 2 index 2.6 R sub
+	(КZ.5510317) center_print % Печатает строку по центру
+
+%	0 setgray
+	pop pop
+} def
+
+pole_left 5 mm add pole_top 10 mm sub logotip
+
+1.4 R pole_rigth 2 mm add over sub pole_top rot sub Znak_sootv
+%/logo_bot {pole_top} def % Нижняя граница логотипа предприятия
+
+/Zavod (АО "КЭК") def % Название предприятия сокращённо
+
+/title (Протокол электрических испытаний) def % Текст заголовка
+%---------------------------------------------------------------------------------------------------

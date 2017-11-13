@@ -1,0 +1,17 @@
+PSCyr font collection
+=====================
+
+This license applies to the PSCyr font collection version number 0.4.
+
+Permission is granted to use, copy, and freely redistribute the fonts
+from the PSCyr font collection in any media, including embedding them
+in PostScript and PDF documents provided that the following conditions
+are met:
+
+1. Any modification of *.afm and *.pfb files is forbidden.
+2. The redistribution of the font(s) and the whole collection as separate
+   computer file(s) should retain this license information.
+
+The font collection is provided "as is" in the hope it will be useful,
+but without any warranty, whether implicit or explicit, of any kind.
+
