@@ -15,6 +15,9 @@ namespace SAKProtocolManager
 {
     public partial class MainForm : Form
     {
+        private int CurrentWidth = 0;
+        private int CurrentHeight = 0;
+        private long TestCount = 0;
         private DBControl mySql = new DBControl(DBQueries.Default.DBName);
         public MeasureParameterType[] MeasureParameterTypes = new MeasureParameterType[] { }; //Типы измеряемых параметров
         public MeasureParameterType MPT;
@@ -26,9 +29,10 @@ namespace SAKProtocolManager
         public MainForm()
         {
             InitializeComponent();
-            inProcessLabel.Visible = false;
+            inProcessLabel.Visible = progressBarPanel.Visible = false;
             initTestsList();
             SetDBConstants();
+
             /// Thread.Sleep(6000);
             // sts.Close();
         }
@@ -54,39 +58,43 @@ namespace SAKProtocolManager
         private void initTestsList()
         {
 
-            button1.Enabled = false;
+            ClearList.Enabled = button1.Enabled = false;
             string comDateRange = DBQueries.Default.MinMaxDateQuery;
             mySql.MyConn.Open();
+            TestCount = mySql.RunNoQuery(DBQueries.Default.TestCount);
             MySqlDataAdapter dateRange = new MySqlDataAdapter(comDateRange, mySql.MyConn);
             dataSetTest.Tables["date_range"].Rows.Clear();
             dateRange.Fill(dataSetTest.Tables["date_range"]);
             mySql.MyConn.Close();
-
+            selectedCountLbl.Text = "База данных испытаний пуста";
             if (dataSetTest.Tables["date_range"].Rows.Count > 0)
             {
                 string dateMin, dateMax, dateToMin, dateToMax, dateFromMin, dateFromMax;
                 dateMin = dataSetTest.Tables["date_range"].Rows[0][1].ToString();
                 dateMax = dataSetTest.Tables["date_range"].Rows[0][0].ToString();
+                if (String.IsNullOrWhiteSpace(dateMin) || String.IsNullOrWhiteSpace(dateMin)) return;
                 dateFromMin = dateMin.Replace(dateMin.Substring(10), " 00:00:00");
                 dateFromMax = dateMax.Replace(dateMax.Substring(10), " 00:00:00");
                 dateToMin = dateMin.Replace(dateMin.Substring(10), " 23:59:59");
                 dateToMax = dateMax.Replace(dateMax.Substring(10), " 23:59:59");
                 //label3.Text = dbDateFormat(DateTime.Parse(dateFromMax));
-                dateTimeFrom.MinDate = dateTimeFrom.Value = DateTime.Parse(dateFromMin);
-                dateTimeFrom.MaxDate = DateTime.Parse(dateFromMax);
+                dateTimeFrom.MinDate = DateTime.Parse(dateFromMin);
+                dateTimeFrom.MaxDate = dateTimeFrom.Value = DateTime.Parse(dateFromMax);
                 dateTimeTo.MinDate = DateTime.Parse(dateToMin);
                 dateTimeTo.MaxDate = dateTimeTo.Value = DateTime.Parse(dateToMax);
                 fillTestList(dbDateFormat(dateTimeFrom.Value), dbDateFormat(dateTimeTo.Value));
-                button1.Enabled = true;
             }
 
 
         }
 
+
         private void fillTestList(string dateMin, string dateMax)
         {
             string com = String.Format(DBQueries.Default.SelectTestsList, dateMin, dateMax);
-            com += " limit 10000";
+            int rowsCount;
+            //com += " limit 10000";
+            ClearList.Visible = false;
             inProcessLabel.Visible = true;
             button1.Enabled = false;
             this.Refresh();
@@ -99,9 +107,24 @@ namespace SAKProtocolManager
             testsListView.DataSource = dataSetTest.Tables["ispytan"];
             testsListView.Refresh();
             inProcessLabel.Visible = false;
+            ClearList.Visible = true;
             this.Cursor = Cursors.Arrow;
-            button1.Enabled = true;
+            //button1.Enabled = true;
             this.Refresh();
+            rowsCount = testsListView.Rows.Count - 1;
+            ClearList.Enabled = rowsCount > 0;
+            if (TestCount == 0)
+            {
+                selectedCountLbl.Text = "База данных испытаний пуста";
+            }
+            else
+            {
+                if (rowsCount == 0) selectedCountLbl.Text = "В заданном промежутке времени испытаний не найдено";
+                else if (rowsCount == 1) selectedCountLbl.Text = String.Format("Выбрано 1 испытание из {0}", TestCount);
+                else if (rowsCount > 1 && rowsCount < 5) selectedCountLbl.Text = String.Format("Выбрано {0} испытания из {1}", rowsCount, TestCount);
+                else selectedCountLbl.Text = String.Format("Выбрано {0} испытаний из {1}", rowsCount, TestCount);
+
+            }
         }
 
         private string dbDateFormat(DateTime dt)
@@ -123,16 +146,17 @@ namespace SAKProtocolManager
         {
             try
             {
-                WaitingStatus wts = new WaitingStatus();
+             //   WaitingStatus wts = new WaitingStatus();
             //if (testsListView.SelectedRows.Count == 0) return;
             string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
             //if (String.IsNullOrWhiteSpace(test_id)) return;
-            
+            this.Enabled = false;
+            this.Cursor = Cursors.WaitCursor;
             MeasureResultReader form = new MeasureResultReader(test_id, this);
             form.FormClosed += new FormClosedEventHandler(this.MeasureResultReaderClosed);
             form.Show();
-            this.Enabled = false;
-            wts.StopStatus();
+            this.Cursor = Cursors.Default;
+                //wts.StopStatus();
             }
             catch (ThreadAbortException) { }
             
@@ -146,6 +170,7 @@ namespace SAKProtocolManager
             }
             else
             {
+                if (testsListView.SelectedRows[0].Cells[0].Value == null) return;
                 string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
                 openMeasureResultReaderToolStripMenuItem.Enabled = !String.IsNullOrWhiteSpace(test_id);
             }
@@ -153,15 +178,88 @@ namespace SAKProtocolManager
 
         private void button2_Click(object sender, EventArgs e)
         {
-            //PDFProtocol p = new PDFProtocol();
-            string[] arr = new string[100];
-            arr[0] = "rrrf";
-            arr.SetValue("444", 101);
-            label3.Text = arr.Length.ToString();
-            
+            List<string> ids = new List<string>();
+            foreach (DataGridViewRow r in testsListView.Rows)
+            {
+                if (r.Cells[0].Value == null) continue;
+                string id = r.Cells[0].Value.ToString();
+                if (!String.IsNullOrWhiteSpace(id))
+                {
+                    ids.Add(id);
+                }
+            }
+            if (ids.Count > 0)
+            {
+                progressBarTest.Value = 0;
+                progressBarTest.Maximum = ids.Count;
+                progressBarLbl.Text = "";
+                progressBarPanel.Visible = true;
+                int i = 0;
+                int j = 0;
+                string strIds = String.Empty;
+                foreach (string id in ids)
+                {
+                    if (i > 0) strIds += ",";
+                    strIds += id;
+                    if (i == 100 || j == (ids.Count -1))
+                    {
+                        CableTest.DeleteTest(strIds);
+                        progressBarTest.Value += i;
+                        progressBarLbl.Text = String.Format("Удалено {0} из {1} испытаний", j, ids.Count);
+                        progressBarLbl.Refresh();
+                        strIds = String.Empty;
+                        i = -1;
+                    }
+                    i++;
+                    j++;
+                }
+                progressBarPanel.Visible = false;
+                initTestsList();
+                //fillTestList(dbDateFormat(dateTimeFrom.Value), dbDateFormat(dateTimeTo.Value));
+            }
+
         }
 
+        private void MainForm_ResizeBegin(object sender, EventArgs e)
+        {
+            CurrentWidth = this.Width;
+            CurrentHeight = this.Height;
+        }
 
+        private void MainForm_ResizeEnd(object sender, EventArgs e)
+        {
+            int heightDelta = this.Height - CurrentHeight;
+            int widthDelta = this.Width - CurrentWidth;
+            testsListView.Width += widthDelta;
+            testsListView.Height += heightDelta;
+            CurrentWidth = this.Width;
+            CurrentHeight = this.Height;
+        }
+
+        public void UpdateSelectedCableLength(int length)
+        {
+            testsListView.SelectedRows[0].Cells["length"].Value = length; 
+        }
+
+        private void удалитьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
+            CableTest.DeleteTest(test_id);
+            testsListView.Rows.Remove(testsListView.SelectedRows[0]);
+            if (testsListView.SelectedRows.Count > 0) testsListView.SelectedRows[0].Selected = false;
+        }
+
+        private void dateTimeFrom_ValueChanged(object sender, EventArgs e)
+        {
+            button1.Enabled = true;
+            ClearList.Enabled = false;
+        }
+
+        private void dateTimeTo_ValueChanged(object sender, EventArgs e)
+        {
+            button1.Enabled = true;
+            ClearList.Enabled = false;
+        }
     }
 
    

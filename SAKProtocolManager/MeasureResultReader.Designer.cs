@@ -48,11 +48,15 @@
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabControlTestResult = new System.Windows.Forms.TabControl();
             this.GeneratePDFProtocolButton = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.testedLengthInput = new System.Windows.Forms.NumericUpDown();
+            this.updateCableLength = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.measureResultReaderDataSet)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cableTable)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.measured_parameters_table_1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.tabControlTestResult.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.testedLengthInput)).BeginInit();
             this.SuspendLayout();
             // 
             // cableTypeLbl
@@ -197,19 +201,63 @@
             // 
             // GeneratePDFProtocolButton
             // 
-            this.GeneratePDFProtocolButton.Location = new System.Drawing.Point(417, 12);
+            this.GeneratePDFProtocolButton.Location = new System.Drawing.Point(417, 17);
             this.GeneratePDFProtocolButton.Name = "GeneratePDFProtocolButton";
-            this.GeneratePDFProtocolButton.Size = new System.Drawing.Size(103, 33);
+            this.GeneratePDFProtocolButton.Size = new System.Drawing.Size(177, 33);
             this.GeneratePDFProtocolButton.TabIndex = 9;
             this.GeneratePDFProtocolButton.Text = "Импорт в PDF";
             this.GeneratePDFProtocolButton.UseVisualStyleBackColor = true;
             this.GeneratePDFProtocolButton.Click += new System.EventHandler(this.GeneratePDFProtocolButton_Click);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(414, 74);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(54, 13);
+            this.label2.TabIndex = 11;
+            this.label2.Text = "Длина, м";
+            // 
+            // testedLengthInput
+            // 
+            this.testedLengthInput.Location = new System.Drawing.Point(474, 71);
+            this.testedLengthInput.Maximum = new decimal(new int[] {
+            15000,
+            0,
+            0,
+            0});
+            this.testedLengthInput.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.testedLengthInput.Name = "testedLengthInput";
+            this.testedLengthInput.Size = new System.Drawing.Size(120, 20);
+            this.testedLengthInput.TabIndex = 12;
+            this.testedLengthInput.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // updateCableLength
+            // 
+            this.updateCableLength.Location = new System.Drawing.Point(417, 97);
+            this.updateCableLength.Name = "updateCableLength";
+            this.updateCableLength.Size = new System.Drawing.Size(177, 23);
+            this.updateCableLength.TabIndex = 13;
+            this.updateCableLength.Text = "Пересчитать";
+            this.updateCableLength.UseVisualStyleBackColor = true;
+            this.updateCableLength.Click += new System.EventHandler(this.updateCableLength_Click);
             // 
             // MeasureResultReader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(827, 820);
+            this.Controls.Add(this.updateCableLength);
+            this.Controls.Add(this.testedLengthInput);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.GeneratePDFProtocolButton);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.cableStructuresList);
@@ -224,6 +272,7 @@
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.tabControlTestResult.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.testedLengthInput)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -251,5 +300,8 @@
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabControl tabControlTestResult;
         private System.Windows.Forms.Button GeneratePDFProtocolButton;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.NumericUpDown testedLengthInput;
+        private System.Windows.Forms.Button updateCableLength;
     }
 }

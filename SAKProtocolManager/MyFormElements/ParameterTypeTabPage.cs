@@ -139,7 +139,7 @@ namespace SAKProtocolManager.MyFormElements
                 {
                     dgv.Rows[idx].Cells["element_number"].Value = tr.ElementNumber;
                     dgv.Rows[idx].Cells["measure"].Value = pData.ResultMeasure();
-                    dgv.Rows[idx].Cells["vals_count"].Value = tr.GetType().Name;
+                    dgv.Rows[idx].Cells["vals_count"].Value = pData.ParameterType.Name;
                     for (int i=0; i<tr.Values.Length; i++)
                     {
                         dgv.Rows[idx].Cells[String.Format("result_{0}", i)].Value = tr.Values[i];

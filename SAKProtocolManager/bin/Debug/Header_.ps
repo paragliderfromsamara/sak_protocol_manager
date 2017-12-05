@@ -251,7 +251,7 @@ SetPaper
 {dup stringwidth pop 4 -1 roll swap sub rot moveto show} def
 
 /RowHeigth 4 mm def % Межстрочный интервал
-/PSP   % Проверяет размещение входной строки в границах полей листа, если данная строка 
+/Print_string_perenos   % Проверяет размещение входной строки в границах полей листа, если данная строка 
             % не поместится, то переносим на следующую строку и печатаем.
 {   % На стеке: (строка)
     currentpoint swap   % На стеке: (строка), y, x
@@ -714,24 +714,23 @@ title_bot 20 sub /bot swap def
 %   (  ) show
 %   DocNum_convert
 %   DocNum show
-	Times_Regular 10 newsize % Установили шрифт
-	10 dec_bot % Переносим координату вывода вниз на 10 пунктов
-	15 mm pole_left add bot moveto 
-	(Заказ №: ) show ZakazNum show 
-	45 mm pole_left add bot moveto 
-	(№ Барабана: ) show BarabanNum show
-	90 mm pole_left add bot moveto 
-	(Тип барабана: ) show TipName show 
-	10 dec_bot % Переносим координату вывода вниз на 10 пунктов
-	15 mm pole_left add bot moveto 
-	(Длина кабеля: ) show CabelLengt show ( м.) show
-	90 mm pole_left add bot moveto 
-	(Температура: ) show Temperatur show deg_C show
-	10 dec_bot % Переносим координату вывода вниз на 10 пунктов
-	15 mm pole_left add bot moveto 
-	(БРУТТО: ) show Brutto show ( кг.) show
-	90 mm pole_left add bot moveto 
-	(Дата испытания: ) show IspData show
+    Times_Regular 10 newsize % Установили шрифт
+    10 dec_bot % Переносим координату вывода вниз на 10 пунктов
+    15 mm pole_left add bot moveto 
+    ZakazNum show 
+    (№ Барабана: ) show BarabanNum show
+    90 mm pole_left add bot moveto 
+    (Тип барабана: ) show TipName show 
+    10 dec_bot % Переносим координату вывода вниз на 10 пунктов
+    15 mm pole_left add bot moveto 
+    (Длина кабеля: ) show CabelLengt show ( м.) show
+    90 mm pole_left add bot moveto 
+    (Температура: ) show Temperatur show deg_C show
+    10 dec_bot % Переносим координату вывода вниз на 10 пунктов
+    15 mm pole_left add bot moveto 
+    (БРУТТО: ) show Brutto show ( кг.) show
+    90 mm pole_left add bot moveto 
+    (Дата испытания: ) show IspData show
 
 %   130 mm pole_left add bot moveto 
 %   (НЕТТО: ) show 
@@ -3358,24 +3357,25 @@ title_bot 20 sub /bot swap def
     Times_Bold 10 newsize
     (жирным ) show setfont (шрифтом.) show
 
-%Bottom_This
-    
     Times_Regular 10 newsize
-    4 mm dec_bot pole_left bot moveto
+%   5 mm dec_bot
+%   pole_left bot moveto
+%   (По результатам проведённых автоматизированных испытаний на системе САК\226ТВЧ\22652/4\226В1) show
+    3.5 mm dec_bot pole_left bot moveto
     (Кабель: ) show currentfont
     ArialMT_Italic 10 newsize % ставим курсив
     CabName show (  ) show 10 CabNameStr_print  % Печатает структуру кабеля. на стеке размер шрифта
-        currentfont swap setfont ( ) show (признан) PSP
+        currentfont swap setfont ( ) show (признан) Print_string_perenos
     Kab_Goden
     {   
-        (годным) PSP
+        (годным) Print_string_perenos
     }
     {   
-        currentfont Times_Bold 10 newsize (не годным) PSP setfont
+        currentfont Times_Bold 10 newsize (не годным) Print_string_perenos setfont
     } ifelse
-    (в) PSP (соответствии) PSP (с) PSP
+    (в) Print_string_perenos (соответствии) Print_string_perenos (с) Print_string_perenos
     currentfont swap setfont
-    DocNum PSP setfont (.) show
+    DocNum Print_string_perenos setfont (.) show
     
     currentpoint /bot swap def pop
     10 mm dec_bot
@@ -3386,7 +3386,7 @@ title_bot 20 sub /bot swap def
     newpath
     stringwidth pop pole_rigth swap sub 0.5 mm sub bot 1 mm sub 2 copy
     moveto -30 mm 0 rlineto 0.3 mm setlinewidth stroke
-    
+
     Times_Italic 8 newsize
     over 30 mm sub 3 1 roll 2.5 mm sub Today center_print
 } def
@@ -3444,7 +3444,7 @@ title_bot 20 sub /bot swap def
             {
                 (.)
             } ifelse
-            Concat_string PSP
+            Concat_string Print_string_perenos
         } for
         pop
         setfont
@@ -3709,9 +3709,9 @@ title_bot 20 sub /bot swap def
     } if
     pole_left bot moveto
     Times_Regular 10 newsize
-    (Кабель испытан в процессе производства на герметичность оболочки на аппарате сухого испытания ) PSP
+    (Кабель испытан в процессе производства на герметичность оболочки на аппарате сухого испытания ) Print_string_perenos
     (напряжением: ) U_Obol Concat_string ( кВ.) Concat_string
-    PSP
+    Print_string_perenos
 } def
 
 /Print_Pizb % Печатает строку об избыточном давлении газа
@@ -3725,8 +3725,8 @@ title_bot 20 sub /bot swap def
     pole_left bot moveto
     Times_Regular 10 newsize
     (Кабель имеет избыточное давление воздуха ) show Norm_Pizb show kgs-cm^2
-    (: )  show P_izb show kgs-cm^2 (. ) 
-    PSP
+    (: )  show P_izb show kgs-cm^2 (. ) show (Дата подачи воздуха: ) PizbData Concat_string
+    Print_string_perenos
 } def
 
 

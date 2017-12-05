@@ -10,11 +10,12 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
     public class TestResult : DBBase
     {
         public static string[] PrimaryParametersList = new string[] { "Rж", "dR", "Cр", "dCр", "Co", "Ea", "Rиз1", "Rиз2", "K1", "K2", "K3", "K9", "K10", "K11", "K12", "K2,K3", "K9-12" };
-
+        public string brLength = "none";
         protected MeasureParameterType ParameterType = null;
         protected MeasuredParameterData ParameterData = null;
         protected int subElsNumber = 1;
         public decimal[] Values = new decimal[] { };
+        public decimal[] RawValues = new decimal[] {};
         public string[] Statuses= new string[] { };
         protected string testId = "0";
         public decimal RawValue = 0;
@@ -68,7 +69,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         public string GetStringTableValue()
         {
             if (IsAffected()) return "Брак";
-            return String.Format("{0}", this.RawValue);
+            return String.Format("{0}", this.BringingValue);
         }
 
 

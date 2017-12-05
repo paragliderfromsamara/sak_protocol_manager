@@ -124,5 +124,17 @@ namespace SAKProtocolManager {
                 this["SelectDRAdductionFormuls"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("SELECT COUNT(IspInd) FROM ispytan")]
+        public string TestCount {
+            get {
+                return ((string)(this["TestCount"]));
+            }
+            set {
+                this["TestCount"] = value;
+            }
+        }
     }
 }

@@ -64,6 +64,7 @@ namespace SAKProtocolManager
             barabanLbl.Text = String.Format("Барабан: {0} № {1}", CableTest.Baraban.Name, CableTest.Baraban.Number);
             operatorLbl.Text = String.Format("Оператор: {0} {1}.{2}.", CableTest.Operator.LastName, CableTest.Operator.FirstName[0], CableTest.Operator.ThirdName[0]);
             testedAtLbl.Text = String.Format("Испытан {0}", ServiceFunctions.MyDateTime(CableTest.TestDate));
+            testedLengthInput.Value = CableTest.TestedLength;
             if (!fillStructuresComboBox())
             {
                 
@@ -143,14 +144,21 @@ namespace SAKProtocolManager
 
         private void GeneratePDFProtocolButton_Click(object sender, EventArgs e)
         {
-            PDFProtocol protocol = new PDFProtocol(this.CableTest);
-            //Process pr = Process.Start("C:\\CAK\\Client3.exe", this.CableTest.Id);
+            //PDFProtocol protocol = new PDFProtocol(this.CableTest);
+            ProcessStartInfo startInfo = new ProcessStartInfo("C:\\CAK\\Client3.exe");
+            startInfo.Arguments = String.Format("{0} {1}", this.CableTest.Id, 1);
+            Process pr = Process.Start(startInfo);
 
         }
 
-
-
-       
-
+        private void updateCableLength_Click(object sender, EventArgs e)
+        {
+            this.Cursor = Cursors.WaitCursor;
+            this.Enabled = false;
+            CableTest.UpdateLength(this.testedLengthInput.Value);
+            this.Enabled = true;
+            this.Cursor = Cursors.Default;
+            this.MainForm.UpdateSelectedCableLength(Convert.ToInt16(this.testedLengthInput.Value));
+        }
     }
 }

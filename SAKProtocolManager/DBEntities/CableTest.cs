@@ -13,13 +13,11 @@ namespace SAKProtocolManager.DBEntities
         public Operator Operator = null;
         public Baraban Baraban = null;
 
-
-
         internal string CableId = String.Empty;
         private string BarabanId = String.Empty;
         private string OperatorId = String.Empty;
         private string StatusId = String.Empty; 
-        public uint TestedLength = 1000; //Длина испытываемого кабеля
+        public decimal TestedLength = 1000; //Длина испытываемого кабеля
         public decimal NettoWeight = 0;
         public decimal BruttoWeight = 0;
         public uint Temperature = 20;
@@ -80,7 +78,7 @@ namespace SAKProtocolManager.DBEntities
             this.OperatorId = row["cable_test_operator_id"].ToString();
             this.BarabanId = row["baraban_id"].ToString();
             this.StatusId = row["status_id"].ToString();
-            this.TestedLength = ServiceFunctions.convertToUInt(row["cable_test_cable_length"]);
+            this.TestedLength = ServiceFunctions.convertToDecimal(row["cable_test_cable_length"]);
             this.Temperature = ServiceFunctions.convertToUInt(row["cable_test_temperature"]);
             this.NettoWeight = ServiceFunctions.convertToDecimal(row["cable_test_netto"]);
             this.BruttoWeight = ServiceFunctions.convertToDecimal(row["cable_test_brutto"]);
@@ -96,6 +94,32 @@ namespace SAKProtocolManager.DBEntities
             if (!String.IsNullOrWhiteSpace(this.OperatorId)) this.Operator = new Operator(this.OperatorId);
             if (!String.IsNullOrWhiteSpace(this.BarabanId)) this.Baraban = new Baraban(this.BarabanId);
            
+        }
+
+        public void UpdateLength(decimal Length)
+        {
+            decimal prevLength = this.TestedLength;
+            this.TestedLength = Length;
+            long status = this.UpdateField("ispytan", String.Format("CabelLengt = {0}", Length), "IspInd = " + this.Id);
+            if (status == 0)
+            {
+                foreach(CableStructure structure in this.TestedCable.Structures)
+                {
+                    foreach(MeasureParameterType pType in structure.MeasuredParameters)
+                    {
+                        foreach(MeasuredParameterData pData in pType.ParameterData)
+                        {
+                            pData.RecalculateResults(prevLength, Length);
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void DeleteTest(string testId)
+        {
+            string[] qList = new string[] { BuildDestroyQueryWithCriteria("ispytan", String.Format("IspInd IN ({0})", testId)) , BuildDestroyQueryWithCriteria("resultism", String.Format("IspInd IN ({0})", testId)) };
+            SendQueriesList(qList);
         }
     }
 }

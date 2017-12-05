@@ -50,12 +50,15 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         protected override void fillParametersFromRow(DataRow row)
         {
             this.ElementNumber = ServiceFunctions.convertToInt16(row["element_number"]);
+            RawValues = new decimal[subElsNumber];
             Values = new decimal[subElsNumber];
             for (int i = 0; i < subElsNumber; i++)
             {
                 decimal v = ServiceFunctions.convertToDecimal(row[String.Format("value_{0}", i + 1)]);
                 Values[i] = this.ParameterData.BringMeasuredValue(v);
+                RawValues[i] = v;
             }
+            this.brLength = this.ParameterData.BringingLength.ToString();
         }
 
 

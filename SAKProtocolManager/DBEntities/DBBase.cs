@@ -43,6 +43,37 @@ namespace SAKProtocolManager.DBEntities
             return ds.Tables[tableName];
         }
 
+        protected long UpdateField(string tableName, string updVals, string condition)
+        {
+            DBControl mySql = new DBControl(DBQueries.Default.DBName);
+            string query = BuildUpdQuery(tableName, updVals, condition);
+            long v;
+            mySql.MyConn.Open();
+            v = mySql.RunNoQuery(query);
+            mySql.MyConn.Close();
+            return v;
+        }
+
+        protected static void SendQueriesList(string[] fields)
+        {
+            if (fields.Length == 0) return;
+            DBControl mySql = new DBControl(DBQueries.Default.DBName);
+            mySql.MyConn.Open();
+            foreach(string f in fields) mySql.RunNoQuery(f);
+            mySql.MyConn.Close();
+        }
+
+        protected static string BuildDestroyQueryWithCriteria(string tableName, string condition)
+        {
+            return String.Format("DELETE FROM {0} WHERE {1}", tableName, condition);
+        }
+
+
+        protected static string BuildUpdQuery(string tableName, string updVals, string condition)
+        {
+            return String.Format("UPDATE {0} SET {1} WHERE {2}", tableName, updVals, condition);
+        }
+
         protected DataSet makeDataSet()
         {
             DataSet ds = new DataSet();

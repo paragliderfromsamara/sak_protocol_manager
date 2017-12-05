@@ -22,7 +22,7 @@ namespace SAKProtocolManager.DBEntities
         /// <summary>
         /// 
         /// </summary>
-        private string BringingLengthTypeId = String.Empty;
+        public string BringingLengthTypeId = String.Empty;
         /// <summary>
         /// Мера измерения длины приведения
         /// </summary>
@@ -232,28 +232,61 @@ namespace SAKProtocolManager.DBEntities
         { 
             decimal brLength = getBringingLength();
             decimal tstLength = this.ParameterType.Structure.Cable.Test.TestedLength;
-            int round = 2;
             if (brLength == tstLength || tstLength == 0) return value;
-            switch(this.ParameterType.Name)
+            return BringToLength(value, tstLength, brLength);
+        }
+
+        public void RecalculateResults(decimal curLength, decimal newLength)
+        {
+            List<string> queries = new List<string>();
+            string tName = "resultism";
+            foreach(TestResult tr in this.TestResults)
+            {
+                if (tr.GetType().Name == "PrimaryParametersTestResult")
+                {
+                    for(int i=0; i<tr.RawValues.Length; i++)
+                    {
+                        decimal value;
+                        tr.RawValues[i] = value = BringToLength(tr.RawValues[i], curLength, newLength);
+                        string q = String.Format("Resultat = {0}", value);
+                        string w = String.Format("IspInd = {0} AND ParamInd = {1} AND StruktInd = {2} AND StruktElNum = {3} AND IsmerNum = {4}", this.ParameterType.Structure.Cable.Test.Id, this.ParameterType.Id, this.ParameterType.Structure.Id, tr.ElementNumber, i+1);
+                        queries.Add(BuildUpdQuery(tName, q, w));
+                    }
+                }
+                else
+                {
+                    tr.RawValue = BringToLength(tr.RawValue, curLength, newLength);
+                    string q = String.Format("Resultat = {0}", tr.RawValue);
+                    string w = String.Format("IspInd = {0} AND ParamInd = {1} AND StruktInd = {2} AND StruktElNum = {3} AND IsmerNum = {4}", this.ParameterType.Structure.Cable.Test.Id, this.ParameterType.Id, this.ParameterType.Structure.Id, tr.ElementNumber, tr.SubElementNumber);
+                    if (this.ParameterType.Name == "Ao" || this.ParameterType.Name == "Az") w += String.Format(" AND StruktElNum_gen = {0} AND ParaNum_gen = {1} AND FreqDiap = {2}", tr.GeneratorElementNumber, tr.GenetatorSubElementNumber, this.FrequencyRangeId);
+                    queries.Add(BuildUpdQuery(tName, q, w));
+                }
+                
+            }
+            SendQueriesList(queries.ToArray());
+        }
+
+        private decimal BringToLength(decimal value, decimal curLength, decimal brLength)
+        {
+            int round = 2;
+            switch (this.ParameterType.Name)
             {
                 case "Rж":
                 case "Cр":
-                    value *= brLength / tstLength;
+                    value *= brLength / curLength;
                     round = value > 99 ? 1 : 2;
                     return Math.Round(value, round);
                 case "al":
-                    value *= brLength / tstLength;
+                    value *= brLength / curLength;
                     return Math.Round(value, 1);
                 case "Ao":
                 case "Az":
-                    value += Math.Round(10*(decimal)Math.Log10(((double)tstLength / (double)brLength)), 1);
-                    return value;
+                    value += 10 * (decimal)Math.Log10(((double)curLength / (double)brLength));
+                    return Math.Round(value, 1);
                 default:
-                    return value; 
+                    return value;
             }
-            
         }
-
         private decimal getBringingLength()
         {
             int brLengthId = ServiceFunctions.convertToInt16(this.BringingLengthTypeId);

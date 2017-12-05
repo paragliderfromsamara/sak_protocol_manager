@@ -47,5 +47,8 @@ FROM dr_formuls</Value>
 	dr_priv_formuls.DRPrivOpis AS description
 FROM dr_priv_formuls</Value>
     </Setting>
+    <Setting Name="TestCount" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SELECT COUNT(IspInd) FROM ispytan</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
