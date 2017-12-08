@@ -24,6 +24,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         public int SubElementNumber = 1;
         public int GeneratorElementNumber = 0;
         public int GenetatorSubElementNumber = 0;
+        public bool IsOnNormal = false;
 
         public int StatusId = 0;
 
@@ -75,13 +76,16 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
 
         protected override void fillParametersFromRow(DataRow row)
         {
-
                 this.ElementNumber = ServiceFunctions.convertToInt16(row["element_number"]);
                 this.SubElementNumber = ServiceFunctions.convertToInt16(row["sub_element_number"]);
                 this.GeneratorElementNumber = ServiceFunctions.convertToInt16(row["gen_element_number"]);
                 this.GenetatorSubElementNumber = ServiceFunctions.convertToInt16(row["gen_sub_element_number"]);
                 this.RawValue = ServiceFunctions.convertToDecimal(row["value"]);
-                if (ParameterData != null) this.BringingValue = this.ParameterData.BringMeasuredValue(this.RawValue);
+                if (ParameterData != null)
+                {
+                    this.BringingValue = this.ParameterData.BringMeasuredValue(this.RawValue);
+                }
+                    
         }
 
         protected override void setDefaultParameters()
