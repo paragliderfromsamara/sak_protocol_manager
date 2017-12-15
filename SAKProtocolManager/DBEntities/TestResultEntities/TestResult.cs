@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace SAKProtocolManager.DBEntities.TestResultEntities
 {
@@ -11,8 +12,8 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
     {
         public static string[] PrimaryParametersList = new string[] { "Rж", "dR", "Cр", "dCр", "Co", "Ea", "Rиз1", "Rиз2", "K1", "K2", "K3", "K9", "K10", "K11", "K12", "K2,K3", "K9-12" };
         public string brLength = "none";
-        protected MeasureParameterType ParameterType = null;
-        protected MeasuredParameterData ParameterData = null;
+        public MeasureParameterType ParameterType = null;
+        public MeasuredParameterData ParameterData = null;
         protected int subElsNumber = 1;
         public decimal[] Values = new decimal[] { };
         public decimal[] RawValues = new decimal[] {};
@@ -24,7 +25,9 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         public int SubElementNumber = 1;
         public int GeneratorElementNumber = 0;
         public int GenetatorSubElementNumber = 0;
-        public bool IsOnNormal = false;
+        public decimal DeviationPercent = 0;
+        public decimal NormaValue = 0;
+
 
         public int StatusId = 0;
 
@@ -58,6 +61,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
             return false;
         }
 
+
         public TestResult(MeasuredParameterData measuredParameter)
         {
             this.ParameterData = measuredParameter;
@@ -84,8 +88,40 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
                 if (ParameterData != null)
                 {
                     this.BringingValue = this.ParameterData.BringMeasuredValue(this.RawValue);
+                    if (!IsAffected()) CheckIsItNorma();
                 }
                     
+        }
+
+        public bool CheckIsItNorma()
+        {
+            if (ParameterData == null) return true;
+            if (IsAffected()) return true;
+            decimal prc = 0;
+            if (this.BringingValue < ParameterData.MinValue)
+            {
+                this.NormaValue = ParameterData.MinValue;
+                
+                if (this.ParameterType.Name == "Ao" || this.ParameterType.Name == "Az" || this.ParameterType.Name == "al" || this.ParameterType.Name == "Rиз2" || this.ParameterType.Name == "Rиз4" || this.ParameterType.Name == "dR")
+                {
+                    prc = ParameterData.MinValue - this.BringingValue;
+                }
+                else prc = (decimal)100 * (ParameterData.MinValue - this.BringingValue) / ParameterData.MinValue;
+            }
+            else if (this.BringingValue > ParameterData.MaxValue)
+            {
+                this.NormaValue = ParameterData.MaxValue;
+                if (this.ParameterType.Name == "Ao" || this.ParameterType.Name == "Az" || this.ParameterType.Name == "al" || this.ParameterType.Name == "Rиз2" || this.ParameterType.Name == "Rиз4" || this.ParameterType.Name == "dR")
+                {
+                    prc = this.BringingValue - ParameterData.MaxValue;
+                }
+                else
+                {
+                    prc = (decimal) 100 * (this.BringingValue - ParameterData.MaxValue) / ParameterData.MaxValue;
+                }
+            }
+            this.DeviationPercent = Math.Round(prc, 1);
+            return this.DeviationPercent == 0;
         }
 
         protected override void setDefaultParameters()
@@ -114,7 +150,6 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         /// <returns></returns>
         public TestResult[] GetMeasuredResults()
         {
-
             if (this.ParameterType.Name != "Ao" && this.ParameterType.Name != "Az" && this.ParameterType.Name != "Rиз3" && this.ParameterType.Name != "Rиз4")
             {
                 PrimaryParametersTestResult pptr = new PrimaryParametersTestResult(ParameterData);
@@ -128,55 +163,18 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
                 if (dt.Rows.Count > 0)
                 {
                     trs = new TestResult[dt.Rows.Count];
-                    for (int i = 0; i < dt.Rows.Count; i++) trs[i] = new TestResult(dt.Rows[i], this.ParameterData);
+                    for (int i = 0; i < dt.Rows.Count; i++)
+                    {
+                        TestResult tr = new TestResult(dt.Rows[i], this.ParameterData);
+                        if (!tr.CheckIsItNorma()) tr.ParameterData.NotNormalResults.Add(tr);
+                        trs[i] = tr;
+                    }
+                        
                 }
                 return trs;
             }
 
         }
-
-        internal static TestResult[] GetBigRound(int round, TestResult[] results)
-        {
-            TestResult[] trs = new TestResult[] { };
-            int startIndex = -1;
-            int endIndex = results.Length - 1;
-            int prevElement = results.Length - 1;
-            int prevMeasure = -1;
-            int curRound = -1;
-            for (int i = 0; i < results.Length; i++)
-            {
-                TestResult tr = results[i];
-                if (tr.ElementNumber < prevElement || (tr.ElementNumber == prevElement && prevMeasure > tr.SubElementNumber))
-                {
-                    if (round != curRound)
-                    {
-                        curRound++;
-                        if (round == curRound) startIndex = i;
-                    }else
-                    {
-                        endIndex = i - 1;
-                        break;
-                    }
-                }
-                if (i == results.Length - 1) { endIndex = i; break;}
-                prevElement = tr.ElementNumber;
-                prevMeasure = tr.SubElementNumber;
-            } 
-
-            if (endIndex != -1 && startIndex != -1)
-            {
-                int length = endIndex - startIndex + 1;
-                int j = 0;
-                trs = new TestResult[length];
-                for(int i=startIndex; i<=endIndex; i++)
-                {
-                    trs[j] = results[i];
-                    j++;
-                }
-            } 
-            return trs;
-        }
-
 
         public string SubElementTitle()
         {
@@ -207,6 +205,48 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
                 default:
                     return title;
             }
+        }
+
+
+        public string BuildUpdLengthQuery(decimal curLength, decimal newLength)
+        {
+            this.RawValue = ParameterData.BringToLength(this.RawValue, curLength, newLength);
+            return UpdRawValueQuery();
+        }
+
+        public void CorrectResult()
+        {
+            if (this.DeviationPercent == 0) return;
+            Random r = new Random((int)DateTime.Now.Ticks & 0x0000FFFF);
+            Thread.Sleep(1);
+            decimal corrCoeff = (decimal)r.Next(100, 999)/1000;//this.DeviationPercent;// * (decimal)Math.Sqrt(2);
+            if (this.NormaValue < this.BringingValue) corrCoeff *= -1;
+            switch (this.ParameterType.Name)
+            {
+                case "Ao":
+                case "Az":
+                    this.RawValue = this.ParameterData.BringToLength(this.NormaValue + corrCoeff, this.ParameterData.BringingLength, this.ParameterType.Structure.Cable.Test.TestedLength);
+                    break;
+                case "dR":
+                case "Rиз2":
+                case "Rиз4":
+                    this.RawValue = this.NormaValue + corrCoeff;
+                    break;
+                default:
+                    this.RawValue = ((this.NormaValue + corrCoeff) * this.RawValue / this.BringingValue);//(this.NormaValue * corrCoeff) / 100;
+                    break;
+            }
+            this.BringingValue = this.ParameterData.BringMeasuredValue(this.RawValue);
+            this.CheckIsItNorma();
+        }
+
+        public string UpdRawValueQuery()
+        {
+            string tName = "resultism";
+            string q = String.Format("Resultat = {0}", this.RawValue);
+            string w = String.Format("IspInd = {0} AND ParamInd = {1} AND StruktInd = {2} AND StruktElNum = {3} AND IsmerNum = {4}", this.ParameterType.Structure.Cable.Test.Id, this.ParameterType.Id, this.ParameterType.Structure.Id, this.ElementNumber, this.SubElementNumber);
+            if (this.ParameterType.Name == "Ao" || this.ParameterType.Name == "Az") w += String.Format(" AND StruktElNum_gen = {0} AND ParaNum_gen = {1} AND FreqDiap = {2}", this.GeneratorElementNumber, this.GenetatorSubElementNumber, this.ParameterData.FrequencyRangeId);
+            return BuildUpdQuery(tName, q, w);
         }
 
     }

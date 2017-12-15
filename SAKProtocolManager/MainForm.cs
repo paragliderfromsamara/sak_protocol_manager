@@ -18,6 +18,7 @@ namespace SAKProtocolManager
         private int CurrentWidth = 0;
         private int CurrentHeight = 0;
         private long TestCount = 0;
+        private MeasureResultReader readerForm = null;
         private DBControl mySql = new DBControl(DBQueries.Default.DBName);
         public MeasureParameterType[] MeasureParameterTypes = new MeasureParameterType[] { }; //Типы измеряемых параметров
         public MeasureParameterType MPT;
@@ -138,7 +139,8 @@ namespace SAKProtocolManager
         }
         private void MeasureResultReaderClosed(object sender, EventArgs e)
         {
-            this.Enabled = true;
+            TestListtPanel.Enabled = true;
+            this.readerForm = null;
         }
 
 
@@ -150,11 +152,12 @@ namespace SAKProtocolManager
             //if (testsListView.SelectedRows.Count == 0) return;
             string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
             //if (String.IsNullOrWhiteSpace(test_id)) return;
-            this.Enabled = false;
+            TestListtPanel.Enabled = false;
             this.Cursor = Cursors.WaitCursor;
             MeasureResultReader form = new MeasureResultReader(test_id, this);
             form.FormClosed += new FormClosedEventHandler(this.MeasureResultReaderClosed);
             form.Show();
+            this.readerForm = form;
             this.Cursor = Cursors.Default;
                 //wts.StopStatus();
             }
@@ -259,6 +262,11 @@ namespace SAKProtocolManager
         {
             button1.Enabled = true;
             ClearList.Enabled = false;
+        }
+
+        private void MainForm_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (!this.Enabled && this.readerForm != null) readerForm.Focus(); 
         }
     }
 

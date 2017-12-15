@@ -10,7 +10,7 @@ namespace SAKProtocolManager.DBEntities
 {
     public class MeasuredParameterData : DBBase
     {
-       
+        public List<TestResult> NotNormalResults = new List<TestResult>();
         /// <summary>
         /// Соответствует FreqDiapInd в таблице freq_diap
         /// </summary>
@@ -34,11 +34,11 @@ namespace SAKProtocolManager.DBEntities
         /// <summary>
         /// Максимально допустимое значение результата измерения 
         /// </summary>
-        public decimal MinValue = 0; 
+        public decimal MinValue = Decimal.MinValue; 
         /// <summary>
         /// Минимальное допустимое значение результата измерения
         /// </summary>
-        public decimal MaxValue = 0; 
+        public decimal MaxValue = Decimal.MaxValue; 
         /// <summary>
         /// Минимальная частота
         /// </summary>
@@ -204,8 +204,10 @@ namespace SAKProtocolManager.DBEntities
         }
         protected override void fillParametersFromRow(DataRow row)
         {
-            this.MinValue = ServiceFunctions.convertToDecimal(row["measured_parameter_min_value"]);
-            this.MaxValue = ServiceFunctions.convertToDecimal(row["measured_parameter_max_value"]);
+            string minVal = row["measured_parameter_min_value"].ToString();
+            string maxVal = row["measured_parameter_max_value"].ToString();
+            if (!String.IsNullOrEmpty(minVal)) this.MinValue = ServiceFunctions.convertToDecimal(minVal);
+            if (!String.IsNullOrEmpty(maxVal)) this.MaxValue = ServiceFunctions.convertToDecimal(maxVal);
             this.Percent = ServiceFunctions.convertToDecimal(row["measured_parameter_percent"]);
 
             this.MinFrequency = ServiceFunctions.convertToUInt(row["measure_parameter_min_frequency"]);
@@ -236,43 +238,17 @@ namespace SAKProtocolManager.DBEntities
             return BringToLength(value, tstLength, brLength);
         }
 
-        public void RecalculateResults(decimal curLength, decimal newLength)
-        {
-            List<string> queries = new List<string>();
-            string tName = "resultism";
-            foreach(TestResult tr in this.TestResults)
-            {
-                if (tr.GetType().Name == "PrimaryParametersTestResult")
-                {
-                    for(int i=0; i<tr.RawValues.Length; i++)
-                    {
-                        decimal value;
-                        tr.RawValues[i] = value = BringToLength(tr.RawValues[i], curLength, newLength);
-                        string q = String.Format("Resultat = {0}", value);
-                        string w = String.Format("IspInd = {0} AND ParamInd = {1} AND StruktInd = {2} AND StruktElNum = {3} AND IsmerNum = {4}", this.ParameterType.Structure.Cable.Test.Id, this.ParameterType.Id, this.ParameterType.Structure.Id, tr.ElementNumber, i+1);
-                        queries.Add(BuildUpdQuery(tName, q, w));
-                    }
-                }
-                else
-                {
-                    tr.RawValue = BringToLength(tr.RawValue, curLength, newLength);
-                    string q = String.Format("Resultat = {0}", tr.RawValue);
-                    string w = String.Format("IspInd = {0} AND ParamInd = {1} AND StruktInd = {2} AND StruktElNum = {3} AND IsmerNum = {4}", this.ParameterType.Structure.Cable.Test.Id, this.ParameterType.Id, this.ParameterType.Structure.Id, tr.ElementNumber, tr.SubElementNumber);
-                    if (this.ParameterType.Name == "Ao" || this.ParameterType.Name == "Az") w += String.Format(" AND StruktElNum_gen = {0} AND ParaNum_gen = {1} AND FreqDiap = {2}", tr.GeneratorElementNumber, tr.GenetatorSubElementNumber, this.FrequencyRangeId);
-                    queries.Add(BuildUpdQuery(tName, q, w));
-                }
-                
-            }
-            SendQueriesList(queries.ToArray());
-        }
 
-        private decimal BringToLength(decimal value, decimal curLength, decimal brLength)
+        public decimal BringToLength(decimal value, decimal curLength, decimal brLength)
         {
             int round = 2;
             switch (this.ParameterType.Name)
             {
                 case "Rж":
                 case "Cр":
+                case "Co":
+                case "Rиз1":
+                case "Rиз2":
                     value *= brLength / curLength;
                     round = value > 99 ? 1 : 2;
                     return Math.Round(value, round);
@@ -300,6 +276,15 @@ namespace SAKProtocolManager.DBEntities
                     return this.BringingLength;
                 default:
                     return this.ParameterType.Structure.Cable.Test.TestedLength;
+            }
+        }
+
+        public void RefreshNotNormaResultsList()
+        {
+            this.NotNormalResults.Clear();
+            foreach(TestResult tr in TestResults)
+            {
+                if (tr.DeviationPercent != 0) this.NotNormalResults.Add(tr);
             }
         }
     }

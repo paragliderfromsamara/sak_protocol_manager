@@ -29,15 +29,17 @@ namespace SAKProtocolManager
             this.MainForm = mForm;
             this.CableTest = new CableTest(test_id);
             InitializeComponent();
+            lengthUpdProgressBarField.Visible = false;
             this.Text = String.Format("Испытание кабеля {0} от {1}", CableTest.TestedCable.Name, ServiceFunctions.MyDateTime(CableTest.TestDate));
             fillTestData();
-            
             //cableTypeLbl.Text = TestResult.GetBigRound(0, CableTest.TestedCable.Structures[0].MeasuredParameters[0].TestResults).Length.ToString();//CableId.ToString();//CableId.ToString();//this.TestId.ToString();
         }
 
         private bool fillStructuresComboBox()
         {
-            int sLength = this.CableTest.TestedCable.Structures.Length;
+            CableStructure[] FailedStructures = this.CableTest.TestedCable.GetFailedStructures();
+            cableStructuresList.Items.Clear();
+            int sLength = FailedStructures.Length;
             bool val = sLength > 0;
             if (val)
             {
@@ -46,20 +48,22 @@ namespace SAKProtocolManager
                     cableStructuresList.Items.Insert(i, this.CableTest.TestedCable.Structures[i].Name);
                 }
                 cableStructuresList.SelectedIndex = 0;
+                OutOfNormaRsltPanel.Visible = true;
             }
             else
             {
-                cableStructuresList.Items.Insert(0, "Список структур кабеля пуст.");
+                cableStructuresList.Items.Insert(0, "Нет структур с выходом за норму");
                 cableStructuresList.SelectedIndex = 0;
                 cableStructuresList.Enabled = false;
                 tabControlTestResult.Visible = false;
+                OutOfNormaRsltPanel.Visible = false;
+                this.Height -= tabControlTestResult.Height - 10;
             }
             return val;
         }
 
         private void fillTestData()
         {
-
             cableTypeLbl.Text = String.Format("Марка кабеля: {0}", CableTest.TestedCable.Name);
             barabanLbl.Text = String.Format("Барабан: {0} № {1}", CableTest.Baraban.Name, CableTest.Baraban.Number);
             operatorLbl.Text = String.Format("Оператор: {0} {1}.{2}.", CableTest.Operator.LastName, CableTest.Operator.FirstName[0], CableTest.Operator.ThirdName[0]);
@@ -91,26 +95,37 @@ namespace SAKProtocolManager
         /// <summary>
         /// Отрисовка таб в зависимости от выбранного 
         /// </summary>
-        private void DrawMeasureParametersTabs(int structure_index)
+        private void DrawMeasureParametersTabs(int structure_index, string tabName)
         {
-            if (this.CableTest.TestedCable.Structures.Length == 0 || structure_index < 0) return;
+            if (this.CableTest.TestedCable.GetFailedStructures().Length == 0 || structure_index < 0) return;
             tabControlTestResult.TabPages.Clear();
             CableStructure curStructure = this.CableTest.TestedCable.Structures[cableStructuresList.SelectedIndex];
             MeasureParameterType[] mParams = ParameterTypesForTabs(cableStructuresList.SelectedIndex);
-            TabPage[] pages = new TabPage[mParams.Length];
+            List<TabPage> pages = new List<TabPage>();
             //if (curStructure.AffectedElementNumbers.Length>1)test.Text = curStructure.AffectedElementNumbers[1].ToString();
             int i = 0;
-            foreach(MeasureParameterType mpt in mParams) 
+            int idx = 0;
+            foreach (MeasureParameterType mpt in mParams) 
             {
-                pages[i] = new ParameterTypeTabPage(mpt);
+                if (mpt.OutOfNormaCount() == 0) continue; 
+                pages.Add(new ParameterTypeTabPage(mpt, this));
+                if (pages[i].Text == tabName) idx = i;
                 i++;
             }
-            tabControlTestResult.TabPages.AddRange(pages);
-            tabControlTestResult.Refresh();
+            if (pages.Count > 0)
+            {
+                tabControlTestResult.TabPages.AddRange(pages.ToArray());
+                tabControlTestResult.SelectedIndex = idx;
+                tabControlTestResult.Refresh();
+            }
         }
 
 
-
+        public void RefreshOutOfNormaPanel(string tabName)
+        {
+            fillStructuresComboBox();
+            if (cableStructuresList.Items.Count > 0) DrawMeasureParametersTabs(selectedStructureIdx, tabName);
+        }
 
         private MeasureParameterType[] ParameterTypesForTabs(int structure_index)
         {
@@ -137,7 +152,7 @@ namespace SAKProtocolManager
             if (selectedStructureIdx != cableStructuresList.SelectedIndex)
             {
                selectedStructureIdx = cableStructuresList.SelectedIndex;
-               DrawMeasureParametersTabs(selectedStructureIdx);
+               DrawMeasureParametersTabs(selectedStructureIdx, "");
             }
             
         }
@@ -145,20 +160,98 @@ namespace SAKProtocolManager
         private void GeneratePDFProtocolButton_Click(object sender, EventArgs e)
         {
             //PDFProtocol protocol = new PDFProtocol(this.CableTest);
-            ProcessStartInfo startInfo = new ProcessStartInfo("C:\\CAK\\Client3.exe");
-            startInfo.Arguments = String.Format("{0} {1}", this.CableTest.Id, 1);
-            Process pr = Process.Start(startInfo);
+            DialogResult NeedGenerate = DialogResult.Yes;
+            if(CheckCableLengthIsUpdated())
+            {
+                NeedGenerate = MessageBox.Show(String.Format("Протокол не был пересчитан на длину кабеля {0} м. Сформированный протокол будет соответствовать длине {1} м., которая указана в Базе Данных на текущий момент \n\nВы согласны?", testedLengthInput.Value, CableTest.TestedLength), "Вопрос.", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            }
+            if (NeedGenerate == DialogResult.Yes)
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo("C:\\CAK\\Client3.exe");
+                startInfo.Arguments = String.Format("{0} {1}", this.CableTest.Id, 1);
+                Process pr = Process.Start(startInfo);
+            }
+
 
         }
 
         private void updateCableLength_Click(object sender, EventArgs e)
         {
-            this.Cursor = Cursors.WaitCursor;
-            this.Enabled = false;
-            CableTest.UpdateLength(this.testedLengthInput.Value);
-            this.Enabled = true;
-            this.Cursor = Cursors.Default;
-            this.MainForm.UpdateSelectedCableLength(Convert.ToInt16(this.testedLengthInput.Value));
+            DialogResult dr = MessageBox.Show(String.Format("Вы уверены, что хотите пересчитать результаты испытания под длину кабеля {0} м.", testedLengthInput.Value), "Вопрос", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr == DialogResult.Yes)
+            {
+                this.Cursor = Cursors.WaitCursor;
+                this.Enabled = false;
+                lengthEditor.Visible = false;
+                lengthUpdProgressBarField.Visible = true;
+                UpdateLength();
+                lengthEditor.Visible = true;
+                lengthUpdProgressBarField.Visible = false;
+                this.Enabled = true;
+                this.Cursor = Cursors.Default;
+                this.MainForm.UpdateSelectedCableLength(Convert.ToInt16(this.testedLengthInput.Value));
+            }
+        }
+
+        private void UpdateLength()
+        {
+            decimal newLength = this.testedLengthInput.Value;
+            decimal curLength = CableTest.TestedLength;
+            long status = CableTest.UpdateTestedLength(newLength);
+            if (status == 0)
+            {
+                LengthUpdProgressBar.Maximum = CableTest.TestResultsCount();
+                LengthUpdProgressBar.Value = 0;
+                LengthUpdProgressBar.Step = 50;
+                lengthUpdProgressBarLbl.Text = String.Format("Пересчитано {0} из {1}", LengthUpdProgressBar.Value, LengthUpdProgressBar.Maximum);
+                lengthUpdProgressBarField.Refresh();
+                foreach (CableStructure structure in CableTest.TestedCable.Structures)
+                {
+                    foreach (MeasureParameterType pType in structure.MeasuredParameters)
+                    {
+                        foreach (MeasuredParameterData pData in pType.ParameterData)
+                        {
+                            List<string> queries = new List<string>();
+                            foreach (TestResult tr in pData.TestResults)
+                            {
+                                queries.Add(tr.BuildUpdLengthQuery(curLength, newLength));
+                                if (queries.Count == LengthUpdProgressBar.Step || (LengthUpdProgressBar.Value + queries.Count) == LengthUpdProgressBar.Maximum)
+                                {
+                                    DBBase.SendQueriesList(queries.ToArray());
+                                    queries.Clear();
+                                    LengthUpdProgressBar.PerformStep();
+                                    lengthUpdProgressBarLbl.Text = String.Format("Пересчитано {0} из {1}", LengthUpdProgressBar.Value, LengthUpdProgressBar.Maximum);
+                                    lengthUpdProgressBarField.Refresh();
+                                }
+
+                            }
+                            if (queries.Count > 0)
+                            {
+                                DBBase.SendQueriesList(queries.ToArray());
+                                queries.Clear();
+                                LengthUpdProgressBar.PerformStep();
+                                lengthUpdProgressBarLbl.Text = String.Format("Пересчитано {0} из {1}", LengthUpdProgressBar.Value, LengthUpdProgressBar.Maximum);
+                                lengthUpdProgressBarField.Refresh();
+                            }                            
+                        }
+                    }
+                }
+            }
+        }
+
+        private void testedLengthInput_ValueChanged(object sender, EventArgs e)
+        {
+            CheckCableLengthIsUpdated();
+        }
+
+        private bool CheckCableLengthIsUpdated()
+        {
+            return updateCableLength.Enabled = CableTest.TestedLength != testedLengthInput.Value;
+        }
+
+        private void testedLengthInput_KeyUp(object sender, KeyEventArgs e)
+        {
+            CheckCableLengthIsUpdated();
         }
     }
 }

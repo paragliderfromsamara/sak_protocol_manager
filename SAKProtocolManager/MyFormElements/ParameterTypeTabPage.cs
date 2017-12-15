@@ -13,15 +13,20 @@ namespace SAKProtocolManager.MyFormElements
     {
         private MeasureParameterType ParameterType;
         private ComboBox FrequencyComboBox;
+        private ComboBox CorrectionLimitComboBox;
+        private Button CorrectResultsButton;
         private DataGridView ValuesTable;
+        private MeasureResultReader mReader;
+        private ProgressBar CorrectionResultPB;
         private int xPos, yPos;
         private int leftOffset = 20;
         private int topOffset = 30;
         private string[] LeadTitles = new string[] { "Жила a", "Жила b", "Жила c", "Жила d" };
         private Label HeadLbl;
-        public ParameterTypeTabPage(MeasureParameterType parameter_type)
+        public ParameterTypeTabPage(MeasureParameterType parameter_type, MeasureResultReader r)
         {
             this.ParameterType = parameter_type;
+            this.mReader = r;
             Initialize();
         }
 
@@ -36,10 +41,12 @@ namespace SAKProtocolManager.MyFormElements
 
         private void DrawParameterTypeHeadPart()
         {
-            drawLabel(String.Format("tab_header_{0}", ParameterType.Id), String.Format("Результаты измерения параметра {0}", ParameterType.Name)); //заголовок
+            int counter = 0;
+            foreach (MeasuredParameterData pd in ParameterType.ParameterData) counter += pd.NotNormalResults.Count;
+            drawLabel(String.Format("tab_header_{0}", ParameterType.Id), String.Format("Результаты превысили норму {0}", counter)); //заголовок
             yPos += 20;
-            DrawFrequencyComboBox();
-            if (FrequencyComboBox != null) yPos += 30;
+            DrawCorrectionLimitControl(); 
+            yPos += 30;
             DrawValuesTable();
         }
 
@@ -68,9 +75,9 @@ namespace SAKProtocolManager.MyFormElements
                 case "Rиз2":
                 case "Co":
                 case "al":
-                    return DrawPrimaryParameterTable(pData);
+                    //return DrawPrimaryParameterTable(pData);
 
-                //    return DrawByLeadsParameterTable(pData);
+                    return DrawByLeadsParameterTable(pData);
                 //case "Cр":
                 
                 //return DrawByElementsParameterTable(pData);
@@ -116,6 +123,7 @@ namespace SAKProtocolManager.MyFormElements
                     dgv.Rows[i].Cells["measure"].Value = pData.ResultMeasure();
                 }
             }
+
             return dgv;
 
         }
@@ -133,6 +141,8 @@ namespace SAKProtocolManager.MyFormElements
                 }
                 dgv.Columns.Add("measure", "мера");
                 dgv.Columns.Add("vals_count", "кол-во");
+                dgv.Columns.Add("max", "Макс");
+                dgv.Columns.Add("min", "Мин");
                 dgv.Rows.Add(pData.TestResults.Length);
                 int idx = 0;
                 foreach (TestResult tr in pData.TestResults)
@@ -145,7 +155,8 @@ namespace SAKProtocolManager.MyFormElements
                         dgv.Rows[idx].Cells[String.Format("result_{0}", i)].Value = tr.Values[i];
                     }
                     idx++;
-                   
+
+
                 }
             }
             return dgv;
@@ -154,30 +165,32 @@ namespace SAKProtocolManager.MyFormElements
         {
             DataGridView dgv = new DataGridView();
             dgv.Columns.Add("element_number", String.Format("{0} №", pData.ParameterType.Structure.BendingTypeName));
-            int leadsNumber = pData.ParameterType.Structure.BendingTypeLeadsNumber;
-            for (uint i = 0; i < leadsNumber; i++)
-            {
-                string title = String.Format("lead_{0}", i + 1);
-                dgv.Columns.Add(title, LeadTitles[i]);
-                dgv.Columns[title].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            }
-            dgv.Columns.Add("measure", "мера");
-            TestResult[] results = pData.TestResults;
+            dgv.Columns.Add("lead", "Жила");
+            dgv.Columns.Add("value", String.Format("Результат {0}", pData.ResultMeasure()));
+            dgv.Columns.Add("min_val", String.Format("Мин. {0}", pData.ResultMeasure()));
+            dgv.Columns.Add("max_val", String.Format("Макс. {0}", pData.ResultMeasure()));
+            dgv.Columns.Add("percent_out", String.Format("Отклонение {0}", pData.ParameterType.DeviationMeasure()));
+            dgv.Columns["min_val"].Visible = pData.MinValue != Decimal.MinValue;
+            dgv.Columns["max_val"].Visible = pData.MaxValue != Decimal.MaxValue;
+            dgv.Columns["lead"].Visible = pData.ParameterType.Name != "dR";
+            dgv.MultiSelect = false;
+            dgv.Columns["max_val"].ReadOnly = dgv.Columns["min_val"].ReadOnly = dgv.Columns["element_number"].ReadOnly = dgv.Columns["lead"].ReadOnly = true;
+
+            TestResult[] results = pData.NotNormalResults.ToArray();
             if (results.Length > 0)
             {
-                int leadNumber = 1;
                 int rowsNumber = -1;
                 for (int i = 0; i < results.Length; i++)
                 {
-                    if (leadNumber > results[i].SubElementNumber || rowsNumber < 0)
-                    {
-                        rowsNumber++;
-                        dgv.Rows.Add(1);
-                        dgv.Rows[rowsNumber].Cells["element_number"].Value = results[i].ElementNumber;
-                        dgv.Rows[rowsNumber].Cells["measure"].Value = pData.ResultMeasure();
-                    }
-                    leadNumber = results[i].SubElementNumber;
-                    dgv.Rows[rowsNumber].Cells[String.Format("lead_{0}", leadNumber)].Value = results[i].GetStringTableValue();
+                    rowsNumber++;
+                    dgv.Rows.Add(1);
+                    dgv.Rows[rowsNumber].Cells["element_number"].Value = results[i].ElementNumber;
+                    //dgv.Rows[rowsNumber].Cells["measure"].Value = pData.ResultMeasure();
+                    dgv.Rows[rowsNumber].Cells["lead"].Value = LeadTitles[results[i].SubElementNumber - 1];
+                    dgv.Rows[rowsNumber].Cells["value"].Value = results[i].BringingValue;
+                    dgv.Rows[rowsNumber].Cells["min_val"].Value = pData.MinValue.ToString();
+                    dgv.Rows[rowsNumber].Cells["max_val"].Value = pData.MaxValue.ToString();
+                    dgv.Rows[rowsNumber].Cells["percent_out"].Value = results[i].DeviationPercent;
                 }
             }
             return dgv;
@@ -221,9 +234,9 @@ namespace SAKProtocolManager.MyFormElements
                 dgv.Columns.Add("receiver_number", String.Format("{0} приёмника №", pData.ParameterType.Structure.BendingTypeName));
                 dgv.Columns.Add("transponder_number", String.Format("{0} генератора №", pData.ParameterType.Structure.BendingTypeName));
             }
-            dgv.Columns.Add("value", "результат");
-            dgv.Columns.Add("measure", "мера");
-            TestResult[] results = pData.TestResults;
+            dgv.Columns.Add("value", "результат, " + pData.ResultMeasure());
+            dgv.Columns.Add("min", "Мин");
+            TestResult[] results = pData.NotNormalResults.ToArray();
             if (results.Length > 0)
             {
                 dgv.Rows.Add(results.Length);
@@ -237,7 +250,7 @@ namespace SAKProtocolManager.MyFormElements
                     }
                     dgv.Rows[i].Cells["transponder_number"].Value = results[i].GeneratorElementNumber;
                     dgv.Rows[i].Cells["value"].Value = results[i].GetStringTableValue();
-                    dgv.Rows[i].Cells["measure"].Value = pData.ResultMeasure();
+                    dgv.Rows[i].Cells["min"].Value = pData.MinValue;
                 }
             }
             dgv.Refresh();
@@ -261,6 +274,75 @@ namespace SAKProtocolManager.MyFormElements
             FrequencyComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             FrequencyComboBox.SelectedIndexChanged += new EventHandler(ChangeFreqComboBoxSelectedIndex);
             FrequencyComboBox.SelectedIndex = 0;
+        }
+
+        private void DrawCorrectionLimitControl()
+        {
+            //if (ParameterType.Name != "Ao" && ParameterType.Name != "Az") return;
+            CorrectionLimitComboBox = new ComboBox();
+            CorrectionLimitComboBox.Location = new System.Drawing.Point(xPos, yPos);
+            CorrectionLimitComboBox.Name = String.Format("CorrectionLimitComboBox_{0}", ParameterType.Name);
+            CorrectionLimitComboBox.Parent = this;
+            FillCorrectionLimitsCBItems();
+            CorrectionLimitComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            ///CorrectionLimitComboBox.SelectedIndexChanged += new EventHandler(ChangeFreqComboBoxSelectedIndex);
+            CorrectResultsButton = new Button();
+            CorrectResultsButton.Location = new System.Drawing.Point(xPos + 20 + CorrectionLimitComboBox.Width, yPos-1);
+            CorrectResultsButton.Name = String.Format("CorrectResultsButton_{0}", ParameterType.Name);
+            CorrectResultsButton.Text = "Произвести коррекцию";
+            CorrectResultsButton.Parent = this;
+            CorrectResultsButton.Width = 180;
+            CorrectResultsButton.Click += new EventHandler(CorrectResults);
+
+            CorrectionResultPB = new ProgressBar();
+            CorrectionResultPB.Name = String.Format("CorrectionResultPB_{0}", ParameterType.Name);
+            CorrectionResultPB.Parent = this;
+            CorrectionResultPB.Location = new System.Drawing.Point(xPos + 20 + CorrectionLimitComboBox.Width + 20 + CorrectResultsButton.Width + 20, yPos);
+            CorrectionResultPB.Width = 150;
+
+
+        }
+        private void FillCorrectionLimitsCBItems()
+        {
+            decimal[] corrLimList = ParameterType.GetCorrectionLimitsList();
+            CorrectionLimitComboBox.Items.Clear();
+            foreach (decimal l in corrLimList)
+            {
+                CorrectionLimitComboBox.Items.Add(l.ToString());
+            }
+            if (CorrectionLimitComboBox.Items.Count > 0 ) CorrectionLimitComboBox.SelectedIndex = 0;
+        }
+        private void CorrectResults(object sender, EventArgs e)
+        {
+            DialogResult dr = MessageBox.Show("Будет произведена коррекция результатов вышедших за норму с отклонением <= " + CorrectionLimitComboBox.Text + ParameterType.DeviationMeasure() + "\n\nВы согласны?", "Коррекция параметра " + ParameterType.Name, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr == DialogResult.Yes)
+            {
+                //RefreshAfterCorrection();
+                //FillCorrectionLimitsCBItems();
+                SendCorrectionQueries(ParameterType.CorrectNotNormalResults(ServiceFunctions.convertToDecimal(CorrectionLimitComboBox.Text)));
+                mReader.RefreshOutOfNormaPanel(ParameterType.Name);
+                
+
+
+            }
+        }
+
+        private void SendCorrectionQueries(List<string> queries)
+        {
+            if (queries.Count == 0) return;
+            List<string> toSend = new List<string>();
+            int oneSendLimit = 50;
+            int i = 0;
+            foreach(string q in queries)
+            {
+                i++;
+
+            }
+        }
+
+        private void RefreshAfterCorrection()
+        {
+            DrawValuesTable();
         }
 
         private void SetPos(int x, int y)

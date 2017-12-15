@@ -16,12 +16,21 @@ namespace SAKProtocolManager.DBEntities
         //internal TestResult[] TestResults = new TestResult[] { };
         internal MeasuredParameterData[] ParameterData = new MeasuredParameterData[] {};
         internal CableStructure Structure = null;
+        private string deviationMeasure = null;
         /// <summary>
         /// Флаг того, что это испытание проводилось и есть результаты
         /// </summary>
         internal bool IsTested = true; 
 
-
+        public int OutOfNormaCount()
+        {
+            int counter = 0;
+            if (ParameterData.Length > 0)
+            {
+                foreach (MeasuredParameterData pd in ParameterData) counter += pd.NotNormalResults.Count;
+            }
+            return counter;
+        }
 
         public MeasureParameterType()
         {
@@ -124,6 +133,26 @@ namespace SAKProtocolManager.DBEntities
             this.IsTested = false;
         }
 
+        /// <summary>
+        /// Вытаскиваем список коррекций из ненормальных результатов в массив сортированный по убыванию и состоящий из уникальных элементов
+        /// </summary>
+        /// <returns></returns>
+        public decimal[] GetCorrectionLimitsList()
+        {
+            List<decimal> notNormalList = new List<decimal>();
+            foreach(MeasuredParameterData pd in this.ParameterData)
+            {
+                if (pd.NotNormalResults.Count > 0)
+                {
+                    foreach(TestResultEntities.TestResult tr in pd.NotNormalResults)
+                    {
+                       if (!notNormalList.Contains(tr.DeviationPercent)) notNormalList.Add(tr.DeviationPercent);
+                    }
+                }
+            }
+            notNormalList.Sort();
+            return notNormalList.ToArray();
+        }
         private bool HasTest()
         {
             if (this.Structure == null) return false;
@@ -136,6 +165,57 @@ namespace SAKProtocolManager.DBEntities
         {
             if (String.IsNullOrWhiteSpace(this.Measure)) return this.Name;
             else return String.Format("{0}, {1}", this.Name, this.Measure);
+        }
+
+        /// <summary>
+        /// Мера измерения отклонения от нормы %, дБ, с.
+        /// </summary>
+        /// <returns></returns>
+        internal string DeviationMeasure()
+        {
+            if (this.deviationMeasure == null)
+            {
+                string val = String.Empty;
+                switch (this.Name)
+                {
+                    case "Ao":
+                    case "Az":
+                    case "al":
+                        val = "дБ";
+                        break;
+                    case "Rиз2":
+                    case "Rиз4":
+                        val = "c.";
+                        break;
+                    default:
+                        val = "%";
+                        break;
+                }
+                this.deviationMeasure = val;
+            } 
+            return this.deviationMeasure;
+        }
+
+        internal List<string> CorrectNotNormalResults(decimal corrLimit)
+        {
+            List<string> queries = new List<string>();
+            if (corrLimit == 0) return queries;
+            foreach (MeasuredParameterData pd in ParameterData)
+            {
+                if (pd.NotNormalResults.Count > 0)
+                {
+                    foreach(TestResultEntities.TestResult tr in pd.NotNormalResults)
+                    {
+                        if(corrLimit >= tr.DeviationPercent)
+                        {
+                            tr.CorrectResult();
+                            if (tr.DeviationPercent == 0) queries.Add(tr.UpdRawValueQuery());
+                        }
+                    }
+                    pd.RefreshNotNormaResultsList();
+                }
+            }
+            return queries;
         }
     }
 

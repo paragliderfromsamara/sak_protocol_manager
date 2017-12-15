@@ -79,16 +79,31 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
             return val;
         }
 
-        public new PrimaryParametersTestResult[] GetMeasuredResults()
+        public new TestResult[] GetMeasuredResults()
         {
-            PrimaryParametersTestResult[] trs = new PrimaryParametersTestResult[] { };
+            List<TestResult> trs = new List<TestResult>(); 
             DataTable dt = GetAllFromDB();
             if (dt.Rows.Count > 0)
             {
-                trs = new PrimaryParametersTestResult[dt.Rows.Count];
-                for (int i = 0; i < dt.Rows.Count; i++) trs[i] = new PrimaryParametersTestResult(dt.Rows[i], ParameterData, subElsNumber);
+                for (int i = 0; i < dt.Rows.Count; i++)
+                {
+                    PrimaryParametersTestResult ptr = new PrimaryParametersTestResult(dt.Rows[i], ParameterData, subElsNumber);
+                    for(int j=0; j<ptr.Values.Length; j++)
+                    {
+                        TestResult tr = new TestResult();
+                        tr.ParameterData = ptr.ParameterData;
+                        tr.ParameterType = ptr.ParameterType;
+                        tr.RawValue = ptr.RawValues[j];
+                        tr.ElementNumber = ptr.ElementNumber;
+                        tr.BringingValue = ptr.Values[j];
+                        tr.SubElementNumber = j + 1;
+                        if (!tr.CheckIsItNorma()) ParameterData.NotNormalResults.Add(tr);
+                        trs.Add(tr);
+                    }
+                }
+                    
             }
-            return trs;
+            return trs.ToArray();
         }
 
 

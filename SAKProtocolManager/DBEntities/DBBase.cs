@@ -54,7 +54,7 @@ namespace SAKProtocolManager.DBEntities
             return v;
         }
 
-        protected static void SendQueriesList(string[] fields)
+        public static void SendQueriesList(string[] fields)
         {
             if (fields.Length == 0) return;
             DBControl mySql = new DBControl(DBQueries.Default.DBName);

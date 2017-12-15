@@ -56,8 +56,7 @@ namespace SAKProtocolManager.DBEntities
             this.getByIdQuery = String.Format("SELECT {0} FROM ispytan WHERE ispytan.IspInd = {1}", selectQuery, this.Id);
             this.colsList = new string[] {
                                             "cable_test_id",
-                                            "cable_id",
-                                            "baraban_id",
+                                            "cable_id", 
                                             "status_id",
                                             "cable_test_tested_at",
                                             "cable_test_cable_length",
@@ -96,24 +95,27 @@ namespace SAKProtocolManager.DBEntities
            
         }
 
-        public void UpdateLength(decimal Length)
+        public long UpdateTestedLength(decimal newLength)
         {
-            decimal prevLength = this.TestedLength;
-            this.TestedLength = Length;
-            long status = this.UpdateField("ispytan", String.Format("CabelLengt = {0}", Length), "IspInd = " + this.Id);
-            if (status == 0)
+            long sts = this.UpdateField("ispytan", String.Format("CabelLengt = {0}", newLength), "IspInd = " + this.Id);
+            if (sts == 0) this.TestedLength = newLength;
+            return sts;
+        }
+        
+        public int TestResultsCount()
+        {
+            int count = 0;
+            foreach(CableStructure cs in TestedCable.Structures)
             {
-                foreach(CableStructure structure in this.TestedCable.Structures)
+                foreach (MeasureParameterType pType in cs.MeasuredParameters)
                 {
-                    foreach(MeasureParameterType pType in structure.MeasuredParameters)
+                    foreach (MeasuredParameterData pData in pType.ParameterData)
                     {
-                        foreach(MeasuredParameterData pData in pType.ParameterData)
-                        {
-                            pData.RecalculateResults(prevLength, Length);
-                        }
+                        count += pData.TestResults.Length;
                     }
                 }
             }
+            return count;
         }
 
         public static void DeleteTest(string testId)
@@ -121,5 +123,7 @@ namespace SAKProtocolManager.DBEntities
             string[] qList = new string[] { BuildDestroyQueryWithCriteria("ispytan", String.Format("IspInd IN ({0})", testId)) , BuildDestroyQueryWithCriteria("resultism", String.Format("IspInd IN ({0})", testId)) };
             SendQueriesList(qList);
         }
+
+
     }
 }

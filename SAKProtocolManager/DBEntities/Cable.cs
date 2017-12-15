@@ -106,5 +106,26 @@ namespace SAKProtocolManager.DBEntities
             CableStructure st= new CableStructure(this);
             this.Structures = st.GetCableStructures();
         }
+
+        /// <summary>
+        /// Выводим структуры у которых есть выход за норму
+        /// </summary>
+        /// <returns></returns>
+        public CableStructure[] GetFailedStructures()
+        {
+            List<CableStructure> failedStructs = new List<CableStructure>();
+            foreach (CableStructure cs in this.Structures)
+            {
+                foreach(MeasureParameterType pt in cs.MeasuredParameters)
+                {
+                    if (pt.OutOfNormaCount() > 0)
+                    {
+                        failedStructs.Add(cs);
+                        break;
+                    }
+                }
+            }
+            return failedStructs.ToArray();
+        }
     }
 }

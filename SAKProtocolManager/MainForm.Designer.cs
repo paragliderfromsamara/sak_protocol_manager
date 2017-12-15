@@ -66,12 +66,14 @@
             this.progressBarTest = new System.Windows.Forms.ProgressBar();
             this.progressBarPanel = new System.Windows.Forms.Panel();
             this.selectedCountLbl = new System.Windows.Forms.Label();
+            this.TestListtPanel = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.dataSetTest)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ispytan)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.date_range)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.testsListView)).BeginInit();
             this.testListContextMenu.SuspendLayout();
             this.progressBarPanel.SuspendLayout();
+            this.TestListtPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // dataSetTest
@@ -163,7 +165,7 @@
             this.build_length});
             this.testsListView.ContextMenuStrip = this.testListContextMenu;
             this.testsListView.DataSource = this.dataSetTest;
-            this.testsListView.Location = new System.Drawing.Point(44, 143);
+            this.testsListView.Location = new System.Drawing.Point(25, 111);
             this.testsListView.MultiSelect = false;
             this.testsListView.Name = "testsListView";
             this.testsListView.ReadOnly = true;
@@ -272,7 +274,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(41, 53);
+            this.label1.Location = new System.Drawing.Point(22, 21);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(88, 13);
             this.label1.TabIndex = 1;
@@ -280,7 +282,7 @@
             // 
             // dateTimeFrom
             // 
-            this.dateTimeFrom.Location = new System.Drawing.Point(44, 70);
+            this.dateTimeFrom.Location = new System.Drawing.Point(25, 38);
             this.dateTimeFrom.Name = "dateTimeFrom";
             this.dateTimeFrom.Size = new System.Drawing.Size(200, 20);
             this.dateTimeFrom.TabIndex = 2;
@@ -288,7 +290,7 @@
             // 
             // dateTimeTo
             // 
-            this.dateTimeTo.Location = new System.Drawing.Point(267, 70);
+            this.dateTimeTo.Location = new System.Drawing.Point(248, 38);
             this.dateTimeTo.Name = "dateTimeTo";
             this.dateTimeTo.Size = new System.Drawing.Size(200, 20);
             this.dateTimeTo.TabIndex = 3;
@@ -297,7 +299,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(264, 53);
+            this.label2.Location = new System.Drawing.Point(245, 21);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(81, 13);
             this.label2.TabIndex = 4;
@@ -305,7 +307,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(488, 69);
+            this.button1.Location = new System.Drawing.Point(469, 37);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(89, 23);
             this.button1.TabIndex = 5;
@@ -317,7 +319,7 @@
             // 
             this.inProcessLabel.AutoSize = true;
             this.inProcessLabel.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.inProcessLabel.Location = new System.Drawing.Point(583, 76);
+            this.inProcessLabel.Location = new System.Drawing.Point(564, 44);
             this.inProcessLabel.Name = "inProcessLabel";
             this.inProcessLabel.Size = new System.Drawing.Size(84, 14);
             this.inProcessLabel.TabIndex = 6;
@@ -325,7 +327,7 @@
             // 
             // ClearList
             // 
-            this.ClearList.Location = new System.Drawing.Point(583, 69);
+            this.ClearList.Location = new System.Drawing.Point(564, 37);
             this.ClearList.Name = "ClearList";
             this.ClearList.Size = new System.Drawing.Size(123, 23);
             this.ClearList.TabIndex = 7;
@@ -355,7 +357,7 @@
             // 
             this.progressBarPanel.Controls.Add(this.progressBarTest);
             this.progressBarPanel.Controls.Add(this.progressBarLbl);
-            this.progressBarPanel.Location = new System.Drawing.Point(712, 42);
+            this.progressBarPanel.Location = new System.Drawing.Point(693, 10);
             this.progressBarPanel.Name = "progressBarPanel";
             this.progressBarPanel.Size = new System.Drawing.Size(295, 60);
             this.progressBarPanel.TabIndex = 10;
@@ -364,32 +366,41 @@
             // 
             this.selectedCountLbl.AutoSize = true;
             this.selectedCountLbl.Font = new System.Drawing.Font("Tahoma", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.selectedCountLbl.Location = new System.Drawing.Point(41, 113);
+            this.selectedCountLbl.Location = new System.Drawing.Point(22, 81);
             this.selectedCountLbl.Name = "selectedCountLbl";
             this.selectedCountLbl.Size = new System.Drawing.Size(153, 18);
             this.selectedCountLbl.TabIndex = 11;
             this.selectedCountLbl.Text = "Выбрано 0 из 104234";
+            // 
+            // TestListtPanel
+            // 
+            this.TestListtPanel.Controls.Add(this.selectedCountLbl);
+            this.TestListtPanel.Controls.Add(this.progressBarPanel);
+            this.TestListtPanel.Controls.Add(this.ClearList);
+            this.TestListtPanel.Controls.Add(this.inProcessLabel);
+            this.TestListtPanel.Controls.Add(this.button1);
+            this.TestListtPanel.Controls.Add(this.label2);
+            this.TestListtPanel.Controls.Add(this.label1);
+            this.TestListtPanel.Controls.Add(this.dateTimeFrom);
+            this.TestListtPanel.Controls.Add(this.dateTimeTo);
+            this.TestListtPanel.Controls.Add(this.testsListView);
+            this.TestListtPanel.Location = new System.Drawing.Point(19, 12);
+            this.TestListtPanel.Name = "TestListtPanel";
+            this.TestListtPanel.Size = new System.Drawing.Size(1006, 679);
+            this.TestListtPanel.TabIndex = 12;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1044, 661);
-            this.Controls.Add(this.selectedCountLbl);
-            this.Controls.Add(this.progressBarPanel);
-            this.Controls.Add(this.ClearList);
-            this.Controls.Add(this.inProcessLabel);
-            this.Controls.Add(this.button1);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.dateTimeFrom);
-            this.Controls.Add(this.dateTimeTo);
-            this.Controls.Add(this.testsListView);
+            this.Controls.Add(this.TestListtPanel);
             this.MinimumSize = new System.Drawing.Size(1000, 700);
             this.Name = "MainForm";
             this.Text = "Form1";
             this.ResizeBegin += new System.EventHandler(this.MainForm_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.MainForm_ResizeEnd);
+            this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.MainForm_MouseClick);
             this.Resize += new System.EventHandler(this.MainForm_ResizeEnd);
             ((System.ComponentModel.ISupportInitialize)(this.dataSetTest)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ispytan)).EndInit();
@@ -398,8 +409,9 @@
             this.testListContextMenu.ResumeLayout(false);
             this.progressBarPanel.ResumeLayout(false);
             this.progressBarPanel.PerformLayout();
+            this.TestListtPanel.ResumeLayout(false);
+            this.TestListtPanel.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -441,6 +453,7 @@
         private System.Windows.Forms.ProgressBar progressBarTest;
         private System.Windows.Forms.Panel progressBarPanel;
         private System.Windows.Forms.Label selectedCountLbl;
+        private System.Windows.Forms.Panel TestListtPanel;
     }
 }
 
