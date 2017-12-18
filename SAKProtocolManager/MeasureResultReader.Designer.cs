@@ -276,7 +276,7 @@
             this.lengthUpdProgressBarField.Controls.Add(this.procNameLbl);
             this.lengthUpdProgressBarField.Controls.Add(this.lengthUpdProgressBarLbl);
             this.lengthUpdProgressBarField.Controls.Add(this.LengthUpdProgressBar);
-            this.lengthUpdProgressBarField.Location = new System.Drawing.Point(616, 41);
+            this.lengthUpdProgressBarField.Location = new System.Drawing.Point(616, 44);
             this.lengthUpdProgressBarField.Name = "lengthUpdProgressBarField";
             this.lengthUpdProgressBarField.Size = new System.Drawing.Size(200, 89);
             this.lengthUpdProgressBarField.TabIndex = 15;

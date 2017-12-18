@@ -12,7 +12,6 @@ using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System.IO;
 using SAKProtocolManager.MyFormElements;
-using System.Diagnostics;
 using SAKProtocolManager.DBEntities.TestResultEntities;
 using SAKProtocolManager.PDFProtocolEntities;
 namespace SAKProtocolManager
@@ -167,12 +166,8 @@ namespace SAKProtocolManager
             }
             if (NeedGenerate == DialogResult.Yes)
             {
-                ProcessStartInfo startInfo = new ProcessStartInfo("C:\\CAK\\Client3.exe");
-                startInfo.Arguments = String.Format("{0} {1}", this.CableTest.Id, 1);
-                Process pr = Process.Start(startInfo);
+                PDFProtocol.MakeOldStylePDFProtocol(this.CableTest.Id);
             }
-
-
         }
 
         private void updateCableLength_Click(object sender, EventArgs e)
@@ -190,6 +185,7 @@ namespace SAKProtocolManager
                 this.Enabled = true;
                 this.Cursor = Cursors.Default;
                 this.MainForm.UpdateSelectedCableLength(Convert.ToInt16(this.testedLengthInput.Value));
+                MessageBox.Show(String.Format("Результат успешно пересчитан на длину кабеля {0} м.", testedLengthInput.Value), "Длина успешно пересчитана", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
             }
         }
 

@@ -83,7 +83,7 @@ namespace SAKProtocolManager.MyFormElements
                 //return DrawByElementsParameterTable(pData);
                 case "Ao":
                 case "Az":
-                    return DrawPVTable(pData);
+                    return DrawPVTable();
                 default:
                     return DrawDefaultTable(pData);
             }
@@ -219,40 +219,46 @@ namespace SAKProtocolManager.MyFormElements
             return dgv;
         }
 
-        private DataGridView DrawPVTable(MeasuredParameterData pData)
+        private DataGridView DrawPVTable()
         {
             DataGridView dgv = new DataGridView();
-            if (pData.ParameterType.Structure.BendingTypeLeadsNumber > 2)
+            if (ParameterType.Structure.BendingTypeLeadsNumber > 2)
             {
-                dgv.Columns.Add("receiver_number", String.Format("{0} приёмника №", pData.ParameterType.Structure.BendingTypeName));
-                dgv.Columns.Add("sub_receiver_number", String.Format("пара приёмника", pData.ParameterType.Structure.BendingTypeName));
-                dgv.Columns.Add("sub_transponder_number", String.Format("пара генератора", pData.ParameterType.Structure.BendingTypeName));
-                dgv.Columns.Add("transponder_number", String.Format("{0} генератора №", pData.ParameterType.Structure.BendingTypeName));
+                dgv.Columns.Add("receiver_number", String.Format("{0} приёмника №", ParameterType.Structure.BendingTypeName));
+                dgv.Columns.Add("sub_receiver_number", String.Format("пара приёмника", ParameterType.Structure.BendingTypeName));
+                dgv.Columns.Add("sub_transponder_number", String.Format("пара генератора", ParameterType.Structure.BendingTypeName));
+                dgv.Columns.Add("transponder_number", String.Format("{0} генератора №", ParameterType.Structure.BendingTypeName));
             }
             else
             {
-                dgv.Columns.Add("receiver_number", String.Format("{0} приёмника №", pData.ParameterType.Structure.BendingTypeName));
-                dgv.Columns.Add("transponder_number", String.Format("{0} генератора №", pData.ParameterType.Structure.BendingTypeName));
+                dgv.Columns.Add("receiver_number", String.Format("{0} приёмника №", ParameterType.Structure.BendingTypeName));
+                dgv.Columns.Add("transponder_number", String.Format("{0} генератора №", ParameterType.Structure.BendingTypeName));
             }
-            dgv.Columns.Add("value", "результат, " + pData.ResultMeasure());
+            dgv.Columns.Add("value", "результат, " + ParameterType.ParameterData[0].ResultMeasure());
             dgv.Columns.Add("min", "Мин");
-            TestResult[] results = pData.NotNormalResults.ToArray();
-            if (results.Length > 0)
+            dgv.Columns.Add("percent_out", "Отклонение, дБ");
+            foreach (MeasuredParameterData pData in ParameterType.ParameterData)
             {
-                dgv.Rows.Add(results.Length);
-                for (int i = 0; i < results.Length; i++)
+                TestResult[] results = pData.NotNormalResults.ToArray();
+                if (results.Length > 0)
                 {
-                    dgv.Rows[i].Cells["receiver_number"].Value = results[i].ElementNumber;
-                    if(pData.ParameterType.Structure.BendingTypeLeadsNumber > 2)
+                    dgv.Rows.Add(results.Length);
+                    for (int i = 0; i < results.Length; i++)
                     {
-                        dgv.Rows[i].Cells["sub_receiver_number"].Value = results[i].SubElementTitle();
-                        dgv.Rows[i].Cells["sub_transponder_number"].Value = results[i].GeneratorSubElementTitle();
+                        dgv.Rows[i].Cells["receiver_number"].Value = results[i].ElementNumber;
+                        if (ParameterType.Structure.BendingTypeLeadsNumber > 2)
+                        {
+                            dgv.Rows[i].Cells["sub_receiver_number"].Value = results[i].SubElementTitle();
+                            dgv.Rows[i].Cells["sub_transponder_number"].Value = results[i].GeneratorSubElementTitle();
+                        }
+                        dgv.Rows[i].Cells["transponder_number"].Value = results[i].GeneratorElementNumber;
+                        dgv.Rows[i].Cells["value"].Value = results[i].GetStringTableValue();
+                        dgv.Rows[i].Cells["min"].Value = pData.MinValue;
+                        dgv.Rows[i].Cells["percent_out"].Value = results[i].DeviationPercent;
                     }
-                    dgv.Rows[i].Cells["transponder_number"].Value = results[i].GeneratorElementNumber;
-                    dgv.Rows[i].Cells["value"].Value = results[i].GetStringTableValue();
-                    dgv.Rows[i].Cells["min"].Value = pData.MinValue;
                 }
             }
+
             dgv.Refresh();
             return dgv;
         }
@@ -297,9 +303,9 @@ namespace SAKProtocolManager.MyFormElements
             CorrectionResultPB = new ProgressBar();
             CorrectionResultPB.Name = String.Format("CorrectionResultPB_{0}", ParameterType.Name);
             CorrectionResultPB.Parent = this;
-            CorrectionResultPB.Location = new System.Drawing.Point(xPos + 20 + CorrectionLimitComboBox.Width + 20 + CorrectResultsButton.Width + 20, yPos);
+            CorrectionResultPB.Location = new System.Drawing.Point(xPos + 15 + CorrectionLimitComboBox.Width + 20 + CorrectResultsButton.Width + 20, yPos);
             CorrectionResultPB.Width = 150;
-
+            CorrectionResultPB.Visible = false;
 
         }
         private void FillCorrectionLimitsCBItems()
@@ -319,7 +325,7 @@ namespace SAKProtocolManager.MyFormElements
             {
                 //RefreshAfterCorrection();
                 //FillCorrectionLimitsCBItems();
-                SendCorrectionQueries(ParameterType.CorrectNotNormalResults(ServiceFunctions.convertToDecimal(CorrectionLimitComboBox.Text)));
+                SendCorrectionQueriesToDataBase(ParameterType.CorrectNotNormalResults(ServiceFunctions.convertToDecimal(CorrectionLimitComboBox.Text)));
                 mReader.RefreshOutOfNormaPanel(ParameterType.Name);
                 
 
@@ -327,17 +333,26 @@ namespace SAKProtocolManager.MyFormElements
             }
         }
 
-        private void SendCorrectionQueries(List<string> queries)
+        private void SendCorrectionQueriesToDataBase(List<string> queries)
         {
             if (queries.Count == 0) return;
-            List<string> toSend = new List<string>();
-            int oneSendLimit = 50;
-            int i = 0;
-            foreach(string q in queries)
+            List<string> tmp = new List<string>();
+            int sendLimit = 50;
+            CorrectionResultPB.Visible = true;
+            CorrectionResultPB.Maximum = queries.Count;
+            CorrectionResultPB.Value = 0;
+            foreach (string q in queries)
             {
-                i++;
-
+                tmp.Add(q);
+                if (tmp.Count == sendLimit || q == queries.Last())
+                {
+                    CorrectionResultPB.Value += tmp.Count;
+                    DBBase.SendQueriesList(tmp.ToArray());
+                    tmp.Clear();
+                }
             }
+            CorrectionResultPB.Visible = false;
+            MessageBox.Show("Коррекция успешно произведена.", "", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
         }
 
         private void RefreshAfterCorrection()

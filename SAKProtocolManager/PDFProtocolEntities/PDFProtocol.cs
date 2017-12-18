@@ -431,5 +431,20 @@ namespace SAKProtocolManager.PDFProtocolEntities
             else return divider;
         }
 
+        public static void MakeOldStylePDFProtocol(string test_id)
+        {
+            try
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo(@"C:\CAK\Client3.exe");
+                startInfo.WorkingDirectory = @"C:\CAK\";
+                startInfo.Arguments = String.Format("{0} {1}", test_id, 1);
+                Process pr = Process.Start(startInfo);
+            }catch(Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show("Не найдено приложение Client3.exe", e.Message, System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
+
+        }
+
     }
 }

@@ -13,3 +13,8 @@ C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtoco
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\itextsharp.dll
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.StatusForm.resources
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.FuncTestForm.resources
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.TrustInfo.xml
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\SAKProtocolManager.exe.manifest
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\SAKProtocolManager.application
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.exe.manifest
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.application

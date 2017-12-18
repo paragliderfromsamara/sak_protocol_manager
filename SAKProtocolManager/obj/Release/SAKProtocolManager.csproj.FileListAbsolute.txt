@@ -1,0 +1,10 @@
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\SAKProtocolManager.exe.config
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.FuncTestForm.resources
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.MainForm.resources
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.MeasureResultReader.resources
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.Properties.Resources.resources
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.StatusForm.resources
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.csproj.GenerateResource.Cache
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.TrustInfo.xml
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.exe
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.pdb

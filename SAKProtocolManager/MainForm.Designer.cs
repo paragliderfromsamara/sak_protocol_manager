@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataSetTest = new System.Data.DataSet();
             this.ispytan = new System.Data.DataTable();
             this.test_id = new System.Data.DataColumn();
@@ -59,7 +59,7 @@
             this.dateTimeFrom = new System.Windows.Forms.DateTimePicker();
             this.dateTimeTo = new System.Windows.Forms.DateTimePicker();
             this.label2 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
+            this.SearchButton = new System.Windows.Forms.Button();
             this.inProcessLabel = new System.Windows.Forms.Label();
             this.ClearList = new System.Windows.Forms.Button();
             this.progressBarLbl = new System.Windows.Forms.Label();
@@ -67,6 +67,7 @@
             this.progressBarPanel = new System.Windows.Forms.Panel();
             this.selectedCountLbl = new System.Windows.Forms.Label();
             this.TestListtPanel = new System.Windows.Forms.Panel();
+            this.exportToPDFToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataSetTest)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ispytan)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.date_range)).BeginInit();
@@ -153,6 +154,9 @@
             // 
             this.testsListView.AutoGenerateColumns = false;
             this.testsListView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
+            this.testsListView.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
+            this.testsListView.BackgroundColor = System.Drawing.Color.AliceBlue;
+            this.testsListView.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             this.testsListView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.testsListView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.id,
@@ -169,18 +173,20 @@
             this.testsListView.MultiSelect = false;
             this.testsListView.Name = "testsListView";
             this.testsListView.ReadOnly = true;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopCenter;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.testsListView.RowHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopCenter;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.testsListView.RowHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            this.testsListView.RowTemplate.Height = 26;
             this.testsListView.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.testsListView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.testsListView.Size = new System.Drawing.Size(950, 486);
             this.testsListView.TabIndex = 0;
+            this.testsListView.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.OpenButtonToolStripMenuItem_Click);
             this.testsListView.SelectionChanged += new System.EventHandler(this.testsListView_SelectionChanged);
             // 
             // id
@@ -253,21 +259,22 @@
             // 
             this.testListContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openMeasureResultReaderToolStripMenuItem,
+            this.exportToPDFToolStripMenuItem,
             this.удалитьToolStripMenuItem});
             this.testListContextMenu.Name = "testListContextMenu";
-            this.testListContextMenu.Size = new System.Drawing.Size(122, 48);
+            this.testListContextMenu.Size = new System.Drawing.Size(153, 92);
             // 
             // openMeasureResultReaderToolStripMenuItem
             // 
             this.openMeasureResultReaderToolStripMenuItem.Name = "openMeasureResultReaderToolStripMenuItem";
-            this.openMeasureResultReaderToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.openMeasureResultReaderToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.openMeasureResultReaderToolStripMenuItem.Text = "Открыть";
             this.openMeasureResultReaderToolStripMenuItem.Click += new System.EventHandler(this.OpenButtonToolStripMenuItem_Click);
             // 
             // удалитьToolStripMenuItem
             // 
             this.удалитьToolStripMenuItem.Name = "удалитьToolStripMenuItem";
-            this.удалитьToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.удалитьToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.удалитьToolStripMenuItem.Text = "Удалить";
             this.удалитьToolStripMenuItem.Click += new System.EventHandler(this.удалитьToolStripMenuItem_Click);
             // 
@@ -305,15 +312,22 @@
             this.label2.TabIndex = 4;
             this.label2.Text = "Конечная дата";
             // 
-            // button1
+            // SearchButton
             // 
-            this.button1.Location = new System.Drawing.Point(469, 37);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(89, 23);
-            this.button1.TabIndex = 5;
-            this.button1.Text = "Искать";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.SearchButton.BackColor = System.Drawing.Color.Honeydew;
+            this.SearchButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+            this.SearchButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+            this.SearchButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Beige;
+            this.SearchButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.SearchButton.ForeColor = System.Drawing.Color.Black;
+            this.SearchButton.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.SearchButton.Location = new System.Drawing.Point(454, 29);
+            this.SearchButton.Name = "SearchButton";
+            this.SearchButton.Size = new System.Drawing.Size(90, 41);
+            this.SearchButton.TabIndex = 5;
+            this.SearchButton.Text = "ПОИСК";
+            this.SearchButton.UseVisualStyleBackColor = false;
+            this.SearchButton.Click += new System.EventHandler(this.button1_Click);
             // 
             // inProcessLabel
             // 
@@ -327,12 +341,16 @@
             // 
             // ClearList
             // 
-            this.ClearList.Location = new System.Drawing.Point(564, 37);
+            this.ClearList.BackColor = System.Drawing.Color.LavenderBlush;
+            this.ClearList.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+            this.ClearList.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
+            this.ClearList.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.ClearList.Location = new System.Drawing.Point(550, 29);
             this.ClearList.Name = "ClearList";
-            this.ClearList.Size = new System.Drawing.Size(123, 23);
+            this.ClearList.Size = new System.Drawing.Size(172, 41);
             this.ClearList.TabIndex = 7;
-            this.ClearList.Text = "Удалить выборку";
-            this.ClearList.UseVisualStyleBackColor = true;
+            this.ClearList.Text = "УДАЛИТЬ ВЫБРАННОЕ";
+            this.ClearList.UseVisualStyleBackColor = false;
             this.ClearList.Click += new System.EventHandler(this.button2_Click);
             // 
             // progressBarLbl
@@ -357,9 +375,9 @@
             // 
             this.progressBarPanel.Controls.Add(this.progressBarTest);
             this.progressBarPanel.Controls.Add(this.progressBarLbl);
-            this.progressBarPanel.Location = new System.Drawing.Point(693, 10);
+            this.progressBarPanel.Location = new System.Drawing.Point(728, 10);
             this.progressBarPanel.Name = "progressBarPanel";
-            this.progressBarPanel.Size = new System.Drawing.Size(295, 60);
+            this.progressBarPanel.Size = new System.Drawing.Size(260, 60);
             this.progressBarPanel.TabIndex = 10;
             // 
             // selectedCountLbl
@@ -378,7 +396,7 @@
             this.TestListtPanel.Controls.Add(this.progressBarPanel);
             this.TestListtPanel.Controls.Add(this.ClearList);
             this.TestListtPanel.Controls.Add(this.inProcessLabel);
-            this.TestListtPanel.Controls.Add(this.button1);
+            this.TestListtPanel.Controls.Add(this.SearchButton);
             this.TestListtPanel.Controls.Add(this.label2);
             this.TestListtPanel.Controls.Add(this.label1);
             this.TestListtPanel.Controls.Add(this.dateTimeFrom);
@@ -388,6 +406,13 @@
             this.TestListtPanel.Name = "TestListtPanel";
             this.TestListtPanel.Size = new System.Drawing.Size(1006, 679);
             this.TestListtPanel.TabIndex = 12;
+            // 
+            // exportToPDFToolStripMenuItem
+            // 
+            this.exportToPDFToolStripMenuItem.Name = "exportToPDFToolStripMenuItem";
+            this.exportToPDFToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.exportToPDFToolStripMenuItem.Text = "Экспорт в PDF";
+            this.exportToPDFToolStripMenuItem.Click += new System.EventHandler(this.exportToPDFToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -433,7 +458,7 @@
         private System.Data.DataColumn dataColumn1;
         private System.Data.DataColumn dataColumn2;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button SearchButton;
         private System.Windows.Forms.Label inProcessLabel;
         private System.Windows.Forms.ContextMenuStrip testListContextMenu;
         private System.Windows.Forms.ToolStripMenuItem openMeasureResultReaderToolStripMenuItem;
@@ -454,6 +479,7 @@
         private System.Windows.Forms.Panel progressBarPanel;
         private System.Windows.Forms.Label selectedCountLbl;
         private System.Windows.Forms.Panel TestListtPanel;
+        private System.Windows.Forms.ToolStripMenuItem exportToPDFToolStripMenuItem;
     }
 }
 

@@ -11,7 +11,6 @@ namespace SAKProtocolManager
     class CableStructMeasureResult
     {
         public DataSet MeasureResult = new DataSet();
-        public int NumberOnCable;
 
         public CableStructMeasureResult()
         {

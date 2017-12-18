@@ -33,6 +33,7 @@ namespace SAKProtocolManager
             inProcessLabel.Visible = progressBarPanel.Visible = false;
             initTestsList();
             SetDBConstants();
+            this.Text =Application.ProductName + " v." + Application.ProductVersion;
 
             /// Thread.Sleep(6000);
             // sts.Close();
@@ -59,7 +60,7 @@ namespace SAKProtocolManager
         private void initTestsList()
         {
 
-            ClearList.Enabled = button1.Enabled = false;
+            ClearList.Enabled = SearchButton.Enabled = false;
             string comDateRange = DBQueries.Default.MinMaxDateQuery;
             mySql.MyConn.Open();
             TestCount = mySql.RunNoQuery(DBQueries.Default.TestCount);
@@ -97,7 +98,7 @@ namespace SAKProtocolManager
             //com += " limit 10000";
             ClearList.Visible = false;
             inProcessLabel.Visible = true;
-            button1.Enabled = false;
+            SearchButton.Enabled = false;
             this.Refresh();
             this.Cursor = Cursors.WaitCursor;
             mySql.MyConn.Open();
@@ -146,80 +147,85 @@ namespace SAKProtocolManager
 
         private void OpenButtonToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            OpenTest();
+        }
+
+        private void OpenTest()
+        {
             try
             {
-             //   WaitingStatus wts = new WaitingStatus();
-            //if (testsListView.SelectedRows.Count == 0) return;
-            string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
-            //if (String.IsNullOrWhiteSpace(test_id)) return;
-            TestListtPanel.Enabled = false;
-            this.Cursor = Cursors.WaitCursor;
-            MeasureResultReader form = new MeasureResultReader(test_id, this);
-            form.FormClosed += new FormClosedEventHandler(this.MeasureResultReaderClosed);
-            form.Show();
-            this.readerForm = form;
-            this.Cursor = Cursors.Default;
-                //wts.StopStatus();
+                string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
+                TestListtPanel.Enabled = false;
+                this.Cursor = Cursors.WaitCursor;
+                MeasureResultReader form = new MeasureResultReader(test_id, this);
+                form.FormClosed += new FormClosedEventHandler(this.MeasureResultReaderClosed);
+                form.Show();
+                this.readerForm = form;
+                this.Cursor = Cursors.Default;
             }
             catch (ThreadAbortException) { }
-            
         }
 
         private void testsListView_SelectionChanged(object sender, EventArgs e)
         {
             if (testsListView.SelectedRows.Count == 0)
             {
-                openMeasureResultReaderToolStripMenuItem.Enabled = false;
+                testListContextMenu.Enabled = false;
             }
             else
             {
                 if (testsListView.SelectedRows[0].Cells[0].Value == null) return;
                 string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
-                openMeasureResultReaderToolStripMenuItem.Enabled = !String.IsNullOrWhiteSpace(test_id);
+                testListContextMenu.Enabled = !String.IsNullOrWhiteSpace(test_id);
             }
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
             List<string> ids = new List<string>();
-            foreach (DataGridViewRow r in testsListView.Rows)
+            DialogResult dr = MessageBox.Show("Вы уверены, что хотите удалить выбранные испытания навсегда?", "Подтверждение операции", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr == DialogResult.Yes)
             {
-                if (r.Cells[0].Value == null) continue;
-                string id = r.Cells[0].Value.ToString();
-                if (!String.IsNullOrWhiteSpace(id))
+                foreach (DataGridViewRow r in testsListView.Rows)
                 {
-                    ids.Add(id);
-                }
-            }
-            if (ids.Count > 0)
-            {
-                progressBarTest.Value = 0;
-                progressBarTest.Maximum = ids.Count;
-                progressBarLbl.Text = "";
-                progressBarPanel.Visible = true;
-                int i = 0;
-                int j = 0;
-                string strIds = String.Empty;
-                foreach (string id in ids)
-                {
-                    if (i > 0) strIds += ",";
-                    strIds += id;
-                    if (i == 100 || j == (ids.Count -1))
+                    if (r.Cells[0].Value == null) continue;
+                    string id = r.Cells[0].Value.ToString();
+                    if (!String.IsNullOrWhiteSpace(id))
                     {
-                        CableTest.DeleteTest(strIds);
-                        progressBarTest.Value += i;
-                        progressBarLbl.Text = String.Format("Удалено {0} из {1} испытаний", j, ids.Count);
-                        progressBarLbl.Refresh();
-                        strIds = String.Empty;
-                        i = -1;
+                        ids.Add(id);
                     }
-                    i++;
-                    j++;
                 }
-                progressBarPanel.Visible = false;
-                initTestsList();
-                //fillTestList(dbDateFormat(dateTimeFrom.Value), dbDateFormat(dateTimeTo.Value));
+                if (ids.Count > 0)
+                {
+                    progressBarTest.Value = 0;
+                    progressBarTest.Maximum = ids.Count;
+                    progressBarLbl.Text = "";
+                    progressBarPanel.Visible = true;
+                    int i = 0;
+                    int j = 0;
+                    string strIds = String.Empty;
+                    foreach (string id in ids)
+                    {
+                        if (i > 0) strIds += ",";
+                        strIds += id;
+                        if (i == 100 || j == (ids.Count - 1))
+                        {
+                            CableTest.DeleteTest(strIds);
+                            progressBarTest.Value += i;
+                            progressBarLbl.Text = String.Format("Удалено {0} из {1} испытаний", j, ids.Count);
+                            progressBarLbl.Refresh();
+                            strIds = String.Empty;
+                            i = -1;
+                        }
+                        i++;
+                        j++;
+                    }
+                    progressBarPanel.Visible = false;
+                    initTestsList();
+                    //fillTestList(dbDateFormat(dateTimeFrom.Value), dbDateFormat(dateTimeTo.Value));
+                }
             }
+
 
         }
 
@@ -254,19 +260,25 @@ namespace SAKProtocolManager
 
         private void dateTimeFrom_ValueChanged(object sender, EventArgs e)
         {
-            button1.Enabled = true;
+            SearchButton.Enabled = true;
             ClearList.Enabled = false;
         }
 
         private void dateTimeTo_ValueChanged(object sender, EventArgs e)
         {
-            button1.Enabled = true;
+            SearchButton.Enabled = true;
             ClearList.Enabled = false;
         }
 
         private void MainForm_MouseClick(object sender, MouseEventArgs e)
         {
             if (!this.Enabled && this.readerForm != null) readerForm.Focus(); 
+        }
+
+        private void exportToPDFToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
+            PDFProtocolEntities.PDFProtocol.MakeOldStylePDFProtocol(test_id);
         }
     }
 
