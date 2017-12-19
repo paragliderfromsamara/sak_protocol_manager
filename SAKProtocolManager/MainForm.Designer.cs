@@ -30,6 +30,8 @@
         {
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.dataSetTest = new System.Data.DataSet();
             this.ispytan = new System.Data.DataTable();
             this.test_id = new System.Data.DataColumn();
@@ -54,20 +56,21 @@
             this.build_length = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.testListContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.openMeasureResultReaderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportToPDFToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.удалитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label1 = new System.Windows.Forms.Label();
             this.dateTimeFrom = new System.Windows.Forms.DateTimePicker();
             this.dateTimeTo = new System.Windows.Forms.DateTimePicker();
             this.label2 = new System.Windows.Forms.Label();
             this.SearchButton = new System.Windows.Forms.Button();
-            this.inProcessLabel = new System.Windows.Forms.Label();
             this.ClearList = new System.Windows.Forms.Button();
             this.progressBarLbl = new System.Windows.Forms.Label();
             this.progressBarTest = new System.Windows.Forms.ProgressBar();
             this.progressBarPanel = new System.Windows.Forms.Panel();
             this.selectedCountLbl = new System.Windows.Forms.Label();
             this.TestListtPanel = new System.Windows.Forms.Panel();
-            this.exportToPDFToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.searchPanel = new System.Windows.Forms.Panel();
+            this.controlPanel = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.dataSetTest)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ispytan)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.date_range)).BeginInit();
@@ -75,6 +78,8 @@
             this.testListContextMenu.SuspendLayout();
             this.progressBarPanel.SuspendLayout();
             this.TestListtPanel.SuspendLayout();
+            this.searchPanel.SuspendLayout();
+            this.controlPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // dataSetTest
@@ -155,7 +160,7 @@
             this.testsListView.AutoGenerateColumns = false;
             this.testsListView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.testsListView.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
-            this.testsListView.BackgroundColor = System.Drawing.Color.AliceBlue;
+            this.testsListView.BackgroundColor = System.Drawing.SystemColors.Control;
             this.testsListView.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             this.testsListView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.testsListView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -181,6 +186,11 @@
             dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.testsListView.RowHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.MintCream;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.Teal;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.OldLace;
+            this.testsListView.RowsDefaultCellStyle = dataGridViewCellStyle2;
             this.testsListView.RowTemplate.Height = 26;
             this.testsListView.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.testsListView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
@@ -262,17 +272,27 @@
             this.exportToPDFToolStripMenuItem,
             this.удалитьToolStripMenuItem});
             this.testListContextMenu.Name = "testListContextMenu";
-            this.testListContextMenu.Size = new System.Drawing.Size(153, 92);
+            this.testListContextMenu.Size = new System.Drawing.Size(153, 70);
             // 
             // openMeasureResultReaderToolStripMenuItem
             // 
+            this.openMeasureResultReaderToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("openMeasureResultReaderToolStripMenuItem.Image")));
             this.openMeasureResultReaderToolStripMenuItem.Name = "openMeasureResultReaderToolStripMenuItem";
             this.openMeasureResultReaderToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.openMeasureResultReaderToolStripMenuItem.Text = "Открыть";
             this.openMeasureResultReaderToolStripMenuItem.Click += new System.EventHandler(this.OpenButtonToolStripMenuItem_Click);
             // 
+            // exportToPDFToolStripMenuItem
+            // 
+            this.exportToPDFToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("exportToPDFToolStripMenuItem.Image")));
+            this.exportToPDFToolStripMenuItem.Name = "exportToPDFToolStripMenuItem";
+            this.exportToPDFToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.exportToPDFToolStripMenuItem.Text = "Экспорт в PDF";
+            this.exportToPDFToolStripMenuItem.Click += new System.EventHandler(this.exportToPDFToolStripMenuItem_Click);
+            // 
             // удалитьToolStripMenuItem
             // 
+            this.удалитьToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("удалитьToolStripMenuItem.Image")));
             this.удалитьToolStripMenuItem.Name = "удалитьToolStripMenuItem";
             this.удалитьToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.удалитьToolStripMenuItem.Text = "Удалить";
@@ -281,34 +301,38 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(22, 21);
+            this.label1.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label1.Location = new System.Drawing.Point(3, 17);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(88, 13);
+            this.label1.Size = new System.Drawing.Size(96, 14);
             this.label1.TabIndex = 1;
             this.label1.Text = "Начальная дата";
             // 
             // dateTimeFrom
             // 
-            this.dateTimeFrom.Location = new System.Drawing.Point(25, 38);
+            this.dateTimeFrom.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.dateTimeFrom.Location = new System.Drawing.Point(6, 34);
             this.dateTimeFrom.Name = "dateTimeFrom";
-            this.dateTimeFrom.Size = new System.Drawing.Size(200, 20);
+            this.dateTimeFrom.Size = new System.Drawing.Size(146, 22);
             this.dateTimeFrom.TabIndex = 2;
             this.dateTimeFrom.ValueChanged += new System.EventHandler(this.dateTimeFrom_ValueChanged);
             // 
             // dateTimeTo
             // 
-            this.dateTimeTo.Location = new System.Drawing.Point(248, 38);
+            this.dateTimeTo.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.dateTimeTo.Location = new System.Drawing.Point(169, 34);
             this.dateTimeTo.Name = "dateTimeTo";
-            this.dateTimeTo.Size = new System.Drawing.Size(200, 20);
+            this.dateTimeTo.Size = new System.Drawing.Size(146, 22);
             this.dateTimeTo.TabIndex = 3;
             this.dateTimeTo.ValueChanged += new System.EventHandler(this.dateTimeTo_ValueChanged);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(245, 21);
+            this.label2.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label2.Location = new System.Drawing.Point(166, 17);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(81, 13);
+            this.label2.Size = new System.Drawing.Size(91, 14);
             this.label2.TabIndex = 4;
             this.label2.Text = "Конечная дата";
             // 
@@ -319,25 +343,16 @@
             this.SearchButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
             this.SearchButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Beige;
             this.SearchButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.SearchButton.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.SearchButton.ForeColor = System.Drawing.Color.Black;
             this.SearchButton.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.SearchButton.Location = new System.Drawing.Point(454, 29);
+            this.SearchButton.Location = new System.Drawing.Point(5, 27);
             this.SearchButton.Name = "SearchButton";
-            this.SearchButton.Size = new System.Drawing.Size(90, 41);
+            this.SearchButton.Size = new System.Drawing.Size(108, 30);
             this.SearchButton.TabIndex = 5;
             this.SearchButton.Text = "ПОИСК";
             this.SearchButton.UseVisualStyleBackColor = false;
             this.SearchButton.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // inProcessLabel
-            // 
-            this.inProcessLabel.AutoSize = true;
-            this.inProcessLabel.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.inProcessLabel.Location = new System.Drawing.Point(564, 44);
-            this.inProcessLabel.Name = "inProcessLabel";
-            this.inProcessLabel.Size = new System.Drawing.Size(84, 14);
-            this.inProcessLabel.TabIndex = 6;
-            this.inProcessLabel.Text = "Идёт поиск...";
             // 
             // ClearList
             // 
@@ -345,9 +360,10 @@
             this.ClearList.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
             this.ClearList.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
             this.ClearList.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.ClearList.Location = new System.Drawing.Point(550, 29);
+            this.ClearList.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.ClearList.Location = new System.Drawing.Point(119, 27);
             this.ClearList.Name = "ClearList";
-            this.ClearList.Size = new System.Drawing.Size(172, 41);
+            this.ClearList.Size = new System.Drawing.Size(154, 30);
             this.ClearList.TabIndex = 7;
             this.ClearList.Text = "УДАЛИТЬ ВЫБРАННОЕ";
             this.ClearList.UseVisualStyleBackColor = false;
@@ -375,44 +391,52 @@
             // 
             this.progressBarPanel.Controls.Add(this.progressBarTest);
             this.progressBarPanel.Controls.Add(this.progressBarLbl);
-            this.progressBarPanel.Location = new System.Drawing.Point(728, 10);
+            this.progressBarPanel.Location = new System.Drawing.Point(330, 3);
             this.progressBarPanel.Name = "progressBarPanel";
-            this.progressBarPanel.Size = new System.Drawing.Size(260, 60);
+            this.progressBarPanel.Size = new System.Drawing.Size(280, 68);
             this.progressBarPanel.TabIndex = 10;
             // 
             // selectedCountLbl
             // 
             this.selectedCountLbl.AutoSize = true;
-            this.selectedCountLbl.Font = new System.Drawing.Font("Tahoma", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.selectedCountLbl.Location = new System.Drawing.Point(22, 81);
+            this.selectedCountLbl.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.selectedCountLbl.Location = new System.Drawing.Point(22, 53);
             this.selectedCountLbl.Name = "selectedCountLbl";
-            this.selectedCountLbl.Size = new System.Drawing.Size(153, 18);
+            this.selectedCountLbl.Size = new System.Drawing.Size(167, 19);
             this.selectedCountLbl.TabIndex = 11;
             this.selectedCountLbl.Text = "Выбрано 0 из 104234";
             // 
             // TestListtPanel
             // 
+            this.TestListtPanel.Controls.Add(this.searchPanel);
             this.TestListtPanel.Controls.Add(this.selectedCountLbl);
-            this.TestListtPanel.Controls.Add(this.progressBarPanel);
-            this.TestListtPanel.Controls.Add(this.ClearList);
-            this.TestListtPanel.Controls.Add(this.inProcessLabel);
-            this.TestListtPanel.Controls.Add(this.SearchButton);
-            this.TestListtPanel.Controls.Add(this.label2);
-            this.TestListtPanel.Controls.Add(this.label1);
-            this.TestListtPanel.Controls.Add(this.dateTimeFrom);
-            this.TestListtPanel.Controls.Add(this.dateTimeTo);
             this.TestListtPanel.Controls.Add(this.testsListView);
-            this.TestListtPanel.Location = new System.Drawing.Point(19, 12);
+            this.TestListtPanel.Location = new System.Drawing.Point(12, 12);
             this.TestListtPanel.Name = "TestListtPanel";
             this.TestListtPanel.Size = new System.Drawing.Size(1006, 679);
             this.TestListtPanel.TabIndex = 12;
             // 
-            // exportToPDFToolStripMenuItem
+            // searchPanel
             // 
-            this.exportToPDFToolStripMenuItem.Name = "exportToPDFToolStripMenuItem";
-            this.exportToPDFToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.exportToPDFToolStripMenuItem.Text = "Экспорт в PDF";
-            this.exportToPDFToolStripMenuItem.Click += new System.EventHandler(this.exportToPDFToolStripMenuItem_Click);
+            this.searchPanel.Controls.Add(this.controlPanel);
+            this.searchPanel.Controls.Add(this.progressBarPanel);
+            this.searchPanel.Controls.Add(this.label2);
+            this.searchPanel.Controls.Add(this.label1);
+            this.searchPanel.Controls.Add(this.dateTimeFrom);
+            this.searchPanel.Controls.Add(this.dateTimeTo);
+            this.searchPanel.Location = new System.Drawing.Point(372, 17);
+            this.searchPanel.Name = "searchPanel";
+            this.searchPanel.Size = new System.Drawing.Size(623, 80);
+            this.searchPanel.TabIndex = 13;
+            // 
+            // controlPanel
+            // 
+            this.controlPanel.Controls.Add(this.ClearList);
+            this.controlPanel.Controls.Add(this.SearchButton);
+            this.controlPanel.Location = new System.Drawing.Point(330, 3);
+            this.controlPanel.Name = "controlPanel";
+            this.controlPanel.Size = new System.Drawing.Size(280, 68);
+            this.controlPanel.TabIndex = 12;
             // 
             // MainForm
             // 
@@ -420,6 +444,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1044, 661);
             this.Controls.Add(this.TestListtPanel);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(1000, 700);
             this.Name = "MainForm";
             this.Text = "Form1";
@@ -436,6 +461,9 @@
             this.progressBarPanel.PerformLayout();
             this.TestListtPanel.ResumeLayout(false);
             this.TestListtPanel.PerformLayout();
+            this.searchPanel.ResumeLayout(false);
+            this.searchPanel.PerformLayout();
+            this.controlPanel.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -459,7 +487,6 @@
         private System.Data.DataColumn dataColumn2;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button SearchButton;
-        private System.Windows.Forms.Label inProcessLabel;
         private System.Windows.Forms.ContextMenuStrip testListContextMenu;
         private System.Windows.Forms.ToolStripMenuItem openMeasureResultReaderToolStripMenuItem;
         private System.Data.DataColumn dataColumn3;
@@ -480,6 +507,8 @@
         private System.Windows.Forms.Label selectedCountLbl;
         private System.Windows.Forms.Panel TestListtPanel;
         private System.Windows.Forms.ToolStripMenuItem exportToPDFToolStripMenuItem;
+        private System.Windows.Forms.Panel controlPanel;
+        private System.Windows.Forms.Panel searchPanel;
     }
 }
 

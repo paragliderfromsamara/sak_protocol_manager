@@ -18,6 +18,7 @@ namespace SAKProtocolManager.MyFormElements
         private DataGridView ValuesTable;
         private MeasureResultReader mReader;
         private ProgressBar CorrectionResultPB;
+        private Label CorrectionLimitLbl;
         private int xPos, yPos;
         private int leftOffset = 20;
         private int topOffset = 30;
@@ -43,8 +44,8 @@ namespace SAKProtocolManager.MyFormElements
         {
             int counter = 0;
             foreach (MeasuredParameterData pd in ParameterType.ParameterData) counter += pd.NotNormalResults.Count;
-            drawLabel(String.Format("tab_header_{0}", ParameterType.Id), String.Format("Результаты превысили норму {0}", counter)); //заголовок
-            yPos += 20;
+            drawLabel(String.Format("tab_header_{0}", ParameterType.Id), String.Format("Количество результатов с выходом за норму: {0}", counter)); //заголовок
+            yPos += 30;
             DrawCorrectionLimitControl(); 
             yPos += 30;
             DrawValuesTable();
@@ -54,11 +55,12 @@ namespace SAKProtocolManager.MyFormElements
         {
             Label lbl = new Label();
             lbl.AutoSize = true;
-            lbl.Location = new System.Drawing.Point(xPos, yPos);
+            lbl.Location = new System.Drawing.Point(xPos-3, yPos);
             lbl.Name = name;
             lbl.Size = new System.Drawing.Size(91, 13);
             lbl.TabIndex = 2;
             lbl.Text = text;
+            lbl.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             lbl.Parent = this;
             HeadLbl = lbl;
         }
@@ -100,7 +102,7 @@ namespace SAKProtocolManager.MyFormElements
                 ValuesTable.Name = String.Format("dataGridViewOfResult_{0}", 1);
                 ValuesTable.Parent = this;
                 ValuesTable.Location = new System.Drawing.Point(xPos, yPos);
-                ValuesTable.Size = new System.Drawing.Size(700, 500);
+                ValuesTable.Size = new System.Drawing.Size(700, 450);
                 ValuesTable.ScrollBars = ScrollBars.Vertical;
             }
             //ValuesTable.Update();
@@ -234,6 +236,7 @@ namespace SAKProtocolManager.MyFormElements
                 dgv.Columns.Add("receiver_number", String.Format("{0} приёмника №", ParameterType.Structure.BendingTypeName));
                 dgv.Columns.Add("transponder_number", String.Format("{0} генератора №", ParameterType.Structure.BendingTypeName));
             }
+            dgv.Columns.Add("freq_range", "Диапазон частот, кГц");
             dgv.Columns.Add("value", "результат, " + ParameterType.ParameterData[0].ResultMeasure());
             dgv.Columns.Add("min", "Мин");
             dgv.Columns.Add("percent_out", "Отклонение, дБ");
@@ -242,19 +245,21 @@ namespace SAKProtocolManager.MyFormElements
                 TestResult[] results = pData.NotNormalResults.ToArray();
                 if (results.Length > 0)
                 {
+                    int lastCount = dgv.Rows.Count-1;
                     dgv.Rows.Add(results.Length);
-                    for (int i = 0; i < results.Length; i++)
+                    for (int i = lastCount; i < dgv.Rows.Count-1; i++)
                     {
-                        dgv.Rows[i].Cells["receiver_number"].Value = results[i].ElementNumber;
+                        dgv.Rows[i].Cells["receiver_number"].Value = results[i-lastCount].ElementNumber;
                         if (ParameterType.Structure.BendingTypeLeadsNumber > 2)
                         {
-                            dgv.Rows[i].Cells["sub_receiver_number"].Value = results[i].SubElementTitle();
-                            dgv.Rows[i].Cells["sub_transponder_number"].Value = results[i].GeneratorSubElementTitle();
+                            dgv.Rows[i].Cells["sub_receiver_number"].Value = results[i- lastCount].SubElementTitle();
+                            dgv.Rows[i].Cells["sub_transponder_number"].Value = results[i- lastCount].GeneratorSubElementTitle();
                         }
-                        dgv.Rows[i].Cells["transponder_number"].Value = results[i].GeneratorElementNumber;
-                        dgv.Rows[i].Cells["value"].Value = results[i].GetStringTableValue();
+                        dgv.Rows[i].Cells["freq_range"].Value = results[i - lastCount].ParameterData.GetFreqRange();
+                        dgv.Rows[i].Cells["transponder_number"].Value = results[i- lastCount].GeneratorElementNumber;
+                        dgv.Rows[i].Cells["value"].Value = results[i- lastCount].GetStringTableValue();
                         dgv.Rows[i].Cells["min"].Value = pData.MinValue;
-                        dgv.Rows[i].Cells["percent_out"].Value = results[i].DeviationPercent;
+                        dgv.Rows[i].Cells["percent_out"].Value = results[i- lastCount].DeviationPercent;
                     }
                 }
             }
@@ -284,11 +289,23 @@ namespace SAKProtocolManager.MyFormElements
 
         private void DrawCorrectionLimitControl()
         {
+
+            CorrectionLimitLbl = new Label();
+            CorrectionLimitLbl.AutoSize = true;
+            CorrectionLimitLbl.Location = new System.Drawing.Point(xPos-3, yPos);
+            CorrectionLimitLbl.Name = "CorrectionLimitLbl";
+            CorrectionLimitLbl.Size = new System.Drawing.Size(91, 13);
+            CorrectionLimitLbl.TabIndex = 2;
+            CorrectionLimitLbl.Text = "Предел допустимой коррекции, " + ParameterType.DeviationMeasure();
+            CorrectionLimitLbl.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            CorrectionLimitLbl.Parent = this;
+            yPos += 20;
             //if (ParameterType.Name != "Ao" && ParameterType.Name != "Az") return;
             CorrectionLimitComboBox = new ComboBox();
             CorrectionLimitComboBox.Location = new System.Drawing.Point(xPos, yPos);
             CorrectionLimitComboBox.Name = String.Format("CorrectionLimitComboBox_{0}", ParameterType.Name);
             CorrectionLimitComboBox.Parent = this;
+            CorrectionLimitComboBox.Width = 200;
             FillCorrectionLimitsCBItems();
             CorrectionLimitComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             ///CorrectionLimitComboBox.SelectedIndexChanged += new EventHandler(ChangeFreqComboBoxSelectedIndex);

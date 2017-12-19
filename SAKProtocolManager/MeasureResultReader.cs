@@ -29,7 +29,7 @@ namespace SAKProtocolManager
             this.CableTest = new CableTest(test_id);
             InitializeComponent();
             lengthUpdProgressBarField.Visible = false;
-            this.Text = String.Format("Испытание кабеля {0} от {1}", CableTest.TestedCable.Name, ServiceFunctions.MyDateTime(CableTest.TestDate));
+            this.Text = String.Format("#{2} Испытание кабеля {0} от {1}", CableTest.TestedCable.Name, ServiceFunctions.MyDateTime(CableTest.TestDate), CableTest.Id);
             fillTestData();
             //cableTypeLbl.Text = TestResult.GetBigRound(0, CableTest.TestedCable.Structures[0].MeasuredParameters[0].TestResults).Length.ToString();//CableId.ToString();//CableId.ToString();//this.TestId.ToString();
         }
@@ -68,6 +68,7 @@ namespace SAKProtocolManager
             operatorLbl.Text = String.Format("Оператор: {0} {1}.{2}.", CableTest.Operator.LastName, CableTest.Operator.FirstName[0], CableTest.Operator.ThirdName[0]);
             testedAtLbl.Text = String.Format("Испытан {0}", ServiceFunctions.MyDateTime(CableTest.TestDate));
             testedLengthInput.Value = CableTest.TestedLength;
+            MeasuredParametersLbl.Text = String.Format("Измеренные параметры: {0}", CableTest.GetMeasuredParameters());
             if (!fillStructuresComboBox())
             {
                 
@@ -249,5 +250,6 @@ namespace SAKProtocolManager
         {
             CheckCableLengthIsUpdated();
         }
+
     }
 }

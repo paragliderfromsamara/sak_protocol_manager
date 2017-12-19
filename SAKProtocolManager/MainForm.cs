@@ -30,14 +30,15 @@ namespace SAKProtocolManager
         public MainForm()
         {
             InitializeComponent();
-            inProcessLabel.Visible = progressBarPanel.Visible = false;
+            progressBarPanel.Visible = false;
             initTestsList();
             SetDBConstants();
             this.Text =Application.ProductName + " v." + Application.ProductVersion;
-
-            /// Thread.Sleep(6000);
-            // sts.Close();
-        }
+            CurrentWidth = this.Width;
+            CurrentHeight = this.Height;
+        /// Thread.Sleep(6000);
+        // sts.Close();
+    }
         private void SetDBConstants()
         {
             MeasureParameterType mpt = new MeasureParameterType();
@@ -47,11 +48,11 @@ namespace SAKProtocolManager
             DRAdductionFormula draf = new DRAdductionFormula();
             //Cable cable = new Cable("22");
             //this.Text = cable.Name;
-            this.MeasureParameterTypes = mpt.GetAll();
-            this.FreqRanges = fr.GetAll();
-            this.BendingTypes = bt.GetAll();
-            this.DRFormuls = drf.GetAll();
-            this.DRAdductionFormuls = draf.GetAll();
+            //this.MeasureParameterTypes = mpt.GetAll();
+            //this.FreqRanges = fr.GetAll();
+            //this.BendingTypes = bt.GetAll();
+            //this.DRFormuls = drf.GetAll();
+            //this.DRAdductionFormuls = draf.GetAll();
          //   this.FreqRanges = FrequencyRange.GetAll();
           //  this.BendingTypes = BendingType.GetAll();
            // this.DRFormuls = DRFormula.GetAll();
@@ -95,10 +96,11 @@ namespace SAKProtocolManager
         {
             string com = String.Format(DBQueries.Default.SelectTestsList, dateMin, dateMax);
             int rowsCount;
+            string defaultText = SearchButton.Text;
             //com += " limit 10000";
             ClearList.Visible = false;
-            inProcessLabel.Visible = true;
             SearchButton.Enabled = false;
+            SearchButton.Text = "ИДЁТ ПОИСК...";
             this.Refresh();
             this.Cursor = Cursors.WaitCursor;
             mySql.MyConn.Open();
@@ -108,8 +110,8 @@ namespace SAKProtocolManager
             mySql.MyConn.Close();
             testsListView.DataSource = dataSetTest.Tables["ispytan"];
             testsListView.Refresh();
-            inProcessLabel.Visible = false;
             ClearList.Visible = true;
+            SearchButton.Text = defaultText;
             this.Cursor = Cursors.Arrow;
             //button1.Enabled = true;
             this.Refresh();
@@ -200,6 +202,7 @@ namespace SAKProtocolManager
                     progressBarTest.Value = 0;
                     progressBarTest.Maximum = ids.Count;
                     progressBarLbl.Text = "";
+                    controlPanel.Visible = false;
                     progressBarPanel.Visible = true;
                     int i = 0;
                     int j = 0;
@@ -221,6 +224,7 @@ namespace SAKProtocolManager
                         j++;
                     }
                     progressBarPanel.Visible = false;
+                    controlPanel.Visible = true;
                     initTestsList();
                     //fillTestList(dbDateFormat(dateTimeFrom.Value), dbDateFormat(dateTimeTo.Value));
                 }
@@ -239,10 +243,14 @@ namespace SAKProtocolManager
         {
             int heightDelta = this.Height - CurrentHeight;
             int widthDelta = this.Width - CurrentWidth;
+            TestListtPanel.Height += heightDelta;
+            TestListtPanel.Width += widthDelta;
             testsListView.Width += widthDelta;
             testsListView.Height += heightDelta;
             CurrentWidth = this.Width;
             CurrentHeight = this.Height;
+            searchPanel.Location = new System.Drawing.Point(searchPanel.Location.X + widthDelta, searchPanel.Location.Y);
+
         }
 
         public void UpdateSelectedCableLength(int length)
@@ -252,10 +260,15 @@ namespace SAKProtocolManager
 
         private void удалитьToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
-            CableTest.DeleteTest(test_id);
-            testsListView.Rows.Remove(testsListView.SelectedRows[0]);
-            if (testsListView.SelectedRows.Count > 0) testsListView.SelectedRows[0].Selected = false;
+            DialogResult dr = MessageBox.Show("Вы уверены, что хотите удалить выбранное испытание навсегда?", "Подтверждение операции", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr == DialogResult.Yes)
+            {
+                string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
+                CableTest.DeleteTest(test_id);
+                testsListView.Rows.Remove(testsListView.SelectedRows[0]);
+                if (testsListView.SelectedRows.Count > 0) testsListView.SelectedRows[0].Selected = false;
+                MessageBox.Show("Испытание успешно удалено из Базы Данных", "Успешно", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+            }
         }
 
         private void dateTimeFrom_ValueChanged(object sender, EventArgs e)

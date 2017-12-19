@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MeasureResultReader));
             this.cableTypeLbl = new System.Windows.Forms.Label();
             this.measureResultReaderDataSet = new System.Data.DataSet();
             this.cableTable = new System.Data.DataTable();
@@ -42,7 +43,7 @@
             this.operatorLbl = new System.Windows.Forms.Label();
             this.testedAtLbl = new System.Windows.Forms.Label();
             this.barabanLbl = new System.Windows.Forms.Label();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.TestInfoPanel = new System.Windows.Forms.GroupBox();
             this.cableStructuresList = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -57,10 +58,11 @@
             this.lengthUpdProgressBarLbl = new System.Windows.Forms.Label();
             this.LengthUpdProgressBar = new System.Windows.Forms.ProgressBar();
             this.OutOfNormaRsltPanel = new System.Windows.Forms.Panel();
+            this.MeasuredParametersLbl = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.measureResultReaderDataSet)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cableTable)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.measured_parameters_table_1)).BeginInit();
-            this.groupBox1.SuspendLayout();
+            this.TestInfoPanel.SuspendLayout();
             this.tabControlTestResult.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.testedLengthInput)).BeginInit();
             this.lengthEditor.SuspendLayout();
@@ -156,18 +158,19 @@
             this.barabanLbl.TabIndex = 3;
             this.barabanLbl.Text = "Барабан";
             // 
-            // groupBox1
+            // TestInfoPanel
             // 
-            this.groupBox1.Controls.Add(this.cableTypeLbl);
-            this.groupBox1.Controls.Add(this.operatorLbl);
-            this.groupBox1.Controls.Add(this.testedAtLbl);
-            this.groupBox1.Controls.Add(this.barabanLbl);
-            this.groupBox1.Location = new System.Drawing.Point(12, 12);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(591, 108);
-            this.groupBox1.TabIndex = 4;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Информация о испытании";
+            this.TestInfoPanel.Controls.Add(this.MeasuredParametersLbl);
+            this.TestInfoPanel.Controls.Add(this.cableTypeLbl);
+            this.TestInfoPanel.Controls.Add(this.operatorLbl);
+            this.TestInfoPanel.Controls.Add(this.testedAtLbl);
+            this.TestInfoPanel.Controls.Add(this.barabanLbl);
+            this.TestInfoPanel.Location = new System.Drawing.Point(12, 12);
+            this.TestInfoPanel.Name = "TestInfoPanel";
+            this.TestInfoPanel.Size = new System.Drawing.Size(591, 136);
+            this.TestInfoPanel.TabIndex = 4;
+            this.TestInfoPanel.TabStop = false;
+            this.TestInfoPanel.Text = "Информация о испытании";
             // 
             // cableStructuresList
             // 
@@ -210,18 +213,25 @@
             // 
             // GeneratePDFProtocolButton
             // 
-            this.GeneratePDFProtocolButton.Location = new System.Drawing.Point(625, 17);
+            this.GeneratePDFProtocolButton.BackColor = System.Drawing.Color.LightYellow;
+            this.GeneratePDFProtocolButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+            this.GeneratePDFProtocolButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Ivory;
+            this.GeneratePDFProtocolButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.GeneratePDFProtocolButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.GeneratePDFProtocolButton.Image = ((System.Drawing.Image)(resources.GetObject("GeneratePDFProtocolButton.Image")));
+            this.GeneratePDFProtocolButton.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.GeneratePDFProtocolButton.Location = new System.Drawing.Point(616, 17);
             this.GeneratePDFProtocolButton.Name = "GeneratePDFProtocolButton";
-            this.GeneratePDFProtocolButton.Size = new System.Drawing.Size(177, 33);
+            this.GeneratePDFProtocolButton.Size = new System.Drawing.Size(199, 48);
             this.GeneratePDFProtocolButton.TabIndex = 9;
-            this.GeneratePDFProtocolButton.Text = "Импорт в PDF";
-            this.GeneratePDFProtocolButton.UseVisualStyleBackColor = true;
+            this.GeneratePDFProtocolButton.Text = "импорт в PDF";
+            this.GeneratePDFProtocolButton.UseVisualStyleBackColor = false;
             this.GeneratePDFProtocolButton.Click += new System.EventHandler(this.GeneratePDFProtocolButton_Click);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 12);
+            this.label2.Location = new System.Drawing.Point(8, 10);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(54, 13);
             this.label2.TabIndex = 11;
@@ -229,7 +239,7 @@
             // 
             // testedLengthInput
             // 
-            this.testedLengthInput.Location = new System.Drawing.Point(66, 9);
+            this.testedLengthInput.Location = new System.Drawing.Point(68, 7);
             this.testedLengthInput.Maximum = new decimal(new int[] {
             999999,
             0,
@@ -241,7 +251,7 @@
             0,
             0});
             this.testedLengthInput.Name = "testedLengthInput";
-            this.testedLengthInput.Size = new System.Drawing.Size(120, 20);
+            this.testedLengthInput.Size = new System.Drawing.Size(138, 20);
             this.testedLengthInput.TabIndex = 12;
             this.testedLengthInput.Value = new decimal(new int[] {
             1,
@@ -253,22 +263,27 @@
             // 
             // updateCableLength
             // 
-            this.updateCableLength.Location = new System.Drawing.Point(9, 35);
+            this.updateCableLength.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
+            this.updateCableLength.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.updateCableLength.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.updateCableLength.Image = ((System.Drawing.Image)(resources.GetObject("updateCableLength.Image")));
+            this.updateCableLength.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.updateCableLength.Location = new System.Drawing.Point(7, 36);
             this.updateCableLength.Name = "updateCableLength";
-            this.updateCableLength.Size = new System.Drawing.Size(177, 23);
+            this.updateCableLength.Size = new System.Drawing.Size(199, 40);
             this.updateCableLength.TabIndex = 13;
-            this.updateCableLength.Text = "Пересчитать";
+            this.updateCableLength.Text = "пересчитать";
             this.updateCableLength.UseVisualStyleBackColor = true;
             this.updateCableLength.Click += new System.EventHandler(this.updateCableLength_Click);
             // 
             // lengthEditor
             // 
-            this.lengthEditor.Controls.Add(this.updateCableLength);
             this.lengthEditor.Controls.Add(this.testedLengthInput);
+            this.lengthEditor.Controls.Add(this.updateCableLength);
             this.lengthEditor.Controls.Add(this.label2);
-            this.lengthEditor.Location = new System.Drawing.Point(616, 62);
+            this.lengthEditor.Location = new System.Drawing.Point(609, 71);
             this.lengthEditor.Name = "lengthEditor";
-            this.lengthEditor.Size = new System.Drawing.Size(199, 68);
+            this.lengthEditor.Size = new System.Drawing.Size(209, 81);
             this.lengthEditor.TabIndex = 14;
             // 
             // lengthUpdProgressBarField
@@ -276,15 +291,15 @@
             this.lengthUpdProgressBarField.Controls.Add(this.procNameLbl);
             this.lengthUpdProgressBarField.Controls.Add(this.lengthUpdProgressBarLbl);
             this.lengthUpdProgressBarField.Controls.Add(this.LengthUpdProgressBar);
-            this.lengthUpdProgressBarField.Location = new System.Drawing.Point(616, 44);
+            this.lengthUpdProgressBarField.Location = new System.Drawing.Point(609, 67);
             this.lengthUpdProgressBarField.Name = "lengthUpdProgressBarField";
-            this.lengthUpdProgressBarField.Size = new System.Drawing.Size(200, 89);
+            this.lengthUpdProgressBarField.Size = new System.Drawing.Size(209, 81);
             this.lengthUpdProgressBarField.TabIndex = 15;
             // 
             // procNameLbl
             // 
             this.procNameLbl.AutoSize = true;
-            this.procNameLbl.Location = new System.Drawing.Point(6, 15);
+            this.procNameLbl.Location = new System.Drawing.Point(4, 5);
             this.procNameLbl.Name = "procNameLbl";
             this.procNameLbl.Size = new System.Drawing.Size(125, 13);
             this.procNameLbl.TabIndex = 17;
@@ -293,7 +308,7 @@
             // lengthUpdProgressBarLbl
             // 
             this.lengthUpdProgressBarLbl.AutoSize = true;
-            this.lengthUpdProgressBarLbl.Location = new System.Drawing.Point(6, 35);
+            this.lengthUpdProgressBarLbl.Location = new System.Drawing.Point(4, 23);
             this.lengthUpdProgressBarLbl.Name = "lengthUpdProgressBarLbl";
             this.lengthUpdProgressBarLbl.Size = new System.Drawing.Size(166, 13);
             this.lengthUpdProgressBarLbl.TabIndex = 16;
@@ -301,9 +316,9 @@
             // 
             // LengthUpdProgressBar
             // 
-            this.LengthUpdProgressBar.Location = new System.Drawing.Point(9, 52);
+            this.LengthUpdProgressBar.Location = new System.Drawing.Point(7, 41);
             this.LengthUpdProgressBar.Name = "LengthUpdProgressBar";
-            this.LengthUpdProgressBar.Size = new System.Drawing.Size(181, 23);
+            this.LengthUpdProgressBar.Size = new System.Drawing.Size(199, 23);
             this.LengthUpdProgressBar.Step = 1;
             this.LengthUpdProgressBar.TabIndex = 16;
             // 
@@ -312,29 +327,39 @@
             this.OutOfNormaRsltPanel.Controls.Add(this.label1);
             this.OutOfNormaRsltPanel.Controls.Add(this.cableStructuresList);
             this.OutOfNormaRsltPanel.Controls.Add(this.tabControlTestResult);
-            this.OutOfNormaRsltPanel.Location = new System.Drawing.Point(12, 136);
+            this.OutOfNormaRsltPanel.Location = new System.Drawing.Point(12, 154);
             this.OutOfNormaRsltPanel.Name = "OutOfNormaRsltPanel";
-            this.OutOfNormaRsltPanel.Size = new System.Drawing.Size(806, 707);
+            this.OutOfNormaRsltPanel.Size = new System.Drawing.Size(806, 689);
             this.OutOfNormaRsltPanel.TabIndex = 16;
+            // 
+            // MeasuredParametersLbl
+            // 
+            this.MeasuredParametersLbl.AutoSize = true;
+            this.MeasuredParametersLbl.Location = new System.Drawing.Point(23, 106);
+            this.MeasuredParametersLbl.Name = "MeasuredParametersLbl";
+            this.MeasuredParametersLbl.Size = new System.Drawing.Size(136, 13);
+            this.MeasuredParametersLbl.TabIndex = 4;
+            this.MeasuredParametersLbl.Text = "Измеренные параметры:";
             // 
             // MeasureResultReader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(827, 820);
-            this.Controls.Add(this.OutOfNormaRsltPanel);
             this.Controls.Add(this.lengthUpdProgressBarField);
+            this.Controls.Add(this.OutOfNormaRsltPanel);
             this.Controls.Add(this.lengthEditor);
             this.Controls.Add(this.GeneratePDFProtocolButton);
-            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.TestInfoPanel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MeasureResultReader";
             this.Text = "MeasureResultReader";
             ((System.ComponentModel.ISupportInitialize)(this.measureResultReaderDataSet)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.cableTable)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.measured_parameters_table_1)).EndInit();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            this.TestInfoPanel.ResumeLayout(false);
+            this.TestInfoPanel.PerformLayout();
             this.tabControlTestResult.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.testedLengthInput)).EndInit();
             this.lengthEditor.ResumeLayout(false);
@@ -363,7 +388,7 @@
         private System.Windows.Forms.Label operatorLbl;
         private System.Windows.Forms.Label testedAtLbl;
         private System.Windows.Forms.Label barabanLbl;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox TestInfoPanel;
         private System.Windows.Forms.ComboBox cableStructuresList;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TabPage tabPage1;
@@ -378,5 +403,6 @@
         private System.Windows.Forms.ProgressBar LengthUpdProgressBar;
         private System.Windows.Forms.Label procNameLbl;
         private System.Windows.Forms.Panel OutOfNormaRsltPanel;
+        private System.Windows.Forms.Label MeasuredParametersLbl;
     }
 }

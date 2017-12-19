@@ -87,6 +87,41 @@ namespace SAKProtocolManager.DBEntities
             this.TestDate = DateTime.Parse(row["cable_test_tested_at"].ToString());
         }
 
+        internal string GetMeasuredParameters()
+        {
+            string list = "список пуст";
+            List<string> tmp = new List<string>();
+            foreach(CableStructure cs in this.TestedCable.Structures)
+            {
+                foreach(MeasureParameterType pt in cs.MeasuredParameters)
+                {
+                    if (pt.ParameterData.Length > 0)
+                    {
+                        if (tmp.Contains(pt.Name)) break;
+                        foreach (MeasuredParameterData pd in pt.ParameterData)
+                        {
+                            if (pd.TestResults.Length > 0)
+                            {
+                                tmp.Add(pt.Name);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (tmp.Count > 0)
+            {
+                list = String.Empty;
+                foreach (string s in tmp)
+                {
+                    if (list.Length > 0) list += ", ";
+                    list += s;
+                }
+                list += "; ";
+            }
+            return list;
+        }
+
         private void LoadDependencies()
         {
             if (!String.IsNullOrWhiteSpace(this.CableId)) this.TestedCable = new Cable(this);

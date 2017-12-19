@@ -121,6 +121,14 @@ namespace SAKProtocolManager.DBEntities
             this.AverageVal = average;
         }
 
+        public string GetFreqRange()
+        {
+            string r = String.Empty;
+            if (this.MinFrequency > 0) r = this.MinFrequency.ToString();
+            if (this.MinFrequency > 0 && this.MaxFrequency > 0) r += "-";
+            if (this.MaxFrequency > 0) r += this.MaxFrequency.ToString();
+            return r;
+        }
         protected override void setDefaultParameters()
         {
             string selQuery = "param_data.Min AS measured_parameter_min_value," +
