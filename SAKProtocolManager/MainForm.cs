@@ -19,7 +19,6 @@ namespace SAKProtocolManager
         private int CurrentHeight = 0;
         private long TestCount = 0;
         private MeasureResultReader readerForm = null;
-        private DBControl mySql = new DBControl(DBQueries.Default.DBName);
         public MeasureParameterType[] MeasureParameterTypes = new MeasureParameterType[] { }; //Типы измеряемых параметров
         public MeasureParameterType MPT;
         public FrequencyRange[] FreqRanges = new FrequencyRange[] { }; //Диапазоны частот
@@ -60,7 +59,7 @@ namespace SAKProtocolManager
         }
         private void initTestsList()
         {
-
+            DBControl mySql = new DBControl(DBQueries.Default.DBName);
             ClearList.Enabled = SearchButton.Enabled = false;
             string comDateRange = DBQueries.Default.MinMaxDateQuery;
             mySql.MyConn.Open();
@@ -95,6 +94,7 @@ namespace SAKProtocolManager
         private void fillTestList(string dateMin, string dateMax)
         {
             string com = String.Format(DBQueries.Default.SelectTestsList, dateMin, dateMax);
+            DBControl mySql = new DBControl(DBQueries.Default.DBName);
             int rowsCount;
             string defaultText = SearchButton.Text;
             //com += " limit 10000";
@@ -123,7 +123,7 @@ namespace SAKProtocolManager
             }
             else
             {
-                if (rowsCount == 0) selectedCountLbl.Text = "В заданном промежутке времени испытаний не найдено";
+                if (rowsCount == 0) selectedCountLbl.Text = String.Format("Выбрано 0 испытаний из {0}", TestCount);
                 else if (rowsCount == 1) selectedCountLbl.Text = String.Format("Выбрано 1 испытание из {0}", TestCount);
                 else if (rowsCount > 1 && rowsCount < 5) selectedCountLbl.Text = String.Format("Выбрано {0} испытания из {1}", rowsCount, TestCount);
                 else selectedCountLbl.Text = String.Format("Выбрано {0} испытаний из {1}", rowsCount, TestCount);

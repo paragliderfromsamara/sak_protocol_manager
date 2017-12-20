@@ -44,6 +44,7 @@
             this.testedAtLbl = new System.Windows.Forms.Label();
             this.barabanLbl = new System.Windows.Forms.Label();
             this.TestInfoPanel = new System.Windows.Forms.GroupBox();
+            this.MeasuredParametersLbl = new System.Windows.Forms.Label();
             this.cableStructuresList = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -58,7 +59,6 @@
             this.lengthUpdProgressBarLbl = new System.Windows.Forms.Label();
             this.LengthUpdProgressBar = new System.Windows.Forms.ProgressBar();
             this.OutOfNormaRsltPanel = new System.Windows.Forms.Panel();
-            this.MeasuredParametersLbl = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.measureResultReaderDataSet)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cableTable)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.measured_parameters_table_1)).BeginInit();
@@ -172,6 +172,15 @@
             this.TestInfoPanel.TabStop = false;
             this.TestInfoPanel.Text = "Информация о испытании";
             // 
+            // MeasuredParametersLbl
+            // 
+            this.MeasuredParametersLbl.AutoSize = true;
+            this.MeasuredParametersLbl.Location = new System.Drawing.Point(23, 106);
+            this.MeasuredParametersLbl.Name = "MeasuredParametersLbl";
+            this.MeasuredParametersLbl.Size = new System.Drawing.Size(136, 13);
+            this.MeasuredParametersLbl.TabIndex = 4;
+            this.MeasuredParametersLbl.Text = "Измеренные параметры:";
+            // 
             // cableStructuresList
             // 
             this.cableStructuresList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -224,7 +233,7 @@
             this.GeneratePDFProtocolButton.Name = "GeneratePDFProtocolButton";
             this.GeneratePDFProtocolButton.Size = new System.Drawing.Size(199, 48);
             this.GeneratePDFProtocolButton.TabIndex = 9;
-            this.GeneratePDFProtocolButton.Text = "импорт в PDF";
+            this.GeneratePDFProtocolButton.Text = "экспорт в PDF";
             this.GeneratePDFProtocolButton.UseVisualStyleBackColor = false;
             this.GeneratePDFProtocolButton.Click += new System.EventHandler(this.GeneratePDFProtocolButton_Click);
             // 
@@ -331,15 +340,6 @@
             this.OutOfNormaRsltPanel.Name = "OutOfNormaRsltPanel";
             this.OutOfNormaRsltPanel.Size = new System.Drawing.Size(806, 689);
             this.OutOfNormaRsltPanel.TabIndex = 16;
-            // 
-            // MeasuredParametersLbl
-            // 
-            this.MeasuredParametersLbl.AutoSize = true;
-            this.MeasuredParametersLbl.Location = new System.Drawing.Point(23, 106);
-            this.MeasuredParametersLbl.Name = "MeasuredParametersLbl";
-            this.MeasuredParametersLbl.Size = new System.Drawing.Size(136, 13);
-            this.MeasuredParametersLbl.TabIndex = 4;
-            this.MeasuredParametersLbl.Text = "Измеренные параметры:";
             // 
             // MeasureResultReader
             // 

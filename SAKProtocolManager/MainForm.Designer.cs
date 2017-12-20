@@ -194,7 +194,7 @@
             this.testsListView.RowTemplate.Height = 26;
             this.testsListView.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.testsListView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.testsListView.Size = new System.Drawing.Size(950, 486);
+            this.testsListView.Size = new System.Drawing.Size(970, 486);
             this.testsListView.TabIndex = 0;
             this.testsListView.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.OpenButtonToolStripMenuItem_Click);
             this.testsListView.SelectionChanged += new System.EventHandler(this.testsListView_SelectionChanged);
@@ -382,7 +382,7 @@
             // 
             this.progressBarTest.Location = new System.Drawing.Point(3, 28);
             this.progressBarTest.Name = "progressBarTest";
-            this.progressBarTest.Size = new System.Drawing.Size(279, 23);
+            this.progressBarTest.Size = new System.Drawing.Size(269, 23);
             this.progressBarTest.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.progressBarTest.TabIndex = 9;
             this.progressBarTest.Value = 50;
@@ -424,7 +424,7 @@
             this.searchPanel.Controls.Add(this.label1);
             this.searchPanel.Controls.Add(this.dateTimeFrom);
             this.searchPanel.Controls.Add(this.dateTimeTo);
-            this.searchPanel.Location = new System.Drawing.Point(372, 17);
+            this.searchPanel.Location = new System.Drawing.Point(393, 25);
             this.searchPanel.Name = "searchPanel";
             this.searchPanel.Size = new System.Drawing.Size(623, 80);
             this.searchPanel.TabIndex = 13;
@@ -433,7 +433,7 @@
             // 
             this.controlPanel.Controls.Add(this.ClearList);
             this.controlPanel.Controls.Add(this.SearchButton);
-            this.controlPanel.Location = new System.Drawing.Point(330, 3);
+            this.controlPanel.Location = new System.Drawing.Point(329, 3);
             this.controlPanel.Name = "controlPanel";
             this.controlPanel.Size = new System.Drawing.Size(280, 68);
             this.controlPanel.TabIndex = 12;
