@@ -23,10 +23,10 @@ namespace SAKProtocolManager
       
         public MainForm MainForm;
 
-        public MeasureResultReader(string test_id, MainForm mForm)
+        public MeasureResultReader(CableTest test, MainForm mForm)
         {
             this.MainForm = mForm;
-            this.CableTest = new CableTest(test_id);
+            this.CableTest = test;
             InitializeComponent();
             lengthUpdProgressBarField.Visible = false;
             this.Text = String.Format("#{2} Испытание кабеля {0} от {1}", CableTest.TestedCable.Name, ServiceFunctions.MyDateTime(CableTest.TestDate), CableTest.Id);

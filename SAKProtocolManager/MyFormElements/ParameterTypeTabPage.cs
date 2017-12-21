@@ -314,6 +314,7 @@ namespace SAKProtocolManager.MyFormElements
                     dgv.Columns.Add(title, LeadTitles[i]);
                     dgv.Columns[title].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 }
+                dgv.Rows.Add(structure.AffectedElements.Length);
                 int idx = 0;
                 foreach (ProzvonTestResult tr in structure.AffectedElements)
                 {
@@ -396,7 +397,7 @@ namespace SAKProtocolManager.MyFormElements
         }
         private void CorrectResults(object sender, EventArgs e)
         {
-            DialogResult dr = MessageBox.Show("Будет произведена коррекция результатов вышедших за норму с отклонением <= " + CorrectionLimitComboBox.Text + ParameterType.DeviationMeasure() + "\n\nВы согласны?", "Коррекция параметра " + ParameterType.Name, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult dr = MessageBox.Show("Будет произведена коррекция результатов вышедших за норму с отклонением до " + CorrectionLimitComboBox.Text + ParameterType.DeviationMeasure() + " включительно\n\nВы согласны?", "Коррекция параметра " + ParameterType.Name, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (dr == DialogResult.Yes)
             {
                 //RefreshAfterCorrection();

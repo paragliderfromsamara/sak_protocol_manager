@@ -9,6 +9,7 @@ using iTextSharp.text.pdf;
 using System.IO;
 using SAKProtocolManager.DBEntities;
 using SAKProtocolManager.DBEntities.TestResultEntities;
+using System.Windows.Forms;
 
 namespace SAKProtocolManager.PDFProtocolEntities
 {
@@ -435,11 +436,35 @@ namespace SAKProtocolManager.PDFProtocolEntities
         {
             try
             {
-                ProcessStartInfo startInfo = new ProcessStartInfo(@"C:\CAK\Client3.exe");
-                startInfo.WorkingDirectory = @"C:\CAK\";
+                checkPath:
+                string filePath = Properties.Settings.Default.PathToClient3;
+                if (!File.Exists(filePath) || filePath.IndexOf("Client3.exe") < 0)
+                {
+                    DialogResult dr = MessageBox.Show(String.Format("Приложение Client3.exe, необходимое для формирования протокола не найдено по адресу \n{0}\n\nВыбрать новое место расположения?", filePath), "Client3.exe не найден", MessageBoxButtons.YesNo, MessageBoxIcon.Error);
+
+                    if (dr == DialogResult.Yes)
+                    {
+                        OpenFileDialog dlg = new OpenFileDialog();
+                        dlg.FileName = "Client3.exe";
+                        if (dlg.ShowDialog() == DialogResult.OK)
+                        {
+                            Properties.Settings.Default.PathToClient3 = dlg.FileName;
+                        }
+                        goto checkPath;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Протокол не был экспортирован в PDF", "", MessageBoxButtons.OK);
+                        return;
+                    }
+                }
+                string workPath = filePath.Replace("Client3.exe", "");
+                ProcessStartInfo startInfo = new ProcessStartInfo(String.Format(@"{0}", filePath));
+                startInfo.WorkingDirectory = String.Format(@"{0}", workPath);
                 startInfo.Arguments = String.Format("{0} {1}", test_id, 1);
                 Process pr = Process.Start(startInfo);
-            }catch(Exception e)
+            }
+            catch(Exception e)
             {
                 System.Windows.Forms.MessageBox.Show("Не найдено приложение Client3.exe", e.Message, System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
             }

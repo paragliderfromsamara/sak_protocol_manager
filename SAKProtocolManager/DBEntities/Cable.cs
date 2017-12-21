@@ -116,7 +116,12 @@ namespace SAKProtocolManager.DBEntities
             List<CableStructure> failedStructs = new List<CableStructure>();
             foreach (CableStructure cs in this.Structures)
             {
-                foreach(MeasureParameterType pt in cs.MeasuredParameters)
+                if (cs.AffectedElements.Count() > 0)
+                {
+                    failedStructs.Add(cs);
+                    break;
+                }
+                foreach (MeasureParameterType pt in cs.MeasuredParameters)
                 {
                     if (pt.OutOfNormaCount() > 0)
                     {

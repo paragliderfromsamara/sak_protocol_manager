@@ -25,9 +25,11 @@ namespace SAKProtocolManager
         public BendingType[] BendingTypes = new BendingType[] { }; //Типы повива
         public DRFormula[] DRFormuls = new DRFormula[] { };   //Формулы вычисления омической ассиметрии
         public DRAdductionFormula[] DRAdductionFormuls = new DRAdductionFormula[] { };  //Формулы приведения оммической ассиметрии
-     
+        
+
         public MainForm()
         {
+            TestHistoryItem[] historyItems = TestHistoryItem.GetFromIniFile(); 
             InitializeComponent();
             progressBarPanel.Visible = false;
             initTestsList();
@@ -35,6 +37,7 @@ namespace SAKProtocolManager
             this.Text =Application.ProductName + " v." + Application.ProductVersion;
             CurrentWidth = this.Width;
             CurrentHeight = this.Height;
+            FillOpenedTestHistory(historyItems);
         /// Thread.Sleep(6000);
         // sts.Close();
     }
@@ -68,7 +71,7 @@ namespace SAKProtocolManager
             dataSetTest.Tables["date_range"].Rows.Clear();
             dateRange.Fill(dataSetTest.Tables["date_range"]);
             mySql.MyConn.Close();
-            selectedCountLbl.Text = "База данных испытаний пуста";
+            statusPanel.Text = "База данных испытаний пуста";
             if (dataSetTest.Tables["date_range"].Rows.Count > 0)
             {
                 string dateMin, dateMax, dateToMin, dateToMax, dateFromMin, dateFromMax;
@@ -123,10 +126,10 @@ namespace SAKProtocolManager
             }
             else
             {
-                if (rowsCount == 0) selectedCountLbl.Text = String.Format("Выбрано 0 испытаний из {0}", TestCount);
-                else if (rowsCount == 1) selectedCountLbl.Text = String.Format("Выбрано 1 испытание из {0}", TestCount);
-                else if (rowsCount > 1 && rowsCount < 5) selectedCountLbl.Text = String.Format("Выбрано {0} испытания из {1}", rowsCount, TestCount);
-                else selectedCountLbl.Text = String.Format("Выбрано {0} испытаний из {1}", rowsCount, TestCount);
+                if (rowsCount == 0) selectedCountLbl.Text = String.Format("Показано 0 испытаний из {0}", TestCount);
+                else if (rowsCount == 1) selectedCountLbl.Text = String.Format("Показано 1 испытание из {0}", TestCount);
+                else if (rowsCount > 1 && rowsCount < 5) selectedCountLbl.Text = String.Format("Показано {0} испытания из {1}", rowsCount, TestCount);
+                else selectedCountLbl.Text = String.Format("Показано {0} испытаний из {1}", rowsCount, TestCount);
 
             }
         }
@@ -142,31 +145,47 @@ namespace SAKProtocolManager
         }
         private void MeasureResultReaderClosed(object sender, EventArgs e)
         {
-            TestListtPanel.Enabled = true;
+            TestListtPanel.Enabled = topMenu.Enabled = true;
             this.readerForm = null;
         }
 
 
         private void OpenButtonToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenTest();
+            OpenTestFromTable();
         }
-
-        private void OpenTest()
+        private void OpenTestFromTable()
+        {
+            string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
+            OpenTest(test_id);
+        }
+        private void OpenTest(string testId)
         {
             try
             {
-                string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
-                TestListtPanel.Enabled = false;
+                topMenu.Enabled = TestListtPanel.Enabled = false;
                 this.Cursor = Cursors.WaitCursor;
-                MeasureResultReader form = new MeasureResultReader(test_id, this);
-                form.FormClosed += new FormClosedEventHandler(this.MeasureResultReaderClosed);
-                form.Show();
-                this.readerForm = form;
+                CableTest test = new CableTest(testId);
+                if (test.IsExists)
+                {
+                    MeasureResultReader form = new MeasureResultReader(test, this);
+                    form.FormClosed += new FormClosedEventHandler(this.MeasureResultReaderClosed);
+                    form.Show();
+                    this.readerForm = form;
+                    FillOpenedTestHistory(TestHistoryItem.PushToHistory(test.Id, test.TestedCable.Name));
+                }
+                else
+                {
+                    topMenu.Enabled = TestListtPanel.Enabled = true;
+                    MessageBox.Show("Испытание с номером " + testId + " не найдено!!!", "Испытание не найдено", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
                 this.Cursor = Cursors.Default;
             }
             catch (ThreadAbortException) { }
         }
+
+        
 
         private void testsListView_SelectionChanged(object sender, EventArgs e)
         {
@@ -249,7 +268,7 @@ namespace SAKProtocolManager
             testsListView.Height += heightDelta;
             CurrentWidth = this.Width;
             CurrentHeight = this.Height;
-            searchPanel.Location = new System.Drawing.Point(searchPanel.Location.X + widthDelta, searchPanel.Location.Y);
+            //searchPanel.Location = new System.Drawing.Point(searchPanel.Location.X + widthDelta, searchPanel.Location.Y);
 
         }
 
@@ -265,11 +284,24 @@ namespace SAKProtocolManager
             {
                 string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
                 CableTest.DeleteTest(test_id);
+                TestHistoryItem.RemoveFromHistory(test_id);
                 testsListView.Rows.Remove(testsListView.SelectedRows[0]);
                 if (testsListView.SelectedRows.Count > 0) testsListView.SelectedRows[0].Selected = false;
                 MessageBox.Show("Испытание успешно удалено из Базы Данных", "Успешно", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
             }
         }
+
+        private void FillOpenedTestHistory(TestHistoryItem[] items)
+        {
+            TestHistoryItemsToolStrip.DropDownItems.Clear();
+            foreach(TestHistoryItem item in items)
+            {
+                TestHistoryItemsToolStrip.DropDownItems.Add(String.Format("№{0} Марка: {1}", item.Id, item.CableMark));
+                TestHistoryItemsToolStrip.DropDownItems[TestHistoryItemsToolStrip.DropDownItems.Count - 1].Name = "toolStripItem_" + item.Id;
+                TestHistoryItemsToolStrip.DropDownItems[TestHistoryItemsToolStrip.DropDownItems.Count - 1].Click += new EventHandler(openTestFromHistory);
+            }
+        }
+
 
         private void dateTimeFrom_ValueChanged(object sender, EventArgs e)
         {
@@ -288,11 +320,19 @@ namespace SAKProtocolManager
             if (!this.Enabled && this.readerForm != null) readerForm.Focus(); 
         }
 
+        private void openTestFromHistory(object sender, EventArgs e)
+        {
+            ToolStripMenuItem item = sender as ToolStripMenuItem;
+            string test_id = item.Name.Replace("toolStripItem_", "");
+            OpenTest(test_id);
+        }
         private void exportToPDFToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
             PDFProtocolEntities.PDFProtocol.MakeOldStylePDFProtocol(test_id);
         }
+
+
     }
 
    

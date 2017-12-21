@@ -115,6 +115,7 @@
     <Compile Include="FuncTestForm.Designer.cs">
       <DependentUpon>FuncTestForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="IniFile.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -146,6 +147,7 @@
     <Compile Include="StatusForm.Designer.cs">
       <DependentUpon>StatusForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="TestHistory.cs" />
     <EmbeddedResource Include="FuncTestForm.resx">
       <DependentUpon>FuncTestForm.cs</DependentUpon>
     </EmbeddedResource>

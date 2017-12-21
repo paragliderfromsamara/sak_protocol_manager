@@ -25,6 +25,7 @@ namespace SAKProtocolManager.DBEntities
         public uint PIzb = 0;
         public uint PObol = 0;
         public DateTime TestDate = DateTime.Now;
+        public bool IsExists; 
        
 
         public CableTest()
@@ -36,8 +37,8 @@ namespace SAKProtocolManager.DBEntities
         {
             this.Id = id;
             setDefaultParameters();
-            GetById();
-            LoadDependencies();
+            this.IsExists = GetById();
+            if(IsExists) LoadDependencies();
         }
 
         public CableTest(DataRow row)

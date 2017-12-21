@@ -82,11 +82,12 @@ namespace SAKProtocolManager.DBEntities
             return ds;
         }
 
-        protected void GetById()
+        protected bool GetById()
         {
             DataTable tab = getFromDB(getByIdQuery);
             DataRow val = tab.Rows.Count > 0 ? tab.Rows[0] : null;
             if (val != null) fillParametersFromRow(val);
+            return val != null;
         }
 
         protected DataTable GetAllFromDB()
