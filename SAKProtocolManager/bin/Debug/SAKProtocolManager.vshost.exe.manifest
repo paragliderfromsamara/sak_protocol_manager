@@ -67,14 +67,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="SAKProtocolManager.exe" size="242176">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="SAKProtocolManager.exe" size="243712">
       <assemblyIdentity name="SAKProtocolManager" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>fbc39+CJ4gv/NGeTJ+oIdyqA+GVFuF/S9h43HbGBn0E=</dsig:DigestValue>
+        <dsig:DigestValue>C1yxgEV7VGNct2dHPfGKjJOOfPsG3Uq3G0wfu3RTzeQ=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

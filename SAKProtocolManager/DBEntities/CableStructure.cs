@@ -15,6 +15,7 @@ namespace SAKProtocolManager.DBEntities
         public IsolationMaterial IsolationMaterial = null;
         public MeasureParameterType[] MeasuredParameters = new MeasureParameterType[] { };
         public int[] AffectedElementNumbers = new int[] { };
+        public ProzvonTestResult[] AffectedElements = new ProzvonTestResult[] { };
 
         private string getByCableIdQuery;
         public Cable Cable = null;
@@ -47,19 +48,29 @@ namespace SAKProtocolManager.DBEntities
             this.Cable = cable;
             fillParametersFromRow(row);
             setDefaultParameters();
-            GetDependencies();
             FillAffectedElements();
+            GetDependencies();
         }
 
         private void FillAffectedElements()
         {
             ProzvonTestResult[] przvResults = GetProszvonResult();
-            List<int> affected = new List<int>();
+            List<int> affectedNumbs = new List<int>();
+            List<ProzvonTestResult> affectedEls = new List<ProzvonTestResult>(); 
             if (przvResults.Length > 0)
             {
-                foreach (ProzvonTestResult pr in przvResults) if (pr.IsAffected) affected.Add(pr.ElementNumber);
+                foreach (ProzvonTestResult pr in przvResults)
+                {
+                    if (pr.IsAffected)
+                    {
+                        affectedNumbs.Add(pr.ElementNumber);
+                        affectedEls.Add(pr);
+                    }
+                }
+               
             }
-            AffectedElementNumbers = affected.ToArray();
+            AffectedElementNumbers = affectedNumbs.ToArray();
+            AffectedElements = affectedEls.ToArray();
         }
 
         /// <summary>

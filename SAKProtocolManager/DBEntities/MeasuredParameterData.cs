@@ -292,7 +292,7 @@ namespace SAKProtocolManager.DBEntities
             this.NotNormalResults.Clear();
             foreach(TestResult tr in TestResults)
             {
-                if (tr.DeviationPercent != 0) this.NotNormalResults.Add(tr);
+                if (tr.DeviationPercent != 0 && !tr.IsAffected()) this.NotNormalResults.Add(tr);
             }
         }
     }

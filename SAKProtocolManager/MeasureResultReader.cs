@@ -47,15 +47,21 @@ namespace SAKProtocolManager
                     cableStructuresList.Items.Insert(i, this.CableTest.TestedCable.Structures[i].Name);
                 }
                 cableStructuresList.SelectedIndex = 0;
-                OutOfNormaRsltPanel.Visible = true;
+                StructuresLbl.Text = "Структуры с выходом за норму";
+                cableStructuresList.Visible = true;
+                tabControlTestResult.Visible = true;
+                OutOfNormaRsltPanel.Size = new Size(803, 633);
+                //OutOfNormaRsltPanel.Visible = true;
             }
             else
             {
                 cableStructuresList.Items.Insert(0, "Нет структур с выходом за норму");
                 cableStructuresList.SelectedIndex = 0;
-                cableStructuresList.Enabled = false;
+                cableStructuresList.Visible= false;
                 tabControlTestResult.Visible = false;
-                OutOfNormaRsltPanel.Visible = false;
+                OutOfNormaRsltPanel.Size = new Size(803, 100);
+                //OutOfNormaRsltPanel.Visible = false;
+                StructuresLbl.Text = "Результаты вышедшие за норму отсутствуют";
                 this.Height -= tabControlTestResult.Height - 10;
             }
             return val;
@@ -105,6 +111,7 @@ namespace SAKProtocolManager
             //if (curStructure.AffectedElementNumbers.Length>1)test.Text = curStructure.AffectedElementNumbers[1].ToString();
             int i = 0;
             int idx = 0;
+            if (curStructure.AffectedElements.Length > 0) pages.Add(new ParameterTypeTabPage(curStructure, this));
             foreach (MeasureParameterType mpt in mParams) 
             {
                 if (mpt.OutOfNormaCount() == 0) continue; 

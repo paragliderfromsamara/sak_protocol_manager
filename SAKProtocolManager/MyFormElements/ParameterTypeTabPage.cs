@@ -29,8 +29,18 @@ namespace SAKProtocolManager.MyFormElements
             this.ParameterType = parameter_type;
             this.mReader = r;
             Initialize();
+
         }
 
+        public ParameterTypeTabPage(CableStructure structure, MeasureResultReader r)
+        {
+            this.mReader = r;
+            this.Text = this.Name = "Прозвонка";
+            xPos = leftOffset;
+            yPos = topOffset;
+            ValuesTable = MakeAffectedElementsTable(structure);
+            SetValuesTableStyle();
+        }
 
         private void Initialize()
         {
@@ -38,6 +48,7 @@ namespace SAKProtocolManager.MyFormElements
             xPos = leftOffset;
             yPos = topOffset;
             DrawParameterTypeHeadPart();
+            SetValuesTableStyle();
         }
 
         private void DrawParameterTypeHeadPart()
@@ -96,16 +107,38 @@ namespace SAKProtocolManager.MyFormElements
             MeasuredParameterData parameterData = FrequencyComboBox == null ? ParameterType.ParameterData.First() : ParameterType.ParameterData[FrequencyComboBox.SelectedIndex];
             if (ValuesTable != null) { ValuesTable.Dispose(); }
             ValuesTable = MakeTable(parameterData);
-            if (ValuesTable.Rows.Count > 1)
-            {
-                if (ValuesTable.Columns.Contains("value")) ValuesTable.Columns["value"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                ValuesTable.Name = String.Format("dataGridViewOfResult_{0}", 1);
-                ValuesTable.Parent = this;
-                ValuesTable.Location = new System.Drawing.Point(xPos, yPos);
-                ValuesTable.Size = new System.Drawing.Size(700, 450);
-                ValuesTable.ScrollBars = ScrollBars.Vertical;
-            }
             //ValuesTable.Update();
+        }
+
+        private void SetValuesTableStyle()
+        {
+            if (ValuesTable == null) return;
+            //if (ValuesTable.RowCount < 2) return;
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopCenter;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.MintCream;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.Teal;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.OldLace;
+
+            if (ValuesTable.Columns.Contains("value")) ValuesTable.Columns["value"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            ValuesTable.Name = String.Format("dataGridViewOfResult_{0}", 1);
+            ValuesTable.Parent = this;
+            ValuesTable.Location = new System.Drawing.Point(xPos, yPos);
+            ValuesTable.Size = new System.Drawing.Size(730, 380);
+            ValuesTable.ScrollBars = ScrollBars.Vertical;
+            ValuesTable.BackColor = System.Drawing.Color.MintCream;
+            ValuesTable.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            ValuesTable.RowHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            ValuesTable.RowsDefaultCellStyle = dataGridViewCellStyle2;
+            ValuesTable.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
         }
 
         private DataGridView DrawByElementsParameterTable(MeasuredParameterData pData)
@@ -268,6 +301,32 @@ namespace SAKProtocolManager.MyFormElements
             return dgv;
         }
 
+
+        private DataGridView MakeAffectedElementsTable(CableStructure structure)
+        {
+            DataGridView dgv = new DataGridView();
+            dgv.Columns.Add("element_number", String.Format("{0} №", structure.BendingTypeName));
+            if (structure.AffectedElements.Length > 0)
+            {
+                for (int i = 0; i < structure.AffectedElements[0].Values.Length; i++)
+                {
+                    string title = String.Format("result_{0}", i);
+                    dgv.Columns.Add(title, LeadTitles[i]);
+                    dgv.Columns[title].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                }
+                int idx = 0;
+                foreach (ProzvonTestResult tr in structure.AffectedElements)
+                {
+                    dgv.Rows[idx].Cells["element_number"].Value = tr.ElementNumber;
+                    for (int i = 0; i < tr.Statuses.Length; i++)
+                    {
+                        dgv.Rows[idx].Cells[String.Format("result_{0}", i)].Value = tr.Statuses[i];
+                    }
+                    idx++;
+                }
+            }
+            return dgv;
+        }
 
         private void DrawFrequencyComboBox()
         {
