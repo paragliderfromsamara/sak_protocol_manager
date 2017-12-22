@@ -37,7 +37,7 @@ namespace SAKProtocolManager.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\CAK\\Client3.exe")]
         public string PathToClient3 {
             get {
                 return ((string)(this["PathToClient3"]));

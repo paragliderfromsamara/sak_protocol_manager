@@ -76,6 +76,20 @@ namespace SAKProtocolManager
             }
         }
 
+        public static float convertToFloat(object text)
+        {
+            try
+            {
+                string txt = text.ToString();
+                return float.Parse(txt);
+            }
+            catch (FormatException)
+            {
+                return 0;
+            }
+        }
+
+
         public static object[] PushToArr(object[] arr, object val)
         {
             object[] newArr = new object[arr.Length + 1];

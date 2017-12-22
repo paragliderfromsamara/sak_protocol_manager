@@ -29,7 +29,6 @@ namespace SAKProtocolManager.MyFormElements
             this.ParameterType = parameter_type;
             this.mReader = r;
             Initialize();
-
         }
 
         public ParameterTypeTabPage(CableStructure structure, MeasureResultReader r)
@@ -87,13 +86,13 @@ namespace SAKProtocolManager.MyFormElements
                 case "Rиз1":
                 case "Rиз2":
                 case "Co":
-                case "al":
                     //return DrawPrimaryParameterTable(pData);
 
                     return DrawByLeadsParameterTable(pData);
                 //case "Cр":
-                
+
                 //return DrawByElementsParameterTable(pData);
+                case "al":
                 case "Ao":
                 case "Az":
                     return DrawPVTable();
@@ -263,15 +262,17 @@ namespace SAKProtocolManager.MyFormElements
                 dgv.Columns.Add("sub_receiver_number", String.Format("пара приёмника", ParameterType.Structure.BendingTypeName));
                 dgv.Columns.Add("sub_transponder_number", String.Format("пара генератора", ParameterType.Structure.BendingTypeName));
                 dgv.Columns.Add("transponder_number", String.Format("{0} генератора №", ParameterType.Structure.BendingTypeName));
+                dgv.Columns["sub_receiver_number"].Visible = dgv.Columns["sub_transponder_number"].Visible = dgv.Columns["transponder_number"].Visible = ParameterType.Name != "al";
             }
             else
             {
                 dgv.Columns.Add("receiver_number", String.Format("{0} приёмника №", ParameterType.Structure.BendingTypeName));
                 dgv.Columns.Add("transponder_number", String.Format("{0} генератора №", ParameterType.Structure.BendingTypeName));
+                dgv.Columns["transponder_number"].Visible = ParameterType.Name != "al";
             }
             dgv.Columns.Add("freq_range", "Диапазон частот, кГц");
             dgv.Columns.Add("value", "результат, " + ParameterType.ParameterData[0].ResultMeasure());
-            dgv.Columns.Add("min", "Мин");
+            dgv.Columns.Add("norma", ParameterType.Name == "al" ? "Макс" : "Мин" );
             dgv.Columns.Add("percent_out", "Отклонение, дБ");
             foreach (MeasuredParameterData pData in ParameterType.ParameterData)
             {
@@ -291,7 +292,7 @@ namespace SAKProtocolManager.MyFormElements
                         dgv.Rows[i].Cells["freq_range"].Value = results[i - lastCount].ParameterData.GetFreqRange();
                         dgv.Rows[i].Cells["transponder_number"].Value = results[i- lastCount].GeneratorElementNumber;
                         dgv.Rows[i].Cells["value"].Value = results[i- lastCount].GetStringTableValue();
-                        dgv.Rows[i].Cells["min"].Value = pData.MinValue;
+                        dgv.Rows[i].Cells["norma"].Value = ParameterType.Name == "al" ? pData.MaxValue : pData.MinValue;
                         dgv.Rows[i].Cells["percent_out"].Value = results[i- lastCount].DeviationPercent;
                     }
                 }

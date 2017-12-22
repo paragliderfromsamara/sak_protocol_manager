@@ -80,11 +80,12 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
 
         protected override void fillParametersFromRow(DataRow row)
         {
+                float val = ServiceFunctions.convertToFloat(row["value"]);
                 this.ElementNumber = ServiceFunctions.convertToInt16(row["element_number"]);
                 this.SubElementNumber = ServiceFunctions.convertToInt16(row["sub_element_number"]);
                 this.GeneratorElementNumber = ServiceFunctions.convertToInt16(row["gen_element_number"]);
                 this.GenetatorSubElementNumber = ServiceFunctions.convertToInt16(row["gen_sub_element_number"]);
-                this.RawValue = ServiceFunctions.convertToDecimal(row["value"]);
+                this.RawValue = (decimal)val;
                 if (ParameterData != null)
                 {
                     this.BringingValue = this.ParameterData.BringMeasuredValue(this.RawValue);
@@ -242,9 +243,11 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
 
         public string UpdRawValueQuery()
         {
-            string tName = "resultism";
-            string q = String.Format("Resultat = {0}", this.RawValue);
-            string w = String.Format("IspInd = {0} AND ParamInd = {1} AND StruktInd = {2} AND StruktElNum = {3} AND IsmerNum = {4}", this.ParameterType.Structure.Cable.Test.Id, this.ParameterType.Id, this.ParameterType.Structure.Id, this.ElementNumber, this.SubElementNumber);
+            string q, w, tName, elNumber;
+            q = String.Format("Resultat = {0}", this.RawValue);
+            tName = "resultism";
+            elNumber = (this.ElementNumber == 0) ? "StruktElNum IS NULL" : "StruktElNum = " + this.ElementNumber.ToString();
+            w = String.Format("IspInd = {0} AND ParamInd = {1} AND StruktInd = {2} AND {3} AND IsmerNum = {4}", this.ParameterType.Structure.Cable.Test.Id, this.ParameterType.Id, this.ParameterType.Structure.Id, elNumber, this.SubElementNumber);
             if (this.ParameterType.Name == "Ao" || this.ParameterType.Name == "Az") w += String.Format(" AND StruktElNum_gen = {0} AND ParaNum_gen = {1} AND FreqDiap = {2}", this.GeneratorElementNumber, this.GenetatorSubElementNumber, this.ParameterData.FrequencyRangeId);
             return BuildUpdQuery(tName, q, w);
         }

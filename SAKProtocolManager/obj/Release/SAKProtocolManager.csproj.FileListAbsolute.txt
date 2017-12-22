@@ -8,3 +8,13 @@ C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtoco
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.TrustInfo.xml
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.exe
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.pdb
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\SAKProtocolManager.exe.manifest
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\SAKProtocolManager.application
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\SAKProtocolManager.exe
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\SAKProtocolManager.pdb
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\itextsharp.dll
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\MySql.Data.dll
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\MySql.Data.xml
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.exe.manifest
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.application
+C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.csprojResolveAssemblyReference.cache

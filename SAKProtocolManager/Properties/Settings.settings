@@ -6,7 +6,7 @@
       <Value Profile="(Default)">SAKProtocolManager.ini</Value>
     </Setting>
     <Setting Name="PathToClient3" Type="System.String" Scope="User">
-      <Value Profile="(Default)">C:\</Value>
+      <Value Profile="(Default)">C:\CAK\Client3.exe</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -10,6 +10,7 @@ namespace SAKProtocolManager.DBEntities
     public class LeadMaterial : DBBase
     {
         public string Name = String.Empty;
+        public decimal Coeff = 1;
 
         public LeadMaterial()
         {
@@ -29,15 +30,17 @@ namespace SAKProtocolManager.DBEntities
             setDefaultParameters();
         }
 
+
         protected override void setDefaultParameters()
         {
-            string selQuery = "materialy_gil.MaterInd AS lead_material_id, materialy_gil.MaterName AS lead_material_name";
+            string selQuery = "materialy_gil.MaterInd AS lead_material_id, materialy_gil.MaterName AS lead_material_name, materialy_gil.TKC_1 AS tkc";
             this.getAllQuery = String.Format("SELECT {0} FROM materialy_gil", selQuery);
             this.getByIdQuery = String.Format("{0} WHERE materialy_gil.MaterInd = {1}", this.getAllQuery, this.Id);
             this.colsList = new string[] 
             {
                 "lead_material_id",
-                "lead_material_name"
+                "lead_material_name",
+                "tkc"
             };
         }
 
@@ -45,6 +48,7 @@ namespace SAKProtocolManager.DBEntities
         {
             this.Id = row["lead_material_id"].ToString();
             this.Name = row["lead_material_name"].ToString();
+            this.Coeff = ServiceFunctions.convertToDecimal(row["tkc"]);
         }
 
 

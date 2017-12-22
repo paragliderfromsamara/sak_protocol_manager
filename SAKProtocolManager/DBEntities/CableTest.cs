@@ -20,7 +20,7 @@ namespace SAKProtocolManager.DBEntities
         public decimal TestedLength = 1000; //Длина испытываемого кабеля
         public decimal NettoWeight = 0;
         public decimal BruttoWeight = 0;
-        public uint Temperature = 20;
+        public decimal Temperature = 20;
         public bool HasVsvi = false; //Измеряется ли ВСВИ
         public uint PIzb = 0;
         public uint PObol = 0;
@@ -79,7 +79,7 @@ namespace SAKProtocolManager.DBEntities
             this.BarabanId = row["baraban_id"].ToString();
             this.StatusId = row["status_id"].ToString();
             this.TestedLength = ServiceFunctions.convertToDecimal(row["cable_test_cable_length"]);
-            this.Temperature = ServiceFunctions.convertToUInt(row["cable_test_temperature"]);
+            this.Temperature = ServiceFunctions.convertToDecimal(row["cable_test_temperature"]);
             this.NettoWeight = ServiceFunctions.convertToDecimal(row["cable_test_netto"]);
             this.BruttoWeight = ServiceFunctions.convertToDecimal(row["cable_test_brutto"]);
             this.PIzb = ServiceFunctions.convertToUInt(row["cable_test_p_izb"].ToString());

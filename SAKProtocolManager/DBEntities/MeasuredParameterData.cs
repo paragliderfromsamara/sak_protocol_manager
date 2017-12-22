@@ -242,11 +242,28 @@ namespace SAKProtocolManager.DBEntities
         { 
             decimal brLength = getBringingLength();
             decimal tstLength = this.ParameterType.Structure.Cable.Test.TestedLength;
+            value = bringToCoeffs(value);
             if (brLength == tstLength || tstLength == 0) return value;
             return BringToLength(value, tstLength, brLength);
         }
 
+        private decimal bringToCoeffs(decimal value)
+        {
+            decimal temperature = this.ParameterType.Structure.Cable.Test.Temperature;
+            switch (this.ParameterType.Name)
+            {
+                case "Rж":
+                    value *= (1 / (1 + this.ParameterType.Structure.LeadMaterial.Coeff * (temperature - 20)));
+                    return Math.Round(value, 1);
+                case "Rиз1":
+                case "Rиз3":
+                    value *= this.ParameterType.Structure.IsolationMaterial.GetCoefficient(temperature);
+                    return Math.Round(value, 1);
+                default:
+                    return value;
+            }
 
+        }
         public decimal BringToLength(decimal value, decimal curLength, decimal brLength)
         {
             int round = 2;
@@ -255,9 +272,12 @@ namespace SAKProtocolManager.DBEntities
                 case "Rж":
                 case "Cр":
                 case "Co":
-                case "Rиз1":
-                case "Rиз2":
                     value *= brLength / curLength;
+                    round = value > 99 ? 1 : 2;
+                    return Math.Round(value, round);
+                case "Rиз1":
+                case "Rиз3":
+                    value *= curLength / brLength;
                     round = value > 99 ? 1 : 2;
                     return Math.Round(value, round);
                 case "al":

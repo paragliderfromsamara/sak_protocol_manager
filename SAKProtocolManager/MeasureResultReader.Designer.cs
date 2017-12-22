@@ -59,6 +59,7 @@
             this.lengthUpdProgressBarLbl = new System.Windows.Forms.Label();
             this.LengthUpdProgressBar = new System.Windows.Forms.ProgressBar();
             this.OutOfNormaRsltPanel = new System.Windows.Forms.GroupBox();
+            this.TemperatureLbl = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.measureResultReaderDataSet)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cableTable)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.measured_parameters_table_1)).BeginInit();
@@ -160,6 +161,7 @@
             // 
             // TestInfoPanel
             // 
+            this.TestInfoPanel.Controls.Add(this.TemperatureLbl);
             this.TestInfoPanel.Controls.Add(this.MeasuredParametersLbl);
             this.TestInfoPanel.Controls.Add(this.cableTypeLbl);
             this.TestInfoPanel.Controls.Add(this.operatorLbl);
@@ -346,6 +348,15 @@
             this.OutOfNormaRsltPanel.TabStop = false;
             this.OutOfNormaRsltPanel.Text = "Панель  коррекции результата";
             // 
+            // TemperatureLbl
+            // 
+            this.TemperatureLbl.AutoSize = true;
+            this.TemperatureLbl.Location = new System.Drawing.Point(382, 29);
+            this.TemperatureLbl.Name = "TemperatureLbl";
+            this.TemperatureLbl.Size = new System.Drawing.Size(85, 16);
+            this.TemperatureLbl.TabIndex = 5;
+            this.TemperatureLbl.Text = "Температура";
+            // 
             // MeasureResultReader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -409,5 +420,6 @@
         private System.Windows.Forms.Label procNameLbl;
         private System.Windows.Forms.Label MeasuredParametersLbl;
         private System.Windows.Forms.GroupBox OutOfNormaRsltPanel;
+        private System.Windows.Forms.Label TemperatureLbl;
     }
 }

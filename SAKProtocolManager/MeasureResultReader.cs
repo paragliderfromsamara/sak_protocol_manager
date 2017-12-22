@@ -73,6 +73,7 @@ namespace SAKProtocolManager
             barabanLbl.Text = String.Format("Барабан: {0} № {1}", CableTest.Baraban.Name, CableTest.Baraban.Number);
             operatorLbl.Text = String.Format("Оператор: {0} {1}.{2}.", CableTest.Operator.LastName, CableTest.Operator.FirstName[0], CableTest.Operator.ThirdName[0]);
             testedAtLbl.Text = String.Format("Испытан {0}", ServiceFunctions.MyDateTime(CableTest.TestDate));
+            TemperatureLbl.Text = String.Format("Температура: {0}°С", CableTest.Temperature);
             testedLengthInput.Value = CableTest.TestedLength;
             MeasuredParametersLbl.Text = String.Format("Измеренные параметры: {0}", CableTest.GetMeasuredParameters());
             if (!fillStructuresComboBox())
