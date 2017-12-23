@@ -33,7 +33,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
 
         public string Status = String.Empty;
         
-        private string freqRangeId = "1";
+        protected string freqRangeId = "1";
 
         public TestResult()
         {
@@ -151,7 +151,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         /// <returns></returns>
         public TestResult[] GetMeasuredResults()
         {
-            if (this.ParameterType.Name != "Ao" && this.ParameterType.Name != "Az" && this.ParameterType.Name != "Rиз3" && this.ParameterType.Name != "Rиз4")
+            if (this.ParameterType.Name != "al" && this.ParameterType.Name != "Ao" && this.ParameterType.Name != "Az" && this.ParameterType.Name != "Rиз3" && this.ParameterType.Name != "Rиз4")
             {
                 PrimaryParametersTestResult pptr = new PrimaryParametersTestResult(ParameterData);
                 TestResult[] trs = pptr.GetMeasuredResults();

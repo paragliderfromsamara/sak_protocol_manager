@@ -18,3 +18,23 @@ C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtoco
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\SAKProtocolManager.application
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.exe.manifest
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.application
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\SAKProtocolManager.exe.config
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.exe
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.pdb
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\SAKProtocolManager.exe.manifest
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\SAKProtocolManager.application
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\SAKProtocolManager.exe
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\SAKProtocolManager.pdb
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\itextsharp.dll
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\MySql.Data.dll
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\MySql.Data.xml
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.csprojResolveAssemblyReference.cache
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.FuncTestForm.resources
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.MainForm.resources
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.MeasureResultReader.resources
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.Properties.Resources.resources
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.StatusForm.resources
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.csproj.GenerateResource.Cache
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.TrustInfo.xml
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.exe.manifest
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.application
