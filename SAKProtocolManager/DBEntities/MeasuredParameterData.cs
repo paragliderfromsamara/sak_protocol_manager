@@ -10,7 +10,7 @@ namespace SAKProtocolManager.DBEntities
 {
     public class MeasuredParameterData : DBBase
     {
-        public List<TestResult> NotNormalResults = new List<TestResult>();
+        public TestResult[] NotNormalResults = new TestResult[] { };
         /// <summary>
         /// Соответствует FreqDiapInd в таблице freq_diap
         /// </summary>
@@ -54,7 +54,9 @@ namespace SAKProtocolManager.DBEntities
         /// <summary>
         /// Допустимый процент брака
         /// </summary>
-        public decimal Percent = 100;
+        public decimal NormalPercent = 100;
+
+        public decimal MeasuredPercent = 0; 
 
         /// <summary>
         /// Минимальное измеренное значени
@@ -88,10 +90,10 @@ namespace SAKProtocolManager.DBEntities
             fillParametersFromRow(row);
             this.ParameterType = parameter_type;
             setDefaultParameters();
-            GetTestResult();
+            //GetTestResult();
         }
 
-        private void GetTestResult()
+        internal void GetTestResult()
         {
            // return;
             if (!HasTest()) return;
@@ -109,7 +111,7 @@ namespace SAKProtocolManager.DBEntities
             if (this.TestResults.Length == 0) return;
             foreach(TestResult tr in this.TestResults)
             {
-                if (tr.IsAffected()) continue;
+                if (tr.Affected) continue;
                 counter++;
                 if (tr.RawValue > max) max = tr.RawValue;
                 if (tr.RawValue < min) min = tr.RawValue;
@@ -121,13 +123,24 @@ namespace SAKProtocolManager.DBEntities
             this.AverageVal = average;
         }
 
-        public string GetFreqRange()
+        public string GetFreqRangeTitle()
         {
             string r = String.Empty;
             if (this.MinFrequency > 0) r = this.MinFrequency.ToString();
             if (this.MinFrequency > 0 && this.MaxFrequency > 0) r += "-";
             if (this.MaxFrequency > 0) r += this.MaxFrequency.ToString();
+            if (!String.IsNullOrWhiteSpace(r)) r += "кГц";
             return r;
+        }
+
+        public string GetNormaTitle()
+        {
+            string norma = String.Empty;
+            string rMeasure = ResultMeasure();
+            if (MinValue > Decimal.MinValue) norma += String.Format(" от {0}{1}", MinValue, rMeasure);
+            if (MaxValue < Decimal.MaxValue) norma += String.Format(" до {0}{1}", MaxValue, rMeasure);
+            norma += String.Format(" {0}%", NormalPercent);
+            return norma;
         }
         protected override void setDefaultParameters()
         {
@@ -147,7 +160,7 @@ namespace SAKProtocolManager.DBEntities
                               "lpriv_tip.LprivName AS bringing_length_type_name";
 
             this.getAllQuery = String.Format("SELECT {0} FROM param_data LEFT JOIN ism_param USING(ParamInd) LEFT JOIN freq_diap ON param_data.FreqDiap = freq_diap.FreqDiapInd LEFT JOIN lpriv_tip USING(LprivInd)", selQuery);
-            this.getAllByStructIdQuery = String.Format("{0} WHERE param_data.StruktInd = {1} AND param_data.ParamInd = {2}", this.getAllQuery, this.ParameterType.Structure.Id, this.ParameterType.Id);
+            this.getAllByStructIdQuery = String.Format("{0} WHERE param_data.StruktInd = {1} AND param_data.ParamInd = {2}", this.getAllQuery, this.ParameterType.Structure.Id, getParameterTypeId());
             this.colsList = new string[]
             {
                 "measured_parameter_min_value",
@@ -167,19 +180,24 @@ namespace SAKProtocolManager.DBEntities
             };
         }
 
+        private int getParameterTypeId()
+        {
+            int id = ServiceFunctions.convertToInt16(this.ParameterType.Id);
+            if (id >= 20) return 14; // K9, K10, K11, K12 берет норму K9-K12
+            else if (id == 18 && id == 19) return 13; // K2, K3 берет норму K2,K3
+            else return id;
+        }
+
         internal MeasuredParameterData[] GetStructureMeasureParameters()
         {
-            MeasuredParameterData[] ents = new MeasuredParameterData[] { };
+            List<MeasuredParameterData> ents = new List<MeasuredParameterData>();
             DataTable dt = getFromDB(this.getAllByStructIdQuery);
             if (dt.Rows.Count > 0)
             {
-                ents = new MeasuredParameterData[dt.Rows.Count];
-                for (int i = 0; i < dt.Rows.Count; i++) ents[i] = new MeasuredParameterData(dt.Rows[i], this.ParameterType);
+                for (int i = 0; i < dt.Rows.Count; i++) ents.Add(new MeasuredParameterData(dt.Rows[i], this.ParameterType));
             }
-            return ents;
+            return ents.ToArray();
         }
-
-
 
         public string ResultMeasure()
         {
@@ -216,7 +234,7 @@ namespace SAKProtocolManager.DBEntities
             string maxVal = row["measured_parameter_max_value"].ToString();
             if (!String.IsNullOrEmpty(minVal)) this.MinValue = ServiceFunctions.convertToDecimal(minVal);
             if (!String.IsNullOrEmpty(maxVal)) this.MaxValue = ServiceFunctions.convertToDecimal(maxVal);
-            this.Percent = ServiceFunctions.convertToDecimal(row["measured_parameter_percent"]);
+            this.NormalPercent = ServiceFunctions.convertToDecimal(row["measured_parameter_percent"]);
 
             this.MinFrequency = ServiceFunctions.convertToUInt(row["measure_parameter_min_frequency"]);
             this.MaxFrequency = ServiceFunctions.convertToUInt(row["measure_parameter_max_frequency"]);
@@ -244,7 +262,7 @@ namespace SAKProtocolManager.DBEntities
             decimal tstLength = this.ParameterType.Structure.Cable.Test.TestedLength;
             value = bringToCoeffs(value);
             if (brLength == tstLength || tstLength == 0) return value;
-            return BringToLength(value, tstLength, brLength);
+            return ParameterType.BringToLength(value, tstLength, brLength);
         }
 
         private decimal bringToCoeffs(decimal value)
@@ -264,33 +282,7 @@ namespace SAKProtocolManager.DBEntities
             }
 
         }
-        public decimal BringToLength(decimal value, decimal curLength, decimal brLength)
-        {
-            int round = 2;
-            switch (this.ParameterType.Name)
-            {
-                case "Rж":
-                case "Cр":
-                case "Co":
-                    value *= brLength / curLength;
-                    round = value > 99 ? 1 : 2;
-                    return Math.Round(value, round);
-                case "Rиз1":
-                case "Rиз3":
-                    value *= curLength / brLength;
-                    round = value > 99 ? 1 : 2;
-                    return Math.Round(value, round);
-                case "al":
-                    value *= brLength / curLength;
-                    return Math.Round(value, 1);
-                case "Ao":
-                case "Az":
-                    value += 10 * (decimal)Math.Log10(((double)curLength / (double)brLength));
-                    return Math.Round(value, 1);
-                default:
-                    return value;
-            }
-        }
+       
         private decimal getBringingLength()
         {
             int brLengthId = ServiceFunctions.convertToInt16(this.BringingLengthTypeId);
@@ -307,13 +299,52 @@ namespace SAKProtocolManager.DBEntities
             }
         }
 
-        public void RefreshNotNormaResultsList()
+        internal string GetTitle()
         {
-            this.NotNormalResults.Clear();
-            foreach(TestResult tr in TestResults)
-            {
-                if (tr.DeviationPercent != 0 && !tr.IsAffected()) this.NotNormalResults.Add(tr);
-            }
+            string fRangeTitle, norma;
+            fRangeTitle = GetFreqRangeTitle();
+            norma = GetNormaTitle();
+            return fRangeTitle + norma;
+
+
         }
+
+        /// <summary>
+        /// Вытаскиваем список коррекций из ненормальных результатов в массив сортированный по убыванию и состоящий из уникальных элементов
+        /// </summary>
+        /// <returns></returns>
+        public decimal[] GetCorrectionLimitsList()
+        {
+            List<decimal> notNormalList = new List<decimal>();
+            if (this.NotNormalResults.Length > 0)
+            {
+                foreach (TestResult tr in this.NotNormalResults)
+                {
+                    if (!notNormalList.Contains(tr.DeviationPercent)) notNormalList.Add(tr.DeviationPercent);
+                }
+            }
+            notNormalList.Sort();
+            return notNormalList.ToArray();
+        }
+
+        internal List<string> CorrectNotNormalResults(decimal corrLimit)
+        {
+            List<string> queries = new List<string>();
+            if (corrLimit == 0) return queries;
+            if (this.NotNormalResults.Length > 0)
+            {
+                foreach (TestResult tr in this.NotNormalResults)
+                {
+                    if (corrLimit >= tr.DeviationPercent)
+                    {
+                        tr.CorrectResult();
+                        if (tr.DeviationPercent == 0) queries.Add(tr.UpdRawValueQuery());
+                    }
+                }
+                //pd.RefreshNotNormaResultsList();
+            }
+            return queries;
+        }
+
     }
 }

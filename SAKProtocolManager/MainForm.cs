@@ -11,6 +11,8 @@ using SAKProtocolManager.DBEntities;
 using MySql.Data.MySqlClient;
 using System.Threading;
 
+using System.Globalization;
+
 namespace SAKProtocolManager
 {
     public partial class MainForm : Form
@@ -29,7 +31,8 @@ namespace SAKProtocolManager
 
         public MainForm()
         {
-            TestHistoryItem[] historyItems = TestHistoryItem.GetFromIniFile(); 
+            TestHistoryItem[] historyItems = TestHistoryItem.GetFromIniFile();
+            setSeparator();
             InitializeComponent();
             progressBarPanel.Visible = false;
             initTestsList();
@@ -41,6 +44,17 @@ namespace SAKProtocolManager
         /// Thread.Sleep(6000);
         // sts.Close();
     }
+        private void setSeparator()
+        {
+            string CultureName = Thread.CurrentThread.CurrentCulture.Name;
+            CultureInfo ci = new CultureInfo(CultureName);
+            if (ci.NumberFormat.NumberDecimalSeparator != ".")
+            {
+                // Forcing use of decimal separator for numerical values
+                ci.NumberFormat.NumberDecimalSeparator = ".";
+                Thread.CurrentThread.CurrentCulture = ci;
+            }
+        }
         private void SetDBConstants()
         {
             MeasureParameterType mpt = new MeasureParameterType();

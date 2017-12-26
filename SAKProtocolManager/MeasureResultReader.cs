@@ -19,6 +19,7 @@ namespace SAKProtocolManager
     public partial class MeasureResultReader : Form
     {
         private int selectedStructureIdx = -1;
+        private int selectedParameterTypeIdx = -1;
         private CableTest CableTest;
       
         public MainForm MainForm;
@@ -36,9 +37,9 @@ namespace SAKProtocolManager
 
         private bool fillStructuresComboBox()
         {
-            CableStructure[] FailedStructures = this.CableTest.TestedCable.GetFailedStructures();
+            ///CableStructure[] FailedStructures = this.CableTest.TestedCable.GetFailedStructures();
             cableStructuresList.Items.Clear();
-            int sLength = FailedStructures.Length;
+            int sLength = this.CableTest.TestedCable.Structures.Length;
             bool val = sLength > 0;
             if (val)
             {
@@ -47,21 +48,20 @@ namespace SAKProtocolManager
                     cableStructuresList.Items.Insert(i, this.CableTest.TestedCable.Structures[i].Name);
                 }
                 cableStructuresList.SelectedIndex = 0;
-                StructuresLbl.Text = "Структуры с выходом за норму";
+                StructuresLbl.Text = "Структура кабеля";
                 cableStructuresList.Visible = true;
                 tabControlTestResult.Visible = true;
-                OutOfNormaRsltPanel.Size = new Size(803, 633);
+                OutOfNormaRsltPanel.Size = new Size(810, 650);
                 //OutOfNormaRsltPanel.Visible = true;
             }
             else
             {
-                cableStructuresList.Items.Insert(0, "Нет структур с выходом за норму");
+                cableStructuresList.Items.Insert(0, "Список пуст");
                 cableStructuresList.SelectedIndex = 0;
                 cableStructuresList.Visible= false;
                 tabControlTestResult.Visible = false;
-                OutOfNormaRsltPanel.Size = new Size(803, 100);
+                OutOfNormaRsltPanel.Size = new Size(810, 100);
                 //OutOfNormaRsltPanel.Visible = false;
-                StructuresLbl.Text = "Результаты вышедшие за норму отсутствуют";
                 this.Height -= tabControlTestResult.Height - 10;
             }
             return val;
@@ -99,60 +99,14 @@ namespace SAKProtocolManager
         }
 
 
-        /// <summary>
-        /// Отрисовка таб в зависимости от выбранного 
-        /// </summary>
-        private void DrawMeasureParametersTabs(int structure_index, string tabName)
-        {
-            if (this.CableTest.TestedCable.GetFailedStructures().Length == 0 || structure_index < 0) return;
-            tabControlTestResult.TabPages.Clear();
-            CableStructure curStructure = this.CableTest.TestedCable.Structures[cableStructuresList.SelectedIndex];
-            MeasureParameterType[] mParams = ParameterTypesForTabs(cableStructuresList.SelectedIndex);
-            List<TabPage> pages = new List<TabPage>();
-            //if (curStructure.AffectedElementNumbers.Length>1)test.Text = curStructure.AffectedElementNumbers[1].ToString();
-            int i = 0;
-            int idx = 0;
-            if (curStructure.AffectedElements.Length > 0) pages.Add(new ParameterTypeTabPage(curStructure, this));
-            foreach (MeasureParameterType mpt in mParams) 
-            {
-                if (mpt.OutOfNormaCount() == 0) continue; 
-                pages.Add(new ParameterTypeTabPage(mpt, this));
-                if (pages[i].Text == tabName) idx = i;
-                i++;
-            }
-            if (pages.Count > 0)
-            {
-                tabControlTestResult.TabPages.AddRange(pages.ToArray());
-                tabControlTestResult.SelectedIndex = idx;
-                tabControlTestResult.Refresh();
-            }
-        }
-
-
-        public void RefreshOutOfNormaPanel(string tabName)
-        {
-            fillStructuresComboBox();
-            if (cableStructuresList.Items.Count > 0) DrawMeasureParametersTabs(selectedStructureIdx, tabName);
-        }
-
         private MeasureParameterType[] ParameterTypesForTabs(int structure_index)
         {
-            int count = 0;
-            foreach(MeasureParameterType mp in CableTest.TestedCable.Structures[structure_index].MeasuredParameters)
-            {
-                if (mp.Name != "Prozvon") count++;
-            }
-            MeasureParameterType[] mpts = new MeasureParameterType[count];
-            count = 0;
+            List<MeasureParameterType> pTypes = new List<MeasureParameterType>();
             foreach (MeasureParameterType mp in CableTest.TestedCable.Structures[structure_index].MeasuredParameters)
             {
-                if(mp.Name != "Prozvon")
-                {
-                    mpts[count] = mp;
-                    count++;
-                }
+                if (mp.Name != "Prozvon") pTypes.Add(mp);
             }
-            return mpts;
+            return pTypes.ToArray();
         }
 
         private void cableStructuresList_SelectedIndexChanged(object sender, EventArgs e)
@@ -160,9 +114,26 @@ namespace SAKProtocolManager
             if (selectedStructureIdx != cableStructuresList.SelectedIndex)
             {
                selectedStructureIdx = cableStructuresList.SelectedIndex;
-               DrawMeasureParametersTabs(selectedStructureIdx, "");
+               fillParameterTypesComboBox(selectedStructureIdx);
+               //DrawMeasureParametersTabs(selectedStructureIdx, "");
             }
             
+        }
+
+
+        private void fillParameterTypesComboBox(int structIdx)
+        {
+            MeasureParameterType[] pTypes = CableTest.TestedCable.Structures[structIdx].MeasuredParameters;
+            parameterTypeCB.Items.Clear();
+            for(int i=0; i<pTypes.Length; i++)
+            {
+                parameterTypeCB.Items.Insert(i, pTypes[i].NameWithMeasure());
+            }
+            if (parameterTypeCB.Items.Count > 0)
+            {
+                //parameterTypeCB.Items.Insert(parameterTypeCB.Items.Count, "Прозвонка");
+                parameterTypeCB.SelectedIndex = 0;
+            }
         }
 
         private void GeneratePDFProtocolButton_Click(object sender, EventArgs e)
@@ -194,6 +165,7 @@ namespace SAKProtocolManager
                 this.Enabled = true;
                 this.Cursor = Cursors.Default;
                 this.MainForm.UpdateSelectedCableLength(Convert.ToInt16(this.testedLengthInput.Value));
+                drawParameterTypeTabs();
                 MessageBox.Show(String.Format("Результат успешно пересчитан на длину кабеля {0} м.", testedLengthInput.Value), "Длина успешно пересчитана", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
             }
         }
@@ -214,9 +186,32 @@ namespace SAKProtocolManager
                 {
                     foreach (MeasureParameterType pType in structure.MeasuredParameters)
                     {
-                        foreach (MeasuredParameterData pData in pType.ParameterData)
+                        List<string> queries = new List<string>();
+                        foreach (TestResult tr in pType.TestResults)
                         {
-                            List<string> queries = new List<string>();
+                            queries.Add(tr.BuildUpdLengthQuery(curLength, newLength));
+                            if (queries.Count == LengthUpdProgressBar.Step || (LengthUpdProgressBar.Value + queries.Count) == LengthUpdProgressBar.Maximum)
+                            {
+                                DBBase.SendQueriesList(queries.ToArray());
+                                queries.Clear();
+                                LengthUpdProgressBar.PerformStep();
+                                lengthUpdProgressBarLbl.Text = String.Format("Пересчитано {0} из {1}", LengthUpdProgressBar.Value, LengthUpdProgressBar.Maximum);
+                                lengthUpdProgressBarField.Refresh();
+                            }
+                        }
+                        if (queries.Count > 0)
+                        {
+                            DBBase.SendQueriesList(queries.ToArray());
+                            queries.Clear();
+                            LengthUpdProgressBar.PerformStep();
+                            lengthUpdProgressBarLbl.Text = String.Format("Пересчитано {0} из {1}", LengthUpdProgressBar.Value, LengthUpdProgressBar.Maximum);
+                            lengthUpdProgressBarField.Refresh();
+                        }
+                        pType.RefreshTestResultsOnParameterData(false);
+                        /*
+                        foreach (MeasuredParameterData pData in pType.ParameterDataList)
+                        {
+                            
                             foreach (TestResult tr in pData.TestResults)
                             {
                                 queries.Add(tr.BuildUpdLengthQuery(curLength, newLength));
@@ -239,6 +234,7 @@ namespace SAKProtocolManager
                                 lengthUpdProgressBarField.Refresh();
                             }                            
                         }
+                        */
                     }
                 }
             }
@@ -259,5 +255,42 @@ namespace SAKProtocolManager
             CheckCableLengthIsUpdated();
         }
 
+        private void parameterTypeCB_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (selectedParameterTypeIdx != parameterTypeCB.SelectedIndex)
+            {
+                selectedParameterTypeIdx = parameterTypeCB.SelectedIndex;
+                drawParameterTypeTabs();
+            }
+        }
+
+        private void drawParameterTypeTabs()
+        {
+            MeasureParameterType pType = CableTest.TestedCable.Structures[selectedStructureIdx].MeasuredParameters[selectedParameterTypeIdx];
+            int sIndex= tabControlTestResult.TabPages.Count > 0 ? tabControlTestResult.SelectedIndex : 0;
+            tabControlTestResult.TabPages.Clear();
+           
+            CableStructure curStructure = this.CableTest.TestedCable.Structures[cableStructuresList.SelectedIndex];
+            MeasureParameterType[] mParams = ParameterTypesForTabs(cableStructuresList.SelectedIndex);
+            List<TabPage> pages = new List<TabPage>();
+            //if (curStructure.AffectedElementNumbers.Length>1)test.Text = curStructure.AffectedElementNumbers[1].ToString();
+            //if (curStructure.AffectedElements.Length > 0) pages.Add(new ParameterTypeTabPage(curStructure, this));
+            foreach (MeasuredParameterData pData in pType.ParameterDataList)
+            {
+                if (pData.TestResults.Length == 0) continue;
+                pages.Add(new ParameterTypeTabPage(pData, this));
+            }
+            if (pages.Count > 0)
+            {
+                tabControlTestResult.TabPages.AddRange(pages.ToArray());
+                tabControlTestResult.SelectedIndex = sIndex;
+                tabControlTestResult.Refresh();
+            }
+        }
+
+        public void RefreshTabs()
+        {
+            drawParameterTypeTabs();
+        }
     }
 }

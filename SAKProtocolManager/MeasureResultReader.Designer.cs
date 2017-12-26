@@ -44,6 +44,7 @@
             this.testedAtLbl = new System.Windows.Forms.Label();
             this.barabanLbl = new System.Windows.Forms.Label();
             this.TestInfoPanel = new System.Windows.Forms.GroupBox();
+            this.TemperatureLbl = new System.Windows.Forms.Label();
             this.MeasuredParametersLbl = new System.Windows.Forms.Label();
             this.cableStructuresList = new System.Windows.Forms.ComboBox();
             this.StructuresLbl = new System.Windows.Forms.Label();
@@ -59,7 +60,9 @@
             this.lengthUpdProgressBarLbl = new System.Windows.Forms.Label();
             this.LengthUpdProgressBar = new System.Windows.Forms.ProgressBar();
             this.OutOfNormaRsltPanel = new System.Windows.Forms.GroupBox();
-            this.TemperatureLbl = new System.Windows.Forms.Label();
+            this.parameterTypeLbl = new System.Windows.Forms.Label();
+            this.parameterTypeCB = new System.Windows.Forms.ComboBox();
+            this.structureReport = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.measureResultReaderDataSet)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cableTable)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.measured_parameters_table_1)).BeginInit();
@@ -170,10 +173,19 @@
             this.TestInfoPanel.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.TestInfoPanel.Location = new System.Drawing.Point(12, 12);
             this.TestInfoPanel.Name = "TestInfoPanel";
-            this.TestInfoPanel.Size = new System.Drawing.Size(591, 136);
+            this.TestInfoPanel.Size = new System.Drawing.Size(580, 136);
             this.TestInfoPanel.TabIndex = 4;
             this.TestInfoPanel.TabStop = false;
             this.TestInfoPanel.Text = "Информация о испытании";
+            // 
+            // TemperatureLbl
+            // 
+            this.TemperatureLbl.AutoSize = true;
+            this.TemperatureLbl.Location = new System.Drawing.Point(382, 29);
+            this.TemperatureLbl.Name = "TemperatureLbl";
+            this.TemperatureLbl.Size = new System.Drawing.Size(85, 16);
+            this.TemperatureLbl.TabIndex = 5;
+            this.TemperatureLbl.Text = "Температура";
             // 
             // MeasuredParametersLbl
             // 
@@ -199,16 +211,16 @@
             this.StructuresLbl.AutoSize = true;
             this.StructuresLbl.Location = new System.Drawing.Point(13, 31);
             this.StructuresLbl.Name = "StructuresLbl";
-            this.StructuresLbl.Size = new System.Drawing.Size(183, 14);
+            this.StructuresLbl.Size = new System.Drawing.Size(64, 14);
             this.StructuresLbl.TabIndex = 7;
-            this.StructuresLbl.Text = "Структуры с выходом за норму";
+            this.StructuresLbl.Text = "Структура";
             // 
             // tabPage1
             // 
             this.tabPage1.AutoScroll = true;
             this.tabPage1.Location = new System.Drawing.Point(4, 23);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Size = new System.Drawing.Size(763, 502);
+            this.tabPage1.Size = new System.Drawing.Size(771, 502);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "tabPage1";
             this.tabPage1.ToolTipText = "fgfgh";
@@ -217,10 +229,10 @@
             // tabControlTestResult
             // 
             this.tabControlTestResult.Controls.Add(this.tabPage1);
-            this.tabControlTestResult.Location = new System.Drawing.Point(16, 85);
+            this.tabControlTestResult.Location = new System.Drawing.Point(16, 103);
             this.tabControlTestResult.Name = "tabControlTestResult";
             this.tabControlTestResult.SelectedIndex = 0;
-            this.tabControlTestResult.Size = new System.Drawing.Size(771, 529);
+            this.tabControlTestResult.Size = new System.Drawing.Size(779, 529);
             this.tabControlTestResult.TabIndex = 5;
             // 
             // GeneratePDFProtocolButton
@@ -232,7 +244,7 @@
             this.GeneratePDFProtocolButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.GeneratePDFProtocolButton.Image = ((System.Drawing.Image)(resources.GetObject("GeneratePDFProtocolButton.Image")));
             this.GeneratePDFProtocolButton.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.GeneratePDFProtocolButton.Location = new System.Drawing.Point(616, 17);
+            this.GeneratePDFProtocolButton.Location = new System.Drawing.Point(620, 15);
             this.GeneratePDFProtocolButton.Name = "GeneratePDFProtocolButton";
             this.GeneratePDFProtocolButton.Size = new System.Drawing.Size(199, 48);
             this.GeneratePDFProtocolButton.TabIndex = 9;
@@ -293,7 +305,7 @@
             this.lengthEditor.Controls.Add(this.testedLengthInput);
             this.lengthEditor.Controls.Add(this.updateCableLength);
             this.lengthEditor.Controls.Add(this.label2);
-            this.lengthEditor.Location = new System.Drawing.Point(609, 71);
+            this.lengthEditor.Location = new System.Drawing.Point(613, 68);
             this.lengthEditor.Name = "lengthEditor";
             this.lengthEditor.Size = new System.Drawing.Size(209, 81);
             this.lengthEditor.TabIndex = 14;
@@ -304,7 +316,7 @@
             this.lengthUpdProgressBarField.Controls.Add(this.lengthUpdProgressBarLbl);
             this.lengthUpdProgressBarField.Controls.Add(this.LengthUpdProgressBar);
             this.lengthUpdProgressBarField.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lengthUpdProgressBarField.Location = new System.Drawing.Point(609, 67);
+            this.lengthUpdProgressBarField.Location = new System.Drawing.Point(613, 69);
             this.lengthUpdProgressBarField.Name = "lengthUpdProgressBarField";
             this.lengthUpdProgressBarField.Size = new System.Drawing.Size(209, 81);
             this.lengthUpdProgressBarField.TabIndex = 15;
@@ -337,31 +349,54 @@
             // 
             // OutOfNormaRsltPanel
             // 
+            this.OutOfNormaRsltPanel.Controls.Add(this.structureReport);
+            this.OutOfNormaRsltPanel.Controls.Add(this.parameterTypeLbl);
+            this.OutOfNormaRsltPanel.Controls.Add(this.parameterTypeCB);
             this.OutOfNormaRsltPanel.Controls.Add(this.cableStructuresList);
             this.OutOfNormaRsltPanel.Controls.Add(this.tabControlTestResult);
             this.OutOfNormaRsltPanel.Controls.Add(this.StructuresLbl);
             this.OutOfNormaRsltPanel.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.OutOfNormaRsltPanel.Location = new System.Drawing.Point(12, 175);
+            this.OutOfNormaRsltPanel.Location = new System.Drawing.Point(12, 158);
             this.OutOfNormaRsltPanel.Name = "OutOfNormaRsltPanel";
-            this.OutOfNormaRsltPanel.Size = new System.Drawing.Size(803, 633);
+            this.OutOfNormaRsltPanel.Size = new System.Drawing.Size(810, 650);
             this.OutOfNormaRsltPanel.TabIndex = 16;
             this.OutOfNormaRsltPanel.TabStop = false;
-            this.OutOfNormaRsltPanel.Text = "Панель  коррекции результата";
+            this.OutOfNormaRsltPanel.Text = "Панель просмотра результата";
             // 
-            // TemperatureLbl
+            // parameterTypeLbl
             // 
-            this.TemperatureLbl.AutoSize = true;
-            this.TemperatureLbl.Location = new System.Drawing.Point(382, 29);
-            this.TemperatureLbl.Name = "TemperatureLbl";
-            this.TemperatureLbl.Size = new System.Drawing.Size(85, 16);
-            this.TemperatureLbl.TabIndex = 5;
-            this.TemperatureLbl.Text = "Температура";
+            this.parameterTypeLbl.AutoSize = true;
+            this.parameterTypeLbl.Location = new System.Drawing.Point(326, 31);
+            this.parameterTypeLbl.Name = "parameterTypeLbl";
+            this.parameterTypeLbl.Size = new System.Drawing.Size(62, 14);
+            this.parameterTypeLbl.TabIndex = 9;
+            this.parameterTypeLbl.Text = "Параметр";
+            // 
+            // parameterTypeCB
+            // 
+            this.parameterTypeCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.parameterTypeCB.FormattingEnabled = true;
+            this.parameterTypeCB.Location = new System.Drawing.Point(329, 47);
+            this.parameterTypeCB.Name = "parameterTypeCB";
+            this.parameterTypeCB.Size = new System.Drawing.Size(143, 22);
+            this.parameterTypeCB.TabIndex = 8;
+            this.parameterTypeCB.SelectedIndexChanged += new System.EventHandler(this.parameterTypeCB_SelectedIndexChanged);
+            // 
+            // structureReport
+            // 
+            this.structureReport.AutoSize = true;
+            this.structureReport.Location = new System.Drawing.Point(17, 80);
+            this.structureReport.Name = "structureReport";
+            this.structureReport.Size = new System.Drawing.Size(186, 14);
+            this.structureReport.TabIndex = 10;
+            this.structureReport.Text = "Фактичское Номинальное Брак";
+            this.structureReport.Visible = false;
             // 
             // MeasureResultReader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(827, 820);
+            this.ClientSize = new System.Drawing.Size(835, 820);
             this.Controls.Add(this.OutOfNormaRsltPanel);
             this.Controls.Add(this.lengthUpdProgressBarField);
             this.Controls.Add(this.lengthEditor);
@@ -421,5 +456,8 @@
         private System.Windows.Forms.Label MeasuredParametersLbl;
         private System.Windows.Forms.GroupBox OutOfNormaRsltPanel;
         private System.Windows.Forms.Label TemperatureLbl;
+        private System.Windows.Forms.Label parameterTypeLbl;
+        private System.Windows.Forms.ComboBox parameterTypeCB;
+        private System.Windows.Forms.Label structureReport;
     }
 }

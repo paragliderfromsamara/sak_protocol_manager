@@ -22,8 +22,8 @@ namespace SAKProtocolManager.DBEntities
         public string LeadMaterialId = String.Empty;
         public string IsolationMaterialId = String.Empty;
         public string BendimgTypeId = String.Empty;
-        public uint NumberInCable = 0;
-        public uint RealNumberInCable = 0;
+        public int NumberInCable = 0;
+        public int RealNumberInCable = 0;
         public decimal LeadDiameter = 0;
         public uint WaveResistance = 0;
         public uint Puchek = 0;
@@ -36,12 +36,36 @@ namespace SAKProtocolManager.DBEntities
         public string dRFormulaId = String.Empty;
         public string dRFormulaMeasure = String.Empty;
         
+        /// <summary>
+        /// Возвращает название элемента структуры в родительском падеже
+        /// </summary>
+        /// <returns></returns>
+        public string BendingTypeNameRodPadej()
+        {
+            switch(BendingTypeLeadsNumber)
+            {
+                case 1:
+                    return "жил";
+                case 2:
+                    return "пар";
+                case 3:
+                    return "троек";
+                case 4:
+                    return "четвёрок";
+                default:
+                    return "элементов";
+            }
+        }
+
+
 
         public CableStructure(Cable cable)
         {
             this.Cable = cable;
             setDefaultParameters();
         }
+
+
 
         public CableStructure(DataRow row, Cable cable)
         {
@@ -142,30 +166,17 @@ namespace SAKProtocolManager.DBEntities
         /// </summary>
         private void filterTested()
         {
-            int filledCount = 0;
-            for (int i = 0; i < this.MeasuredParameters.Length; i++) if (this.MeasuredParameters[i].IsTested) filledCount++;
-            if(filledCount>0)
-            {
-                MeasureParameterType[] testedTypes = new MeasureParameterType[filledCount];
-                int j = 0;
-                foreach (MeasureParameterType mpt in this.MeasuredParameters)
-                {
-                    if (mpt.IsTested)
-                    {
-                        testedTypes[j] = mpt;
-                        j++;
-                    }
-                }
-                this.MeasuredParameters = testedTypes;
-            }
+            List<MeasureParameterType> pTypes = new List<MeasureParameterType>();
+            foreach (MeasureParameterType pt in this.MeasuredParameters) if (pt.TestResults.Length>0) pTypes.Add(pt);
+            this.MeasuredParameters = pTypes.ToArray();
          }
 
      
         protected override void fillParametersFromRow(DataRow row)
         {
             this.Id = row["cable_structure_id"].ToString();
-            this.NumberInCable = ServiceFunctions.convertToUInt(row["cable_structure_number_in_cable"]);
-            this.RealNumberInCable = ServiceFunctions.convertToUInt(row["cable_structure_real_number_in_cable"]);
+            this.NumberInCable = ServiceFunctions.convertToInt16(row["cable_structure_number_in_cable"]);
+            this.RealNumberInCable = ServiceFunctions.convertToInt16(row["cable_structure_real_number_in_cable"]);
             this.LeadDiameter = ServiceFunctions.convertToDecimal(row["cable_structure_lead_diameter"]);
             this.WaveResistance = ServiceFunctions.convertToUInt(row["cable_structure_wave_resistance"]);
             this.Puchek = ServiceFunctions.convertToUInt(row["cable_structure_puchek"]);

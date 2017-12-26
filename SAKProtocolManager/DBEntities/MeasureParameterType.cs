@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using iTextSharp.text;
-
+using SAKProtocolManager.DBEntities.TestResultEntities;
 namespace SAKProtocolManager.DBEntities
 {
     public class MeasureParameterType : DBBase
@@ -13,9 +13,10 @@ namespace SAKProtocolManager.DBEntities
 
         public string Name, Description, Measure;
         public static string[] PrimaryParametersList = new string[] {};
-        //internal TestResult[] TestResults = new TestResult[] { };
-        internal MeasuredParameterData[] ParameterData = new MeasuredParameterData[] {};
+        internal TestResult[] TestResults = new TestResult[] { };
+        internal MeasuredParameterData[] ParameterDataList = new MeasuredParameterData[] {};
         internal CableStructure Structure = null;
+        private int curParameterDataIdx = -1;
         private string deviationMeasure = null;
         /// <summary>
         /// Флаг того, что это испытание проводилось и есть результаты
@@ -25,9 +26,9 @@ namespace SAKProtocolManager.DBEntities
         public int OutOfNormaCount()
         {
             int counter = 0;
-            if (ParameterData.Length > 0)
+            if (ParameterDataList.Length > 0)
             {
-                foreach (MeasuredParameterData pd in ParameterData) counter += pd.NotNormalResults.Count;
+                foreach (MeasuredParameterData pd in ParameterDataList) counter += pd.NotNormalResults.Length;
             }
             return counter;
         }
@@ -65,7 +66,12 @@ namespace SAKProtocolManager.DBEntities
             fillParametersFromRow(row);
             setDefaultParameters();
             getStructureParameterData();
-            if (HasTest()) CheckIsItTested();
+            if (ParameterDataList.Length>0)
+            {
+                GetTestResult();
+                assaignTestResultsToParameterData();
+            }
+            //if (HasTest()) CheckIsItTested();
         }
 
         /*private void fillMeasuredParameterDataResult()
@@ -80,11 +86,65 @@ namespace SAKProtocolManager.DBEntities
             }
         }*/
 
+        public void SetParameterDataIdx(int idx)
+        {
+            if (idx >= ParameterDataList.Length || idx < 0) return;
+            curParameterDataIdx = idx;
+            assaignTestResultsToParameterData();
+        }
+
+        /// <summary>
+        /// Обновляем измеренные параметры на MeasuredParameterData
+        /// </summary>
+        public void RefreshTestResultsOnParameterData(bool needToReloadResults)
+        {
+            if (needToReloadResults) GetTestResult();
+            if (ParameterDataList.Length > 0 && this.TestResults.Length > 0) assaignTestResultsToParameterData();
+        }
+
+
+        private void assaignTestResultsToParameterData()
+        {
+         
+            foreach(MeasuredParameterData pData in ParameterDataList)
+            {
+                List<TestResult> trListForPData = new List<TestResult>();
+                List<TestResult> NotNormaTrListForPData = new List<TestResult>();
+                List<decimal> vals = new List<decimal>();
+                foreach (TestResult tr in TestResults)
+                {
+                    TestResult cTr = tr.CloneIncludingParameterType();
+                    if (cTr.SetParameterData(pData))
+                    {
+                        trListForPData.Add(cTr);
+                        if (!cTr.Affected) vals.Add(cTr.BringingValue);
+                        if (cTr.DeviationPercent > 0) NotNormaTrListForPData.Add(cTr);
+                    }
+                }
+                pData.TestResults = trListForPData.ToArray();
+                pData.NotNormalResults = NotNormaTrListForPData.ToArray();
+                if (pData.TestResults.Length > 0)
+                {
+                    pData.MeasuredPercent = Math.Round(100 * (((decimal)pData.TestResults.Length-(decimal)NotNormaTrListForPData.Count()) / (decimal)pData.TestResults.Length), 0);
+                    if (vals.Count > 0)
+                    {
+                        pData.MaxVal = vals.Max();
+                        pData.MinVal = vals.Min();
+                        pData.AverageVal = Math.Round(vals.Sum() / (decimal)vals.Count(), 1);
+                    }
+                }
+
+
+
+
+            }
+        }
+
         private void getStructureParameterData()
         {
             if (this.Structure == null) return;
             MeasuredParameterData mpd = new MeasuredParameterData(this);
-            this.ParameterData = mpd.GetStructureMeasureParameters();
+            this.ParameterDataList = mpd.GetStructureMeasureParameters();
         }
 
         protected override void fillParametersFromRow(DataRow row)
@@ -122,9 +182,9 @@ namespace SAKProtocolManager.DBEntities
         /// </summary>
         private void CheckIsItTested()
         {
-            if(ParameterData.Length > 0)
+            if(ParameterDataList.Length > 0)
             {
-                foreach(MeasuredParameterData pd in ParameterData)
+                foreach(MeasuredParameterData pd in ParameterDataList)
                 {
                     this.IsTested = pd.TestResults.Length > 0;
                     if (this.IsTested) return;
@@ -133,27 +193,8 @@ namespace SAKProtocolManager.DBEntities
             this.IsTested = false;
         }
 
-        /// <summary>
-        /// Вытаскиваем список коррекций из ненормальных результатов в массив сортированный по убыванию и состоящий из уникальных элементов
-        /// </summary>
-        /// <returns></returns>
-        public decimal[] GetCorrectionLimitsList()
-        {
-            List<decimal> notNormalList = new List<decimal>();
-            foreach(MeasuredParameterData pd in this.ParameterData)
-            {
-                if (pd.NotNormalResults.Count > 0)
-                {
-                    foreach(TestResultEntities.TestResult tr in pd.NotNormalResults)
-                    {
-                       if (!notNormalList.Contains(tr.DeviationPercent)) notNormalList.Add(tr.DeviationPercent);
-                    }
-                }
-            }
-            notNormalList.Sort();
-            return notNormalList.ToArray();
-        }
-        private bool HasTest()
+        
+        internal bool HasTest()
         {
             if (this.Structure == null) return false;
             if (this.Structure.Cable == null) return false;
@@ -196,26 +237,49 @@ namespace SAKProtocolManager.DBEntities
             return this.deviationMeasure;
         }
 
-        internal List<string> CorrectNotNormalResults(decimal corrLimit)
+        internal void GetTestResult()
         {
-            List<string> queries = new List<string>();
-            if (corrLimit == 0) return queries;
-            foreach (MeasuredParameterData pd in ParameterData)
+            // return;
+            if (!HasTest()) return;
+            TestResult tResult = new TestResult(this);
+            this.TestResults = tResult.GetMeasuredResults();
+            this.IsTested = TestResults.Length > 0;
+        }
+
+        public decimal BringToLength(decimal value, decimal curLength, decimal brLength)
+        {
+            int round = 2;
+            switch (this.Name)
             {
-                if (pd.NotNormalResults.Count > 0)
-                {
-                    foreach(TestResultEntities.TestResult tr in pd.NotNormalResults)
-                    {
-                        if(corrLimit >= tr.DeviationPercent)
-                        {
-                            tr.CorrectResult();
-                            if (tr.DeviationPercent == 0) queries.Add(tr.UpdRawValueQuery());
-                        }
-                    }
-                    pd.RefreshNotNormaResultsList();
-                }
+                case "Rж":
+                case "Cр":
+                case "Co":
+                case "Ea":
+                case "K1":
+                case "K2":
+                case "K3":
+                case "K9":
+                case "K10":
+                case "K11":
+                case "K12":
+                    value *= brLength / curLength;
+                    round = value > 99 ? 1 : 2;
+                    return Math.Round(value, round);
+                case "Rиз1":
+                case "Rиз3":
+                    value *= curLength / brLength;
+                    round = value > 99 ? 1 : 2;
+                    return Math.Round(value, round);
+                case "al":
+                    value *= brLength / curLength;
+                    return Math.Round(value, 1);
+                case "Ao":
+                case "Az":
+                    value += 10 * (decimal)Math.Log10(((double)curLength / (double)brLength));
+                    return Math.Round(value, 1);
+                default:
+                    return value;
             }
-            return queries;
         }
     }
 

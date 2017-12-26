@@ -386,7 +386,7 @@ namespace SAKProtocolManager.PDFProtocolEntities
             int tNumber = 1;
             foreach (MeasureParameterType pt in structure.MeasuredParameters)
             {
-                foreach (MeasuredParameterData pd in pt.ParameterData)
+                foreach (MeasuredParameterData pd in pt.ParameterDataList)
                 {
                     if (pd.TestResults[0].GetType().Name == "PrimaryParametersTestResult")
                     {
@@ -416,7 +416,7 @@ namespace SAKProtocolManager.PDFProtocolEntities
             List<MeasuredParameterData> table = new List<MeasuredParameterData>();
             foreach(MeasureParameterType pt in structure.MeasuredParameters)
             {
-                foreach(MeasuredParameterData pd in pt.ParameterData)
+                foreach(MeasuredParameterData pd in pt.ParameterDataList)
                 {
                     if (pd.TestResults[0].GetType().Name == "PrimaryParametersTestResult") count += pd.TestResults[0].Values.Length;
                 }

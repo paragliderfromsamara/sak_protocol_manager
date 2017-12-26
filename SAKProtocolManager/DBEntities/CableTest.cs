@@ -96,10 +96,10 @@ namespace SAKProtocolManager.DBEntities
             {
                 foreach(MeasureParameterType pt in cs.MeasuredParameters)
                 {
-                    if (pt.ParameterData.Length > 0)
+                    if (pt.ParameterDataList.Length > 0)
                     {
                         if (tmp.Contains(pt.Name)) break;
-                        foreach (MeasuredParameterData pd in pt.ParameterData)
+                        foreach (MeasuredParameterData pd in pt.ParameterDataList)
                         {
                             if (pd.TestResults.Length > 0)
                             {
@@ -145,7 +145,7 @@ namespace SAKProtocolManager.DBEntities
             {
                 foreach (MeasureParameterType pType in cs.MeasuredParameters)
                 {
-                    foreach (MeasuredParameterData pData in pType.ParameterData)
+                    foreach (MeasuredParameterData pData in pType.ParameterDataList)
                     {
                         count += pData.TestResults.Length;
                     }

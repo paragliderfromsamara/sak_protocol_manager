@@ -14,6 +14,13 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
     /// </summary>
     class PrimaryParametersTestResult : TestResult
     {
+
+        public PrimaryParametersTestResult(MeasureParameterType pType)
+        {
+            this.ParameterType = pType;
+            this.subElsNumber = GetValuesCount(ParameterType.Name, ParameterType.Structure.BendingTypeLeadsNumber);
+            setDefaultParameters();
+        }
         //
         public PrimaryParametersTestResult(MeasuredParameterData pData)
         {
@@ -23,6 +30,12 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
             setDefaultParameters();
         }
 
+        public PrimaryParametersTestResult(DataRow row, MeasureParameterType pType, int sub_els_number)
+        {
+            this.ParameterType = pType;
+            this.subElsNumber = sub_els_number;
+            fillParametersFromRow(row);
+        }
 
         public PrimaryParametersTestResult(DataRow row, MeasuredParameterData pData, int sub_els_number)
         {
@@ -51,14 +64,14 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         {
             this.ElementNumber = ServiceFunctions.convertToInt16(row["element_number"]);
             RawValues = new decimal[subElsNumber];
-            Values = new decimal[subElsNumber];
+            //Values = new decimal[subElsNumber];
             for (int i = 0; i < subElsNumber; i++)
             {
                 decimal v = ServiceFunctions.convertToDecimal(row[String.Format("value_{0}", i + 1)]);
-                Values[i] = this.ParameterData.BringMeasuredValue(v);
+                //Values[i] = this.ParameterData.BringMeasuredValue(v);
                 RawValues[i] = v;
             }
-            this.brLength = this.ParameterData.BringingLength.ToString();
+            //this.brLength = this.ParameterData.BringingLength.ToString();
         }
 
 
@@ -87,17 +100,21 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
             {
                 for (int i = 0; i < dt.Rows.Count; i++)
                 {
-                    PrimaryParametersTestResult ptr = new PrimaryParametersTestResult(dt.Rows[i], ParameterData, subElsNumber);
-                    for(int j=0; j<ptr.Values.Length; j++)
+                    PrimaryParametersTestResult ptr = new PrimaryParametersTestResult(dt.Rows[i], ParameterType, subElsNumber);
+                    for(int j=0; j<ptr.RawValues.Length; j++)
                     {
                         TestResult tr = new TestResult();
-                        tr.ParameterData = ptr.ParameterData;
+                        /*
+                         *Этот код нужен, если TestResult создаётся на ParameterData
+                          tr.ParameterData = ptr.ParameterData;
+                          tr.BringingValue = ptr.Values[j];
+                          if (!tr.CheckIsItNorma()) ParameterData.NotNormalResults.Add(tr);
+                        */
                         tr.ParameterType = ptr.ParameterType;
                         tr.RawValue = ptr.RawValues[j];
                         tr.ElementNumber = ptr.ElementNumber;
-                        tr.BringingValue = ptr.Values[j];
                         tr.SubElementNumber = j + 1;
-                        if (!tr.CheckIsItNorma()) ParameterData.NotNormalResults.Add(tr);
+                        
                         trs.Add(tr);
                     }
                 }
