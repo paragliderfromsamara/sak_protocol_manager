@@ -50,5 +50,8 @@ FROM dr_priv_formuls</Value>
     <Setting Name="TestCount" Type="System.String" Scope="User">
       <Value Profile="(Default)">SELECT COUNT(IspInd) FROM ispytan</Value>
     </Setting>
+    <Setting Name="SelectTestById" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SELECT ispytan.IspInd AS id, ispytan.IspData AS tested_at, CONCAT(cables.CabName,' ',cables.CabNameStruct) AS cable_name, cables.StrLengt AS build_length, cables.CabNum AS cable_id, barabany.barabanNum AS baraban_number, ispytan.CabelLengt AS cable_length, ispytan.Brutto AS brutto FROM ispytan LEFT JOIN cables USING(cabNum) LEFT JOIN barabany USING(barabanInd) WHERE ispytan.IspInd= {0}</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

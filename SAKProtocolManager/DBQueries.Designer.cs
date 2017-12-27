@@ -136,5 +136,17 @@ namespace SAKProtocolManager {
                 this["TestCount"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"SELECT ispytan.IspInd AS id, ispytan.IspData AS tested_at, CONCAT(cables.CabName,' ',cables.CabNameStruct) AS cable_name, cables.StrLengt AS build_length, cables.CabNum AS cable_id, barabany.barabanNum AS baraban_number, ispytan.CabelLengt AS cable_length, ispytan.Brutto AS brutto FROM ispytan LEFT JOIN cables USING(cabNum) LEFT JOIN barabany USING(barabanInd) WHERE ispytan.IspInd= {0}")]
+        public string SelectTestById {
+            get {
+                return ((string)(this["SelectTestById"]));
+            }
+            set {
+                this["SelectTestById"] = value;
+            }
+        }
     }
 }

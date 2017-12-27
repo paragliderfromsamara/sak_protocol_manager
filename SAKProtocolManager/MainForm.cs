@@ -31,15 +31,20 @@ namespace SAKProtocolManager
 
         public MainForm()
         {
+            bool isActive = !Properties.Settings.Default.NeedKey || hasValidKey();
             TestHistoryItem[] historyItems = TestHistoryItem.GetFromIniFile();
             setSeparator();
             InitializeComponent();
+            setSearchType();
             progressBarPanel.Visible = false;
             initTestsList();
             SetDBConstants();
             this.Text =Application.ProductName + " v." + Application.ProductVersion;
+            if (!isActive) this.Text += String.Format(" (ознакомительный период до {0})", Properties.Settings.Default.FreePeriodEndDate.ToShortDateString());
             CurrentWidth = this.Width;
             CurrentHeight = this.Height;
+            OpenRegForm.Visible = !isActive;
+            
             FillOpenedTestHistory(historyItems);
         /// Thread.Sleep(6000);
         // sts.Close();
@@ -101,16 +106,16 @@ namespace SAKProtocolManager
                 dateTimeFrom.MaxDate = dateTimeFrom.Value = DateTime.Parse(dateFromMax);
                 dateTimeTo.MinDate = DateTime.Parse(dateToMin);
                 dateTimeTo.MaxDate = dateTimeTo.Value = DateTime.Parse(dateToMax);
-                fillTestList(dbDateFormat(dateTimeFrom.Value), dbDateFormat(dateTimeTo.Value));
+                fillTestList();
             }
 
 
         }
 
 
-        private void fillTestList(string dateMin, string dateMax)
+        private void fillTestList()
         {
-            string com = String.Format(DBQueries.Default.SelectTestsList, dateMin, dateMax);
+            string com = buildQueryBySearchType();
             DBControl mySql = new DBControl(DBQueries.Default.DBName);
             int rowsCount;
             string defaultText = SearchButton.Text;
@@ -130,7 +135,7 @@ namespace SAKProtocolManager
             ClearList.Visible = true;
             SearchButton.Text = defaultText;
             this.Cursor = Cursors.Arrow;
-            //button1.Enabled = true;
+            SearchButton.Enabled = true;
             this.Refresh();
             rowsCount = testsListView.Rows.Count - 1;
             ClearList.Enabled = rowsCount > 0;
@@ -154,7 +159,7 @@ namespace SAKProtocolManager
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            fillTestList(dbDateFormat(dateTimeFrom.Value), dbDateFormat(dateTimeTo.Value));
+            fillTestList();
             //label3.Text = String.Format("{0} - {1}", dateTimeFrom.Value.ToString(), dateTimeTo.Value.ToString());
         }
         private void MeasureResultReaderClosed(object sender, EventArgs e)
@@ -317,9 +322,9 @@ namespace SAKProtocolManager
         }
 
 
-        private void dateTimeFrom_ValueChanged(object sender, EventArgs e)
+        private void conditionsChanged_ValueChanged(object sender, EventArgs e)
         {
-            SearchButton.Enabled = true;
+            //SearchButton.Enabled = true;
             ClearList.Enabled = false;
         }
 
@@ -346,6 +351,79 @@ namespace SAKProtocolManager
             PDFProtocolEntities.PDFProtocol.MakeOldStylePDFProtocol(test_id);
         }
 
+        private void setSearchType()
+        {
+            getFromSettins:
+            string curSearch = Properties.Settings.Default.SearchType;
+            switch(curSearch)
+            {
+                case "byDate":
+                    byDate.Checked = true;
+                    return;
+                case "byTestId":
+                    byTestId.Checked = true;
+                    return;
+                default:
+                    Properties.Settings.Default.SearchType = "byDate";
+                    goto getFromSettins;
+            }
+        }
+
+        private void searchTypeRadioBut_CheckedChanged(object sender, EventArgs e)
+        {
+            RadioButton rb = sender as RadioButton;
+            if (!rb.Checked) return;
+            dateTimeFrom.Visible = dateTimeTo.Visible = label2.Visible = rb.Name == "byDate";
+            testIdField.Visible = rb.Name == "byTestId";
+            label1.Text = rb.Name == "byDate" ? "Начальная дата" : "Номер испытания";
+            Properties.Settings.Default.SearchType = rb.Name;
+            Properties.Settings.Default.Save();
+        }
+
+        private string buildQueryBySearchType()
+        {
+            string sType = Properties.Settings.Default.SearchType;
+            return (sType == "byTestId") ? String.Format(DBQueries.Default.SelectTestById, testIdField.Value) : String.Format(DBQueries.Default.SelectTestsList, dbDateFormat(dateTimeFrom.Value), dbDateFormat(dateTimeTo.Value));
+
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.Save();
+            bool needReg = Properties.Settings.Default.NeedKey && !hasValidKey();
+            DateTime lastOpenDate = Properties.Settings.Default.FreePeriodEndDate;
+            DateTime dt = DateTime.Now;
+            if (needReg)
+            {
+                if (dt > lastOpenDate)
+                {
+                    RegistrationForm rf = new RegistrationForm();
+                    DialogResult dr = rf.ShowDialog();
+                    if (dr == DialogResult.Abort) this.Close();
+                    else if(dr == DialogResult.OK)
+                    {
+                        this.OpenRegForm.Visible = dr != DialogResult.OK;
+                        if (dr == DialogResult.OK) this.Text = Application.ProductName + " v." + Application.ProductVersion;
+                    }
+                }
+            }
+        }
+
+        private void OpenRegForm_Click(object sender, EventArgs e)
+        {
+            RegistrationForm rf = new RegistrationForm();
+            DialogResult dr = rf.ShowDialog();
+            this.OpenRegForm.Visible = dr != DialogResult.OK;
+            if (dr == DialogResult.OK) this.Text = Application.ProductName + " v." + Application.ProductVersion; 
+        }
+
+        private bool hasValidKey()
+        {
+            IniFile ini = new IniFile(Properties.Settings.Default.IniSettingsFileName);
+            string exKey = Properties.Settings.Default.ExpectedKey;
+            string iniVal = ini.Read("ProductKey");
+            return exKey == iniVal;
+        }
 
     }
 

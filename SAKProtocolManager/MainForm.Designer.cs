@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.dataSetTest = new System.Data.DataSet();
             this.ispytan = new System.Data.DataTable();
@@ -69,11 +69,16 @@
             this.progressBarPanel = new System.Windows.Forms.Panel();
             this.TestListtPanel = new System.Windows.Forms.Panel();
             this.searchPanel = new System.Windows.Forms.Panel();
+            this.testIdField = new System.Windows.Forms.NumericUpDown();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.byTestId = new System.Windows.Forms.RadioButton();
+            this.byDate = new System.Windows.Forms.RadioButton();
             this.controlPanel = new System.Windows.Forms.Panel();
             this.topMenu = new System.Windows.Forms.MenuStrip();
             this.TestHistoryItemsToolStrip = new System.Windows.Forms.ToolStripMenuItem();
             this.statusPanel = new System.Windows.Forms.StatusStrip();
             this.selectedCountLbl = new System.Windows.Forms.ToolStripStatusLabel();
+            this.OpenRegForm = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataSetTest)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ispytan)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.date_range)).BeginInit();
@@ -82,6 +87,8 @@
             this.progressBarPanel.SuspendLayout();
             this.TestListtPanel.SuspendLayout();
             this.searchPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.testIdField)).BeginInit();
+            this.groupBox1.SuspendLayout();
             this.controlPanel.SuspendLayout();
             this.topMenu.SuspendLayout();
             this.statusPanel.SuspendLayout();
@@ -183,19 +190,19 @@
             this.testsListView.MultiSelect = false;
             this.testsListView.Name = "testsListView";
             this.testsListView.ReadOnly = true;
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopCenter;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.testsListView.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
-            dataGridViewCellStyle4.BackColor = System.Drawing.Color.MintCream;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.Teal;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.OldLace;
-            this.testsListView.RowsDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopCenter;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.testsListView.RowHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.MintCream;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.Teal;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.OldLace;
+            this.testsListView.RowsDefaultCellStyle = dataGridViewCellStyle2;
             this.testsListView.RowTemplate.Height = 26;
             this.testsListView.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.testsListView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
@@ -320,7 +327,7 @@
             this.dateTimeFrom.Name = "dateTimeFrom";
             this.dateTimeFrom.Size = new System.Drawing.Size(146, 22);
             this.dateTimeFrom.TabIndex = 2;
-            this.dateTimeFrom.ValueChanged += new System.EventHandler(this.dateTimeFrom_ValueChanged);
+            this.dateTimeFrom.ValueChanged += new System.EventHandler(this.conditionsChanged_ValueChanged);
             // 
             // dateTimeTo
             // 
@@ -412,6 +419,8 @@
             // 
             // searchPanel
             // 
+            this.searchPanel.Controls.Add(this.testIdField);
+            this.searchPanel.Controls.Add(this.groupBox1);
             this.searchPanel.Controls.Add(this.controlPanel);
             this.searchPanel.Controls.Add(this.progressBarPanel);
             this.searchPanel.Controls.Add(this.label2);
@@ -422,6 +431,65 @@
             this.searchPanel.Name = "searchPanel";
             this.searchPanel.Size = new System.Drawing.Size(970, 80);
             this.searchPanel.TabIndex = 13;
+            // 
+            // testIdField
+            // 
+            this.testIdField.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.testIdField.Location = new System.Drawing.Point(0, 34);
+            this.testIdField.Maximum = new decimal(new int[] {
+            -1981284353,
+            -1966660860,
+            0,
+            0});
+            this.testIdField.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.testIdField.Name = "testIdField";
+            this.testIdField.Size = new System.Drawing.Size(315, 22);
+            this.testIdField.TabIndex = 16;
+            this.testIdField.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.testIdField.ValueChanged += new System.EventHandler(this.conditionsChanged_ValueChanged);
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.byTestId);
+            this.groupBox1.Controls.Add(this.byDate);
+            this.groupBox1.Location = new System.Drawing.Point(616, 6);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(236, 65);
+            this.groupBox1.TabIndex = 15;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Тип поиска";
+            // 
+            // byTestId
+            // 
+            this.byTestId.AutoSize = true;
+            this.byTestId.Location = new System.Drawing.Point(90, 31);
+            this.byTestId.Name = "byTestId";
+            this.byTestId.Size = new System.Drawing.Size(137, 17);
+            this.byTestId.TabIndex = 14;
+            this.byTestId.TabStop = true;
+            this.byTestId.Text = "По номеру испытания";
+            this.byTestId.UseVisualStyleBackColor = true;
+            this.byTestId.CheckedChanged += new System.EventHandler(this.searchTypeRadioBut_CheckedChanged);
+            // 
+            // byDate
+            // 
+            this.byDate.AutoSize = true;
+            this.byDate.Location = new System.Drawing.Point(19, 31);
+            this.byDate.Name = "byDate";
+            this.byDate.Size = new System.Drawing.Size(65, 17);
+            this.byDate.TabIndex = 13;
+            this.byDate.TabStop = true;
+            this.byDate.Text = "По дате";
+            this.byDate.UseVisualStyleBackColor = true;
+            this.byDate.CheckedChanged += new System.EventHandler(this.searchTypeRadioBut_CheckedChanged);
             // 
             // controlPanel
             // 
@@ -435,7 +503,8 @@
             // topMenu
             // 
             this.topMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.TestHistoryItemsToolStrip});
+            this.TestHistoryItemsToolStrip,
+            this.OpenRegForm});
             this.topMenu.Location = new System.Drawing.Point(0, 0);
             this.topMenu.Name = "topMenu";
             this.topMenu.Size = new System.Drawing.Size(1044, 24);
@@ -464,6 +533,13 @@
             this.selectedCountLbl.Size = new System.Drawing.Size(123, 17);
             this.selectedCountLbl.Text = "Показано 0 из 104234";
             // 
+            // OpenRegForm
+            // 
+            this.OpenRegForm.Name = "OpenRegForm";
+            this.OpenRegForm.Size = new System.Drawing.Size(88, 20);
+            this.OpenRegForm.Text = "Регистрация";
+            this.OpenRegForm.Click += new System.EventHandler(this.OpenRegForm_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -477,6 +553,7 @@
             this.MinimumSize = new System.Drawing.Size(1000, 700);
             this.Name = "MainForm";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.ResizeBegin += new System.EventHandler(this.MainForm_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.MainForm_ResizeEnd);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.MainForm_MouseClick);
@@ -491,6 +568,9 @@
             this.TestListtPanel.ResumeLayout(false);
             this.searchPanel.ResumeLayout(false);
             this.searchPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.testIdField)).EndInit();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.controlPanel.ResumeLayout(false);
             this.topMenu.ResumeLayout(false);
             this.topMenu.PerformLayout();
@@ -545,6 +625,11 @@
         private System.Windows.Forms.ToolStripMenuItem TestHistoryItemsToolStrip;
         private System.Windows.Forms.StatusStrip statusPanel;
         private System.Windows.Forms.ToolStripStatusLabel selectedCountLbl;
+        private System.Windows.Forms.RadioButton byTestId;
+        private System.Windows.Forms.RadioButton byDate;
+        private System.Windows.Forms.NumericUpDown testIdField;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.ToolStripMenuItem OpenRegForm;
     }
 }
 
