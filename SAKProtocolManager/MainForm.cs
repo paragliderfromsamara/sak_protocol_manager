@@ -10,8 +10,9 @@ using System.Windows.Forms;
 using SAKProtocolManager.DBEntities;
 using MySql.Data.MySqlClient;
 using System.Threading;
-
+using System.IO;
 using System.Globalization;
+using System.Diagnostics;
 
 namespace SAKProtocolManager
 {
@@ -44,7 +45,7 @@ namespace SAKProtocolManager
             CurrentWidth = this.Width;
             CurrentHeight = this.Height;
             OpenRegForm.Visible = !isActive;
-            
+            руководствоПользователяToolStripMenuItem.Enabled = File.Exists("Руководство пользователя.pdf");
             FillOpenedTestHistory(historyItems);
         /// Thread.Sleep(6000);
         // sts.Close();
@@ -81,33 +82,41 @@ namespace SAKProtocolManager
         }
         private void initTestsList()
         {
-            DBControl mySql = new DBControl(DBQueries.Default.DBName);
-            ClearList.Enabled = SearchButton.Enabled = false;
-            string comDateRange = DBQueries.Default.MinMaxDateQuery;
-            mySql.MyConn.Open();
-            TestCount = mySql.RunNoQuery(DBQueries.Default.TestCount);
-            MySqlDataAdapter dateRange = new MySqlDataAdapter(comDateRange, mySql.MyConn);
-            dataSetTest.Tables["date_range"].Rows.Clear();
-            dateRange.Fill(dataSetTest.Tables["date_range"]);
-            mySql.MyConn.Close();
-            statusPanel.Text = "База данных испытаний пуста";
-            if (dataSetTest.Tables["date_range"].Rows.Count > 0)
+            try
             {
-                string dateMin, dateMax, dateToMin, dateToMax, dateFromMin, dateFromMax;
-                dateMin = dataSetTest.Tables["date_range"].Rows[0][1].ToString();
-                dateMax = dataSetTest.Tables["date_range"].Rows[0][0].ToString();
-                if (String.IsNullOrWhiteSpace(dateMin) || String.IsNullOrWhiteSpace(dateMin)) return;
-                dateFromMin = dateMin.Replace(dateMin.Substring(10), " 00:00:00");
-                dateFromMax = dateMax.Replace(dateMax.Substring(10), " 00:00:00");
-                dateToMin = dateMin.Replace(dateMin.Substring(10), " 23:59:59");
-                dateToMax = dateMax.Replace(dateMax.Substring(10), " 23:59:59");
-                //label3.Text = dbDateFormat(DateTime.Parse(dateFromMax));
-                dateTimeFrom.MinDate = DateTime.Parse(dateFromMin);
-                dateTimeFrom.MaxDate = dateTimeFrom.Value = DateTime.Parse(dateFromMax);
-                dateTimeTo.MinDate = DateTime.Parse(dateToMin);
-                dateTimeTo.MaxDate = dateTimeTo.Value = DateTime.Parse(dateToMax);
-                fillTestList();
+                DBControl mySql = new DBControl(DBQueries.Default.DBName);
+                ClearList.Enabled = SearchButton.Enabled = false;
+                string comDateRange = DBQueries.Default.MinMaxDateQuery;
+                mySql.MyConn.Open();
+                TestCount = mySql.RunNoQuery(DBQueries.Default.TestCount);
+                MySqlDataAdapter dateRange = new MySqlDataAdapter(comDateRange, mySql.MyConn);
+                dataSetTest.Tables["date_range"].Rows.Clear();
+                dateRange.Fill(dataSetTest.Tables["date_range"]);
+                mySql.MyConn.Close();
+                statusPanel.Text = "База данных испытаний пуста";
+                if (dataSetTest.Tables["date_range"].Rows.Count > 0)
+                {
+                    string dateMin, dateMax, dateToMin, dateToMax, dateFromMin, dateFromMax;
+                    dateMin = dataSetTest.Tables["date_range"].Rows[0][1].ToString();
+                    dateMax = dataSetTest.Tables["date_range"].Rows[0][0].ToString();
+                    if (String.IsNullOrWhiteSpace(dateMin) || String.IsNullOrWhiteSpace(dateMin)) return;
+                    dateFromMin = dateMin.Replace(dateMin.Substring(10), " 00:00:00");
+                    dateFromMax = dateMax.Replace(dateMax.Substring(10), " 00:00:00");
+                    dateToMin = dateMin.Replace(dateMin.Substring(10), " 23:59:59");
+                    dateToMax = dateMax.Replace(dateMax.Substring(10), " 23:59:59");
+                    //label3.Text = dbDateFormat(DateTime.Parse(dateFromMax));
+                    dateTimeFrom.MinDate = DateTime.Parse(dateFromMin);
+                    dateTimeFrom.MaxDate = dateTimeFrom.Value = DateTime.Parse(dateFromMax);
+                    dateTimeTo.MinDate = DateTime.Parse(dateToMin);
+                    dateTimeTo.MaxDate = dateTimeTo.Value = DateTime.Parse(dateToMax);
+                    fillTestList();
+                }
+            }catch(MySqlException ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                TestHistoryItemsToolStrip.Enabled = searchPanel.Enabled = false;
             }
+
 
 
         }
@@ -115,42 +124,50 @@ namespace SAKProtocolManager
 
         private void fillTestList()
         {
-            string com = buildQueryBySearchType();
-            DBControl mySql = new DBControl(DBQueries.Default.DBName);
-            int rowsCount;
-            string defaultText = SearchButton.Text;
-            //com += " limit 10000";
-            ClearList.Visible = false;
-            SearchButton.Enabled = false;
-            SearchButton.Text = "ИДЁТ ПОИСК...";
-            this.Refresh();
-            this.Cursor = Cursors.WaitCursor;
-            mySql.MyConn.Open();
-            MySqlDataAdapter da = new MySqlDataAdapter(com, mySql.MyConn);
-            dataSetTest.Tables["ispytan"].Rows.Clear();
-            da.Fill(dataSetTest.Tables["ispytan"]);
-            mySql.MyConn.Close();
-            testsListView.DataSource = dataSetTest.Tables["ispytan"];
-            testsListView.Refresh();
-            ClearList.Visible = true;
-            SearchButton.Text = defaultText;
-            this.Cursor = Cursors.Arrow;
-            SearchButton.Enabled = true;
-            this.Refresh();
-            rowsCount = testsListView.Rows.Count - 1;
-            ClearList.Enabled = rowsCount > 0;
-            if (TestCount == 0)
+            try
             {
-                selectedCountLbl.Text = "База данных испытаний пуста";
-            }
-            else
-            {
-                if (rowsCount == 0) selectedCountLbl.Text = String.Format("Показано 0 испытаний из {0}", TestCount);
-                else if (rowsCount == 1) selectedCountLbl.Text = String.Format("Показано 1 испытание из {0}", TestCount);
-                else if (rowsCount > 1 && rowsCount < 5) selectedCountLbl.Text = String.Format("Показано {0} испытания из {1}", rowsCount, TestCount);
-                else selectedCountLbl.Text = String.Format("Показано {0} испытаний из {1}", rowsCount, TestCount);
+                string com = buildQueryBySearchType();
+                DBControl mySql = new DBControl(DBQueries.Default.DBName);
+                int rowsCount;
+                string defaultText = SearchButton.Text;
+                //com += " limit 10000";
+                ClearList.Visible = false;
+                SearchButton.Enabled = false;
+                SearchButton.Text = "ИДЁТ ПОИСК...";
+                this.Refresh();
+                this.Cursor = Cursors.WaitCursor;
+                mySql.MyConn.Open();
+                MySqlDataAdapter da = new MySqlDataAdapter(com, mySql.MyConn);
+                dataSetTest.Tables["ispytan"].Rows.Clear();
+                da.Fill(dataSetTest.Tables["ispytan"]);
+                mySql.MyConn.Close();
+                testsListView.DataSource = dataSetTest.Tables["ispytan"];
+                testsListView.Refresh();
+                ClearList.Visible = true;
+                SearchButton.Text = defaultText;
+                this.Cursor = Cursors.Arrow;
+                SearchButton.Enabled = true;
+                this.Refresh();
+                rowsCount = testsListView.Rows.Count - 1;
+                ClearList.Enabled = rowsCount > 0;
+                if (TestCount == 0)
+                {
+                    selectedCountLbl.Text = "База данных испытаний пуста";
+                }
+                else
+                {
+                    if (rowsCount == 0) selectedCountLbl.Text = String.Format("Показано 0 испытаний из {0}", TestCount);
+                    else if (rowsCount == 1) selectedCountLbl.Text = String.Format("Показано 1 испытание из {0}", TestCount);
+                    else if (rowsCount > 1 && rowsCount < 5) selectedCountLbl.Text = String.Format("Показано {0} испытания из {1}", rowsCount, TestCount);
+                    else selectedCountLbl.Text = String.Format("Показано {0} испытаний из {1}", rowsCount, TestCount);
 
+                }
+            }catch(MySqlException ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка связи с базой данных", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                TestHistoryItemsToolStrip.Enabled = searchPanel.Enabled = false;
             }
+
         }
 
         private string dbDateFormat(DateTime dt)
@@ -175,8 +192,12 @@ namespace SAKProtocolManager
         }
         private void OpenTestFromTable()
         {
-            string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
-            OpenTest(test_id);
+            try
+            {
+                string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
+                OpenTest(test_id);
+            }
+            catch (NullReferenceException) { }
         }
         private void OpenTest(string testId)
         {
@@ -201,7 +222,7 @@ namespace SAKProtocolManager
 
                 this.Cursor = Cursors.Default;
             }
-            catch (ThreadAbortException) { }
+            catch (NullReferenceException) { }
         }
 
         
@@ -425,6 +446,17 @@ namespace SAKProtocolManager
             return exKey == iniVal;
         }
 
+        private void руководствоПользователяToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (File.Exists("Руководство пользователя.pdf")) Process.Start("Руководство пользователя.pdf");
+            }catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            
+        }
     }
 
    

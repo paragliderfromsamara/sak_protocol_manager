@@ -23,23 +23,25 @@ namespace SAKProtocolManager
             {
                 cur_base = cb;
             try
-                {
+                 {
                     MyConn = new MySqlConnection(connstr);
                     MyConn.Open();
                     MC = new MySqlCommand("USE " + cur_base, MyConn);
                     if (cur_base != "") MC.ExecuteScalar();
                     MyConn.Close();
-            }
+                  }
                 catch (MySqlException ex)
                 {
                     MessageBox.Show(ex.Message, "Ошибка...", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    throw new DBException(ex.ErrorCode, "MySQL сервер не доступен!  ");
+                    //throw new DBException(ex.ErrorCode, "MySQL сервер не доступен!  ");
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Ошибка...", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    throw new DBException(0, "MySQL сервер не доступен!  ");
+                    //throw new DBException(0, "MySQL сервер не доступен!  ");
                 }
+
+
             }
         //------------------------------------------------------------------------------------------------------------------------
         //KRA Functions  

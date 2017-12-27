@@ -76,9 +76,11 @@
             this.controlPanel = new System.Windows.Forms.Panel();
             this.topMenu = new System.Windows.Forms.MenuStrip();
             this.TestHistoryItemsToolStrip = new System.Windows.Forms.ToolStripMenuItem();
+            this.OpenRegForm = new System.Windows.Forms.ToolStripMenuItem();
             this.statusPanel = new System.Windows.Forms.StatusStrip();
             this.selectedCountLbl = new System.Windows.Forms.ToolStripStatusLabel();
-            this.OpenRegForm = new System.Windows.Forms.ToolStripMenuItem();
+            this.справкаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.руководствоПользователяToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataSetTest)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ispytan)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.date_range)).BeginInit();
@@ -504,7 +506,8 @@
             // 
             this.topMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.TestHistoryItemsToolStrip,
-            this.OpenRegForm});
+            this.OpenRegForm,
+            this.справкаToolStripMenuItem});
             this.topMenu.Location = new System.Drawing.Point(0, 0);
             this.topMenu.Name = "topMenu";
             this.topMenu.Size = new System.Drawing.Size(1044, 24);
@@ -516,6 +519,13 @@
             this.TestHistoryItemsToolStrip.Name = "TestHistoryItemsToolStrip";
             this.TestHistoryItemsToolStrip.Size = new System.Drawing.Size(137, 20);
             this.TestHistoryItemsToolStrip.Text = "История просмотров";
+            // 
+            // OpenRegForm
+            // 
+            this.OpenRegForm.Name = "OpenRegForm";
+            this.OpenRegForm.Size = new System.Drawing.Size(88, 20);
+            this.OpenRegForm.Text = "Регистрация";
+            this.OpenRegForm.Click += new System.EventHandler(this.OpenRegForm_Click);
             // 
             // statusPanel
             // 
@@ -533,12 +543,20 @@
             this.selectedCountLbl.Size = new System.Drawing.Size(123, 17);
             this.selectedCountLbl.Text = "Показано 0 из 104234";
             // 
-            // OpenRegForm
+            // справкаToolStripMenuItem
             // 
-            this.OpenRegForm.Name = "OpenRegForm";
-            this.OpenRegForm.Size = new System.Drawing.Size(88, 20);
-            this.OpenRegForm.Text = "Регистрация";
-            this.OpenRegForm.Click += new System.EventHandler(this.OpenRegForm_Click);
+            this.справкаToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.руководствоПользователяToolStripMenuItem});
+            this.справкаToolStripMenuItem.Name = "справкаToolStripMenuItem";
+            this.справкаToolStripMenuItem.Size = new System.Drawing.Size(65, 20);
+            this.справкаToolStripMenuItem.Text = "Справка";
+            // 
+            // руководствоПользователяToolStripMenuItem
+            // 
+            this.руководствоПользователяToolStripMenuItem.Name = "руководствоПользователяToolStripMenuItem";
+            this.руководствоПользователяToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
+            this.руководствоПользователяToolStripMenuItem.Text = "Руководство пользователя";
+            this.руководствоПользователяToolStripMenuItem.Click += new System.EventHandler(this.руководствоПользователяToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -630,6 +648,8 @@
         private System.Windows.Forms.NumericUpDown testIdField;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.ToolStripMenuItem OpenRegForm;
+        private System.Windows.Forms.ToolStripMenuItem справкаToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem руководствоПользователяToolStripMenuItem;
     }
 }
 
