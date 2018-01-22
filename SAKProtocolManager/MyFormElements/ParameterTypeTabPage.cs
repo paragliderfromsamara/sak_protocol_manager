@@ -250,7 +250,6 @@ namespace SAKProtocolManager.MyFormElements
             dgv.Columns.Add("value", String.Format("Результат {0}", ParameterData.ResultMeasure()));
             dgv.Columns.Add("min_val", String.Format("Мин. {0}", ParameterData.ResultMeasure()));
             dgv.Columns.Add("max_val", String.Format("Макс. {0}", ParameterData.ResultMeasure()));
-            dgv.Columns.Add("percent_out", String.Format("Отклонение {0}", ParameterData.ParameterType.DeviationMeasure()));
             dgv.Columns["min_val"].Visible = ParameterData.MinValue != Decimal.MinValue;
             dgv.Columns["max_val"].Visible = ParameterData.MaxValue != Decimal.MaxValue;
             dgv.Columns["lead"].Visible = ParameterData.ParameterType.Name != "dR";
@@ -268,10 +267,10 @@ namespace SAKProtocolManager.MyFormElements
                     r.CreateCells(dgv);
                     r.Cells[0].Value = result.ElementNumber;
                     r.Cells[1].Value = result.SubElementTitle();
+                    r.Cells[2].ReadOnly = result.Affected;
                     r.Cells[2].Value = result.GetStringTableValue();
                     r.Cells[3].Value = ParameterData.MinValue.ToString();
                     r.Cells[4].Value = ParameterData.MaxValue.ToString();
-                    r.Cells[5].Value = result.DeviationPercent;
                     r.DefaultCellStyle = GetRowStyle(result);
                     dgv.Rows.Add(r);
                 }
@@ -287,6 +286,7 @@ namespace SAKProtocolManager.MyFormElements
             decimal was = tdgr.Result.RawValue;
             decimal val = ServiceFunctions.convertToDecimal(tdgr.Cells[e.ColumnIndex].Value);
             tdgr.Result.UpdateResult(val);
+            tdgr.DefaultCellStyle = GetRowStyle(tdgr.Result);
             MessageBox.Show(was.ToString() + " - " + tdgr.Result.RawValue.ToString());
         }
 
@@ -341,7 +341,6 @@ namespace SAKProtocolManager.MyFormElements
             dgv.Columns.Add("freq_range", "Диапазон частот, кГц");
             dgv.Columns.Add("value", "результат, " + ParameterData.ParameterType.ParameterDataList[0].ResultMeasure());
             dgv.Columns.Add("norma", ParameterData.ParameterType.Name == "al" ? "Макс" : "Мин" );
-            dgv.Columns.Add("percent_out", "Отклонение, дБ");
 
             TestResult[] results = ParameterData.TestResults;
             if (results.Length > 0)
@@ -360,7 +359,6 @@ namespace SAKProtocolManager.MyFormElements
                     dgv.Rows[i].Cells["transponder_number"].Value = results[i- lastCount].GeneratorElementNumber;
                     dgv.Rows[i].Cells["value"].Value = results[i - lastCount].GetStringTableValue();
                     dgv.Rows[i].Cells["norma"].Value = ParameterData.ParameterType.Name == "al" ? ParameterData.MaxValue : ParameterData.MinValue;
-                    dgv.Rows[i].Cells["percent_out"].Value = results[i- lastCount].DeviationPercent;
                     dgv.Rows[i].DefaultCellStyle = GetRowStyle(results[i]);
                 }
             }

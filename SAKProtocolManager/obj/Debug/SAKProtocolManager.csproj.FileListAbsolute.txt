@@ -39,3 +39,4 @@ C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtoco
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.exe
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.pdb
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.csprojResolveAssemblyReference.cache
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\obj\Debug\SAKProtocolManager.RegistrationForm.resources

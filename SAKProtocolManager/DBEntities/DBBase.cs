@@ -54,12 +54,28 @@ namespace SAKProtocolManager.DBEntities
             return v;
         }
 
+        /// <summary>
+        /// Отправляет список запросов в базу данных
+        /// </summary>
+        /// <param name="fields"></param>
         public static void SendQueriesList(string[] fields)
         {
             if (fields.Length == 0) return;
             DBControl mySql = new DBControl(DBQueries.Default.DBName);
             mySql.MyConn.Open();
             foreach(string f in fields) mySql.RunNoQuery(f);
+            mySql.MyConn.Close();
+        }
+
+        /// <summary>
+        /// Отправляет одиночный запрос в базу данных
+        /// </summary>
+        /// <param name="query"></param>
+        public static void SendQuery(string query)
+        {
+            DBControl mySql = new DBControl(DBQueries.Default.DBName);
+            mySql.MyConn.Open();
+            mySql.RunNoQuery(query);
             mySql.MyConn.Close();
         }
 

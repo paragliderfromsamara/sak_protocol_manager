@@ -150,26 +150,27 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
             if (ParameterData == null) return true;
             if (IsAffected()) return true;
             decimal prc = 0;
-            if (this.BringingValue < ParameterData.MinValue)
+            decimal val = Math.Abs(this.BringingValue);
+            if (val < ParameterData.MinValue)
             {
                 this.NormaValue = ParameterData.MinValue;
                 
                 if (this.ParameterType.Name == "Ao" || this.ParameterType.Name == "Az" || this.ParameterType.Name == "al" || this.ParameterType.Name == "Rиз2" || this.ParameterType.Name == "Rиз4" || this.ParameterType.Name == "dR")
                 {
-                    prc = ParameterData.MinValue - this.BringingValue;
+                    prc = ParameterData.MinValue - val;
                 }
-                else prc = (decimal)100 * (ParameterData.MinValue - this.BringingValue) / ParameterData.MinValue;
+                else prc = (decimal)100 * (ParameterData.MinValue - val) / ParameterData.MinValue;
             }
-            else if (this.BringingValue > ParameterData.MaxValue)
+            else if (val > ParameterData.MaxValue)
             {
                 this.NormaValue = ParameterData.MaxValue;
                 if (this.ParameterType.Name == "Ao" || this.ParameterType.Name == "Az" || this.ParameterType.Name == "al" || this.ParameterType.Name == "Rиз2" || this.ParameterType.Name == "Rиз4" || this.ParameterType.Name == "dR")
                 {
-                    prc = this.BringingValue - ParameterData.MaxValue;
+                    prc = val - ParameterData.MaxValue;
                 }
                 else
                 {
-                    prc = (decimal) 100 * (this.BringingValue - ParameterData.MaxValue) / ParameterData.MaxValue;
+                    prc = (decimal) 100 * (val - ParameterData.MaxValue) / ParameterData.MaxValue;
                 }
             }
             this.DeviationPercent = Math.Round(prc, 1);
@@ -271,6 +272,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         {
             this.RawValue = this.ParameterType.BringToLength(newValue, this.ParameterData.BringingLength, this.ParameterType.Structure.Cable.Test.TestedLength);
             this.BringingValue = this.ParameterData.BringMeasuredValue(this.RawValue);
+            SendQuery(UpdRawValueQuery());
             this.CheckIsItNorma();
         }
 
