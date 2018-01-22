@@ -267,28 +267,9 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
             return UpdRawValueQuery();
         }
 
-        public void CorrectResult()
+        public void UpdateResult(decimal newValue)
         {
-            if (this.DeviationPercent == 0) return;
-            Random r = new Random((int)DateTime.Now.Ticks & 0x0000FFFF);
-            Thread.Sleep(1);
-            decimal corrCoeff = (decimal)r.Next(100, 999)/1000;//this.DeviationPercent;// * (decimal)Math.Sqrt(2);
-            if (this.NormaValue < this.BringingValue) corrCoeff *= -1;
-            switch (this.ParameterType.Name)
-            {
-                case "Ao":
-                case "Az":
-                    this.RawValue = this.ParameterType.BringToLength(this.NormaValue + corrCoeff, this.ParameterData.BringingLength, this.ParameterType.Structure.Cable.Test.TestedLength);
-                    break;
-                case "dR":
-                case "Rиз2":
-                case "Rиз4":
-                    this.RawValue = this.NormaValue + corrCoeff;
-                    break;
-                default:
-                    this.RawValue = ((this.NormaValue + corrCoeff) * this.RawValue / this.BringingValue);//(this.NormaValue * corrCoeff) / 100;
-                    break;
-            }
+            this.RawValue = this.ParameterType.BringToLength(newValue, this.ParameterData.BringingLength, this.ParameterType.Structure.Cable.Test.TestedLength);
             this.BringingValue = this.ParameterData.BringMeasuredValue(this.RawValue);
             this.CheckIsItNorma();
         }

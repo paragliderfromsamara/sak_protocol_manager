@@ -51,9 +51,9 @@ namespace SAKProtocolManager.MyFormElements
             xPos = leftOffset;
             yPos = topOffset;
             //yPos += 5;
-            DrawCorrectionLimitControl();
-            drawMeasureStatLabel();
-            yPos += 115;
+            //DrawCorrectionLimitControl();
+            //drawMeasureStatLabel();
+            //yPos += 115;
             DrawValuesTable();
             SetValuesTableStyle();
         }
@@ -261,21 +261,36 @@ namespace SAKProtocolManager.MyFormElements
             if (results.Length > 0)
             {
                 int rowsNumber = -1;
-                for (int i = 0; i < results.Length; i++)
+                foreach(TestResult result in results)
                 {
                     rowsNumber++;
-                    dgv.Rows.Add(1);
-                    dgv.Rows[rowsNumber].Cells["element_number"].Value = results[i].ElementNumber;
-                    dgv.Rows[rowsNumber].Cells["lead"].Value = results[i].SubElementTitle();
-                    dgv.Rows[rowsNumber].Cells["value"].Value = results[i].GetStringTableValue();
-                    dgv.Rows[rowsNumber].Cells["min_val"].Value = ParameterData.MinValue.ToString();
-                    dgv.Rows[rowsNumber].Cells["max_val"].Value = ParameterData.MaxValue.ToString();
-                    dgv.Rows[rowsNumber].Cells["percent_out"].Value = results[i].DeviationPercent;
-                    dgv.Rows[rowsNumber].DefaultCellStyle = GetRowStyle(results[i]);
+                    TestResultDataGridViewRow r = new TestResultDataGridViewRow(result);
+                    r.CreateCells(dgv);
+                    r.Cells[0].Value = result.ElementNumber;
+                    r.Cells[1].Value = result.SubElementTitle();
+                    r.Cells[2].Value = result.GetStringTableValue();
+                    r.Cells[3].Value = ParameterData.MinValue.ToString();
+                    r.Cells[4].Value = ParameterData.MaxValue.ToString();
+                    r.Cells[5].Value = result.DeviationPercent;
+                    r.DefaultCellStyle = GetRowStyle(result);
+                    dgv.Rows.Add(r);
                 }
             }
+            dgv.CellValueChanged += Dgv_CellValueChanged;
             return dgv;
         }
+
+        private void Dgv_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            DataGridView dgv = sender as DataGridView;
+            TestResultDataGridViewRow tdgr = dgv.Rows[e.RowIndex] as TestResultDataGridViewRow;
+            decimal was = tdgr.Result.RawValue;
+            decimal val = ServiceFunctions.convertToDecimal(tdgr.Cells[e.ColumnIndex].Value);
+            tdgr.Result.UpdateResult(val);
+            MessageBox.Show(was.ToString() + " - " + tdgr.Result.RawValue.ToString());
+        }
+
+
 
         private DataGridView DrawDefaultTable()
         {
@@ -350,8 +365,10 @@ namespace SAKProtocolManager.MyFormElements
                 }
             }
             dgv.Refresh();
+
             return dgv;
         }
+
 
 
         private DataGridView MakeAffectedElementsTable(CableStructure structure)
@@ -418,7 +435,7 @@ namespace SAKProtocolManager.MyFormElements
             CorrectResultsButton.Text = "Произвести коррекцию";
             CorrectResultsButton.Parent = CorrectionLimitGB;
             CorrectResultsButton.Width = 180;
-            CorrectResultsButton.Click += new EventHandler(CorrectResults);
+
 
             CorrectionResultPB = new ProgressBar();
             CorrectionResultPB.Name = String.Format("CorrectionResultPB_{0}", ParameterData.ParameterType.Name);
@@ -440,6 +457,7 @@ namespace SAKProtocolManager.MyFormElements
             }
             if (CorrectionLimitComboBox.Items.Count > 0 ) CorrectionLimitComboBox.SelectedIndex = 0;
         }
+        /*
         private void CorrectResults(object sender, EventArgs e)
         {
             DialogResult dr = MessageBox.Show("Будет произведена коррекция результатов вышедших за норму с отклонением до " + CorrectionLimitComboBox.Text + ParameterData.ParameterType.DeviationMeasure() + " включительно\n\nВы согласны?", "Коррекция параметра " + ParameterData.ParameterType.Name, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -449,8 +467,8 @@ namespace SAKProtocolManager.MyFormElements
                 //FillCorrectionLimitsCBItems();
                 //SendCorrectionQueriesToDataBase(ParameterData.ParameterType.CorrectNotNormalResults(ServiceFunctions.convertToDecimal(CorrectionLimitComboBox.Text)));
                 //mReader.RefreshOutOfNormaPanel(ParameterData.ParameterType.Name);
-                List<string> queries = ParameterData.CorrectNotNormalResults(ServiceFunctions.convertToDecimal(CorrectionLimitComboBox.Text));
-                if (queries.Count == 0) return;
+                //List<string> queries = ParameterData.CorrectNotNormalResults(ServiceFunctions.convertToDecimal(CorrectionLimitComboBox.Text));
+                //if (queries.Count == 0) return;
                 List<string> tmp = new List<string>();
                 int sendLimit = 50;
                 CorrectResultsButton.Visible = false;
@@ -476,7 +494,7 @@ namespace SAKProtocolManager.MyFormElements
 
             }
         }
-
+        */
         private void SendCorrectionQueriesToDataBase(List<string> queries)
         {
             if (queries.Count == 0) return;
@@ -536,5 +554,24 @@ namespace SAKProtocolManager.MyFormElements
             s.SelectionForeColor = System.Drawing.Color.OldLace;
             return s;
         }
+    }
+
+    public partial class TestResultDataGridViewRow : DataGridViewRow
+    {
+        public TestResult Result;
+        private bool hasChangeValueHandler = false;
+
+        public TestResultDataGridViewRow()
+        {
+
+        }
+
+        public TestResultDataGridViewRow(TestResult result)
+        {
+            this.Result = result;
+            //this.CreateCells(dgv);
+        }
+
+
     }
 }

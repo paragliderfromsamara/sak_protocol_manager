@@ -327,24 +327,7 @@ namespace SAKProtocolManager.DBEntities
             return notNormalList.ToArray();
         }
 
-        internal List<string> CorrectNotNormalResults(decimal corrLimit)
-        {
-            List<string> queries = new List<string>();
-            if (corrLimit == 0) return queries;
-            if (this.NotNormalResults.Length > 0)
-            {
-                foreach (TestResult tr in this.NotNormalResults)
-                {
-                    if (corrLimit >= tr.DeviationPercent)
-                    {
-                        tr.CorrectResult();
-                        if (tr.DeviationPercent == 0) queries.Add(tr.UpdRawValueQuery());
-                    }
-                }
-                //pd.RefreshNotNormaResultsList();
-            }
-            return queries;
-        }
+
 
     }
 }
