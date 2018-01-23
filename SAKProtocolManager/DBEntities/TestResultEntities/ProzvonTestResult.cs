@@ -10,7 +10,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
     public class ProzvonTestResult : TestResult
     {
         private string structureId = String.Empty;
-        public new bool IsAffected = false;
+        public bool IsAffected = false;
         public ProzvonTestResult(string test_id, string structure_id, int sub_elements_number)
         {
             this.testId = test_id;

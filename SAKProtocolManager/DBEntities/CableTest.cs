@@ -137,6 +137,13 @@ namespace SAKProtocolManager.DBEntities
             if (sts == 0) this.TestedLength = newLength;
             return sts;
         }
+
+        public long UpdateBruttoWeight(decimal weight)
+        {
+            long sts = this.UpdateField("ispytan", String.Format("Brutto = {0}", weight), "IspInd = " + this.Id);
+            if (sts == 0) this.BruttoWeight = weight;
+            return sts;
+        }
         
         public int TestResultsCount()
         {

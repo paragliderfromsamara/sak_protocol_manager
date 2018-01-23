@@ -461,7 +461,7 @@ namespace SAKProtocolManager.PDFProtocolEntities
                 string workPath = filePath.Replace("Client3.exe", "");
                 ProcessStartInfo startInfo = new ProcessStartInfo(String.Format(@"{0}", filePath));
                 startInfo.WorkingDirectory = String.Format(@"{0}", workPath);
-                startInfo.Arguments = String.Format("{0} {1}", test_id, 1);
+                startInfo.Arguments = String.Format("{0} {1}", test_id, 0);
                 Process pr = Process.Start(startInfo);
             }
             catch(Exception e)

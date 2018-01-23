@@ -262,6 +262,8 @@ namespace SAKProtocolManager.DBEntities
                 case "K10":
                 case "K11":
                 case "K12":
+                case "K2,K3":
+                case "K9-12":
                     value *= brLength / curLength;
                     round = value > 99 ? 1 : 2;
                     return Math.Round(value, round);

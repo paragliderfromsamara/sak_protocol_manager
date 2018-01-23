@@ -184,7 +184,7 @@ namespace SAKProtocolManager.DBEntities
         {
             int id = ServiceFunctions.convertToInt16(this.ParameterType.Id);
             if (id >= 20) return 14; // K9, K10, K11, K12 берет норму K9-K12
-            else if (id == 18 && id == 19) return 13; // K2, K3 берет норму K2,K3
+            else if (id == 18 || id == 19) return 13; // K2, K3 берет норму K2,K3
             else return id;
         }
 

@@ -45,7 +45,7 @@
             this.barabanLbl = new System.Windows.Forms.Label();
             this.TestInfoPanel = new System.Windows.Forms.GroupBox();
             this.TemperatureLbl = new System.Windows.Forms.Label();
-            this.MeasuredParametersLbl = new System.Windows.Forms.Label();
+            this.BruttoWeight = new System.Windows.Forms.Label();
             this.cableStructuresList = new System.Windows.Forms.ComboBox();
             this.StructuresLbl = new System.Windows.Forms.Label();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -62,7 +62,8 @@
             this.OutOfNormaRsltPanel = new System.Windows.Forms.GroupBox();
             this.parameterTypeLbl = new System.Windows.Forms.Label();
             this.parameterTypeCB = new System.Windows.Forms.ComboBox();
-            this.structureReport = new System.Windows.Forms.Label();
+            this.EditSaveBruttoButton = new System.Windows.Forms.Button();
+            this.BruttoWeightTextField = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.measureResultReaderDataSet)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cableTable)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.measured_parameters_table_1)).BeginInit();
@@ -72,6 +73,7 @@
             this.lengthEditor.SuspendLayout();
             this.lengthUpdProgressBarField.SuspendLayout();
             this.OutOfNormaRsltPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BruttoWeightTextField)).BeginInit();
             this.SuspendLayout();
             // 
             // cableTypeLbl
@@ -164,8 +166,10 @@
             // 
             // TestInfoPanel
             // 
+            this.TestInfoPanel.Controls.Add(this.BruttoWeightTextField);
+            this.TestInfoPanel.Controls.Add(this.EditSaveBruttoButton);
             this.TestInfoPanel.Controls.Add(this.TemperatureLbl);
-            this.TestInfoPanel.Controls.Add(this.MeasuredParametersLbl);
+            this.TestInfoPanel.Controls.Add(this.BruttoWeight);
             this.TestInfoPanel.Controls.Add(this.cableTypeLbl);
             this.TestInfoPanel.Controls.Add(this.operatorLbl);
             this.TestInfoPanel.Controls.Add(this.testedAtLbl);
@@ -187,14 +191,14 @@
             this.TemperatureLbl.TabIndex = 5;
             this.TemperatureLbl.Text = "Температура";
             // 
-            // MeasuredParametersLbl
+            // BruttoWeight
             // 
-            this.MeasuredParametersLbl.AutoSize = true;
-            this.MeasuredParametersLbl.Location = new System.Drawing.Point(23, 106);
-            this.MeasuredParametersLbl.Name = "MeasuredParametersLbl";
-            this.MeasuredParametersLbl.Size = new System.Drawing.Size(155, 16);
-            this.MeasuredParametersLbl.TabIndex = 4;
-            this.MeasuredParametersLbl.Text = "Измеренные параметры:";
+            this.BruttoWeight.AutoSize = true;
+            this.BruttoWeight.Location = new System.Drawing.Point(23, 106);
+            this.BruttoWeight.Name = "BruttoWeight";
+            this.BruttoWeight.Size = new System.Drawing.Size(67, 16);
+            this.BruttoWeight.TabIndex = 4;
+            this.BruttoWeight.Text = "Брутто, кг";
             // 
             // cableStructuresList
             // 
@@ -220,7 +224,7 @@
             this.tabPage1.AutoScroll = true;
             this.tabPage1.Location = new System.Drawing.Point(4, 23);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Size = new System.Drawing.Size(771, 502);
+            this.tabPage1.Size = new System.Drawing.Size(771, 319);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "tabPage1";
             this.tabPage1.ToolTipText = "fgfgh";
@@ -229,10 +233,10 @@
             // tabControlTestResult
             // 
             this.tabControlTestResult.Controls.Add(this.tabPage1);
-            this.tabControlTestResult.Location = new System.Drawing.Point(16, 103);
+            this.tabControlTestResult.Location = new System.Drawing.Point(16, 87);
             this.tabControlTestResult.Name = "tabControlTestResult";
             this.tabControlTestResult.SelectedIndex = 0;
-            this.tabControlTestResult.Size = new System.Drawing.Size(779, 529);
+            this.tabControlTestResult.Size = new System.Drawing.Size(779, 346);
             this.tabControlTestResult.TabIndex = 5;
             // 
             // GeneratePDFProtocolButton
@@ -349,7 +353,6 @@
             // 
             // OutOfNormaRsltPanel
             // 
-            this.OutOfNormaRsltPanel.Controls.Add(this.structureReport);
             this.OutOfNormaRsltPanel.Controls.Add(this.parameterTypeLbl);
             this.OutOfNormaRsltPanel.Controls.Add(this.parameterTypeCB);
             this.OutOfNormaRsltPanel.Controls.Add(this.cableStructuresList);
@@ -358,7 +361,7 @@
             this.OutOfNormaRsltPanel.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.OutOfNormaRsltPanel.Location = new System.Drawing.Point(12, 158);
             this.OutOfNormaRsltPanel.Name = "OutOfNormaRsltPanel";
-            this.OutOfNormaRsltPanel.Size = new System.Drawing.Size(810, 650);
+            this.OutOfNormaRsltPanel.Size = new System.Drawing.Size(810, 453);
             this.OutOfNormaRsltPanel.TabIndex = 16;
             this.OutOfNormaRsltPanel.TabStop = false;
             this.OutOfNormaRsltPanel.Text = "Панель просмотра результата";
@@ -382,21 +385,35 @@
             this.parameterTypeCB.TabIndex = 8;
             this.parameterTypeCB.SelectedIndexChanged += new System.EventHandler(this.parameterTypeCB_SelectedIndexChanged);
             // 
-            // structureReport
+            // EditSaveBruttoButton
             // 
-            this.structureReport.AutoSize = true;
-            this.structureReport.Location = new System.Drawing.Point(17, 80);
-            this.structureReport.Name = "structureReport";
-            this.structureReport.Size = new System.Drawing.Size(186, 14);
-            this.structureReport.TabIndex = 10;
-            this.structureReport.Text = "Фактичское Номинальное Брак";
-            this.structureReport.Visible = false;
+            this.EditSaveBruttoButton.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.EditSaveBruttoButton.Location = new System.Drawing.Point(213, 102);
+            this.EditSaveBruttoButton.Name = "EditSaveBruttoButton";
+            this.EditSaveBruttoButton.Size = new System.Drawing.Size(94, 23);
+            this.EditSaveBruttoButton.TabIndex = 6;
+            this.EditSaveBruttoButton.Text = "Сохранить";
+            this.EditSaveBruttoButton.UseVisualStyleBackColor = true;
+            this.EditSaveBruttoButton.Click += new System.EventHandler(this.EditSaveBruttoButton_Click);
+            // 
+            // BruttoWeightTextField
+            // 
+            this.BruttoWeightTextField.Location = new System.Drawing.Point(96, 102);
+            this.BruttoWeightTextField.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.BruttoWeightTextField.Name = "BruttoWeightTextField";
+            this.BruttoWeightTextField.Size = new System.Drawing.Size(111, 23);
+            this.BruttoWeightTextField.TabIndex = 7;
+            this.BruttoWeightTextField.ValueChanged += new System.EventHandler(this.BruttoWeightTextField_ValueChanged);
             // 
             // MeasureResultReader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(835, 820);
+            this.ClientSize = new System.Drawing.Size(835, 615);
             this.Controls.Add(this.OutOfNormaRsltPanel);
             this.Controls.Add(this.lengthUpdProgressBarField);
             this.Controls.Add(this.lengthEditor);
@@ -419,6 +436,7 @@
             this.lengthUpdProgressBarField.PerformLayout();
             this.OutOfNormaRsltPanel.ResumeLayout(false);
             this.OutOfNormaRsltPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BruttoWeightTextField)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -453,11 +471,12 @@
         private System.Windows.Forms.Label lengthUpdProgressBarLbl;
         private System.Windows.Forms.ProgressBar LengthUpdProgressBar;
         private System.Windows.Forms.Label procNameLbl;
-        private System.Windows.Forms.Label MeasuredParametersLbl;
+        private System.Windows.Forms.Label BruttoWeight;
         private System.Windows.Forms.GroupBox OutOfNormaRsltPanel;
         private System.Windows.Forms.Label TemperatureLbl;
         private System.Windows.Forms.Label parameterTypeLbl;
         private System.Windows.Forms.ComboBox parameterTypeCB;
-        private System.Windows.Forms.Label structureReport;
+        private System.Windows.Forms.Button EditSaveBruttoButton;
+        private System.Windows.Forms.NumericUpDown BruttoWeightTextField;
     }
 }

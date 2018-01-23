@@ -106,7 +106,7 @@ namespace SAKProtocolManager.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2018-01-31")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2018-02-15")]
         public global::System.DateTime FreePeriodEndDate {
             get {
                 return ((global::System.DateTime)(this["FreePeriodEndDate"]));

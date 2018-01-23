@@ -51,7 +51,7 @@ namespace SAKProtocolManager
                 StructuresLbl.Text = "Структура кабеля";
                 cableStructuresList.Visible = true;
                 tabControlTestResult.Visible = true;
-                OutOfNormaRsltPanel.Size = new Size(810, 650);
+                OutOfNormaRsltPanel.Size = new Size(810, 450);
                 //OutOfNormaRsltPanel.Visible = true;
             }
             else
@@ -75,7 +75,7 @@ namespace SAKProtocolManager
             testedAtLbl.Text = String.Format("Испытан {0}", ServiceFunctions.MyDateTime(CableTest.TestDate));
             TemperatureLbl.Text = String.Format("Температура: {0}°С", CableTest.Temperature);
             testedLengthInput.Value = CableTest.TestedLength;
-            MeasuredParametersLbl.Text = String.Format("Измеренные параметры: {0}", CableTest.GetMeasuredParameters());
+            BruttoWeightTextField.Value = CableTest.BruttoWeight;
             if (!fillStructuresComboBox())
             {
                 
@@ -115,6 +115,7 @@ namespace SAKProtocolManager
             {
                selectedStructureIdx = cableStructuresList.SelectedIndex;
                fillParameterTypesComboBox(selectedStructureIdx);
+               drawParameterTypeTabs();
                //DrawMeasureParametersTabs(selectedStructureIdx, "");
             }
             
@@ -278,7 +279,9 @@ namespace SAKProtocolManager
             foreach (MeasuredParameterData pData in pType.ParameterDataList)
             {
                 if (pData.TestResults.Length == 0) continue;
-                pages.Add(new ParameterTypeTabPage(pData, this));
+                ParameterTypeTabPage ptp = new ParameterTypeTabPage(pData, this);
+                ptp.Height = this.Height - 10;
+                pages.Add(ptp);
             }
             if (pages.Count > 0)
             {
@@ -292,5 +295,24 @@ namespace SAKProtocolManager
         {
             drawParameterTypeTabs();
         }
+
+        private void BruttoWeightTextField_ValueChanged(object sender, EventArgs e)
+        {
+            NumericUpDown ud = sender as NumericUpDown;
+            EditSaveBruttoButton.Enabled = ud.Value != CableTest.BruttoWeight;
+        }
+
+        private void EditSaveBruttoButton_Click(object sender, EventArgs e)
+        {
+            decimal w = BruttoWeightTextField.Value;
+            long sts = CableTest.UpdateBruttoWeight(w);
+            if (sts == 0)
+            {
+                MessageBox.Show("Вес БРУТТО успешно обновлён", "", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+                EditSaveBruttoButton.Enabled = false;
+            }
+        }
+
+
     }
 }

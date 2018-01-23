@@ -67,14 +67,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="SAKProtocolManager.exe" size="254976">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="SAKProtocolManager.exe" size="252416">
       <assemblyIdentity name="SAKProtocolManager" version="1.0.1.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>konuGSU77wP5+g/QTHuuDBfLvmbc99UQfjdD4s3ULnI=</dsig:DigestValue>
+        <dsig:DigestValue>LsFT+C597xC6CYFKqZrQlaLcb7XAd0Xf007bYFB7nEQ=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -93,7 +93,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>Z5ffgbVQfUerlBD1ZYiiKihsgCWUd9xCyGM+LbHE5P0=</dsig:DigestValue>
+      <dsig:DigestValue>KoDO7hYCYSymBK5WXy+t8McVKKmozPTtLtKiNVCClDA=</dsig:DigestValue>
     </hash>
   </file>
   <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
