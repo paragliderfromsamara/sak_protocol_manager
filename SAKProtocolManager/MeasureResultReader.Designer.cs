@@ -44,6 +44,8 @@
             this.testedAtLbl = new System.Windows.Forms.Label();
             this.barabanLbl = new System.Windows.Forms.Label();
             this.TestInfoPanel = new System.Windows.Forms.GroupBox();
+            this.BruttoWeightTextField = new System.Windows.Forms.NumericUpDown();
+            this.EditSaveBruttoButton = new System.Windows.Forms.Button();
             this.TemperatureLbl = new System.Windows.Forms.Label();
             this.BruttoWeight = new System.Windows.Forms.Label();
             this.cableStructuresList = new System.Windows.Forms.ComboBox();
@@ -62,18 +64,16 @@
             this.OutOfNormaRsltPanel = new System.Windows.Forms.GroupBox();
             this.parameterTypeLbl = new System.Windows.Forms.Label();
             this.parameterTypeCB = new System.Windows.Forms.ComboBox();
-            this.EditSaveBruttoButton = new System.Windows.Forms.Button();
-            this.BruttoWeightTextField = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.measureResultReaderDataSet)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cableTable)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.measured_parameters_table_1)).BeginInit();
             this.TestInfoPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BruttoWeightTextField)).BeginInit();
             this.tabControlTestResult.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.testedLengthInput)).BeginInit();
             this.lengthEditor.SuspendLayout();
             this.lengthUpdProgressBarField.SuspendLayout();
             this.OutOfNormaRsltPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.BruttoWeightTextField)).BeginInit();
             this.SuspendLayout();
             // 
             // cableTypeLbl
@@ -181,6 +181,31 @@
             this.TestInfoPanel.TabIndex = 4;
             this.TestInfoPanel.TabStop = false;
             this.TestInfoPanel.Text = "Информация о испытании";
+            // 
+            // BruttoWeightTextField
+            // 
+            this.BruttoWeightTextField.Location = new System.Drawing.Point(96, 102);
+            this.BruttoWeightTextField.Maximum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            0});
+            this.BruttoWeightTextField.Name = "BruttoWeightTextField";
+            this.BruttoWeightTextField.Size = new System.Drawing.Size(111, 23);
+            this.BruttoWeightTextField.TabIndex = 7;
+            this.BruttoWeightTextField.ValueChanged += new System.EventHandler(this.BruttoWeightTextField_ValueChanged);
+            this.BruttoWeightTextField.KeyUp += new System.Windows.Forms.KeyEventHandler(this.BruttoWeightTextField_ValueChanged);
+            // 
+            // EditSaveBruttoButton
+            // 
+            this.EditSaveBruttoButton.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.EditSaveBruttoButton.Location = new System.Drawing.Point(213, 102);
+            this.EditSaveBruttoButton.Name = "EditSaveBruttoButton";
+            this.EditSaveBruttoButton.Size = new System.Drawing.Size(94, 23);
+            this.EditSaveBruttoButton.TabIndex = 6;
+            this.EditSaveBruttoButton.Text = "Сохранить";
+            this.EditSaveBruttoButton.UseVisualStyleBackColor = true;
+            this.EditSaveBruttoButton.Click += new System.EventHandler(this.EditSaveBruttoButton_Click);
             // 
             // TemperatureLbl
             // 
@@ -385,30 +410,6 @@
             this.parameterTypeCB.TabIndex = 8;
             this.parameterTypeCB.SelectedIndexChanged += new System.EventHandler(this.parameterTypeCB_SelectedIndexChanged);
             // 
-            // EditSaveBruttoButton
-            // 
-            this.EditSaveBruttoButton.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.EditSaveBruttoButton.Location = new System.Drawing.Point(213, 102);
-            this.EditSaveBruttoButton.Name = "EditSaveBruttoButton";
-            this.EditSaveBruttoButton.Size = new System.Drawing.Size(94, 23);
-            this.EditSaveBruttoButton.TabIndex = 6;
-            this.EditSaveBruttoButton.Text = "Сохранить";
-            this.EditSaveBruttoButton.UseVisualStyleBackColor = true;
-            this.EditSaveBruttoButton.Click += new System.EventHandler(this.EditSaveBruttoButton_Click);
-            // 
-            // BruttoWeightTextField
-            // 
-            this.BruttoWeightTextField.Location = new System.Drawing.Point(96, 102);
-            this.BruttoWeightTextField.Maximum = new decimal(new int[] {
-            100000,
-            0,
-            0,
-            0});
-            this.BruttoWeightTextField.Name = "BruttoWeightTextField";
-            this.BruttoWeightTextField.Size = new System.Drawing.Size(111, 23);
-            this.BruttoWeightTextField.TabIndex = 7;
-            this.BruttoWeightTextField.ValueChanged += new System.EventHandler(this.BruttoWeightTextField_ValueChanged);
-            // 
             // MeasureResultReader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -428,6 +429,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.measured_parameters_table_1)).EndInit();
             this.TestInfoPanel.ResumeLayout(false);
             this.TestInfoPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.BruttoWeightTextField)).EndInit();
             this.tabControlTestResult.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.testedLengthInput)).EndInit();
             this.lengthEditor.ResumeLayout(false);
@@ -436,7 +438,6 @@
             this.lengthUpdProgressBarField.PerformLayout();
             this.OutOfNormaRsltPanel.ResumeLayout(false);
             this.OutOfNormaRsltPanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.BruttoWeightTextField)).EndInit();
             this.ResumeLayout(false);
 
         }

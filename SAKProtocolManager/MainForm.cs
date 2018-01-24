@@ -312,10 +312,28 @@ namespace SAKProtocolManager
 
         }
 
-        public void UpdateSelectedCableLength(int length)
+        public void UpdateSelectedTest(CableTest test)
         {
-            testsListView.SelectedRows[0].Cells["length"].Value = length; 
+            //MessageBox.Show(String.Format("{0} {1} {2} {3}", test.Id, test.BruttoWeight, test.TestedLength, testsListView.SelectedRows[0].Cells["id"]));
+            int rowIndex = -1;
+            try
+            {
+                DataGridViewRow row = testsListView.Rows
+                .Cast<DataGridViewRow>()
+                .Where(r => r.Cells["id"].Value.ToString().Equals(test.Id))
+                .First();
+                rowIndex = row.Index;
+            }
+            catch (NullReferenceException) { }
+
+            if (rowIndex != -1)
+            {
+                testsListView.Rows[rowIndex].Cells["length"].Value = test.TestedLength;
+                testsListView.Rows[rowIndex].Cells["BruttoWeight"].Value = test.BruttoWeight;
+            }
+            
         }
+
 
         private void удалитьToolStripMenuItem_Click(object sender, EventArgs e)
         {

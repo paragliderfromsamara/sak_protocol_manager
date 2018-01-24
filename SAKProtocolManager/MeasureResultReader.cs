@@ -165,7 +165,7 @@ namespace SAKProtocolManager
                 lengthUpdProgressBarField.Visible = false;
                 this.Enabled = true;
                 this.Cursor = Cursors.Default;
-                this.MainForm.UpdateSelectedCableLength(Convert.ToInt16(this.testedLengthInput.Value));
+                this.MainForm.UpdateSelectedTest(CableTest);
                 drawParameterTypeTabs();
                 MessageBox.Show(String.Format("Результат успешно пересчитан на длину кабеля {0} м.", testedLengthInput.Value), "Длина успешно пересчитана", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
             }
@@ -267,28 +267,33 @@ namespace SAKProtocolManager
 
         private void drawParameterTypeTabs()
         {
-            MeasureParameterType pType = CableTest.TestedCable.Structures[selectedStructureIdx].MeasuredParameters[selectedParameterTypeIdx];
-            int sIndex= tabControlTestResult.TabPages.Count > 0 ? tabControlTestResult.SelectedIndex : 0;
-            tabControlTestResult.TabPages.Clear();
-           
-            CableStructure curStructure = this.CableTest.TestedCable.Structures[cableStructuresList.SelectedIndex];
-            MeasureParameterType[] mParams = ParameterTypesForTabs(cableStructuresList.SelectedIndex);
-            List<TabPage> pages = new List<TabPage>();
-            //if (curStructure.AffectedElementNumbers.Length>1)test.Text = curStructure.AffectedElementNumbers[1].ToString();
-            //if (curStructure.AffectedElements.Length > 0) pages.Add(new ParameterTypeTabPage(curStructure, this));
-            foreach (MeasuredParameterData pData in pType.ParameterDataList)
+            try
             {
-                if (pData.TestResults.Length == 0) continue;
-                ParameterTypeTabPage ptp = new ParameterTypeTabPage(pData, this);
-                ptp.Height = this.Height - 10;
-                pages.Add(ptp);
+                MeasureParameterType pType = CableTest.TestedCable.Structures[selectedStructureIdx].MeasuredParameters[selectedParameterTypeIdx];
+                int sIndex = tabControlTestResult.TabPages.Count > 0 ? tabControlTestResult.SelectedIndex : 0;
+                tabControlTestResult.TabPages.Clear();
+
+                CableStructure curStructure = this.CableTest.TestedCable.Structures[cableStructuresList.SelectedIndex];
+                MeasureParameterType[] mParams = ParameterTypesForTabs(cableStructuresList.SelectedIndex);
+                List<TabPage> pages = new List<TabPage>();
+                //if (curStructure.AffectedElementNumbers.Length>1)test.Text = curStructure.AffectedElementNumbers[1].ToString();
+                //if (curStructure.AffectedElements.Length > 0) pages.Add(new ParameterTypeTabPage(curStructure, this));
+                foreach (MeasuredParameterData pData in pType.ParameterDataList)
+                {
+                    if (pData.TestResults.Length == 0) continue;
+                    ParameterTypeTabPage ptp = new ParameterTypeTabPage(pData, this);
+                    ptp.Height = this.Height - 10;
+                    pages.Add(ptp);
+                }
+                if (pages.Count > 0)
+                {
+                    tabControlTestResult.TabPages.AddRange(pages.ToArray());
+                    tabControlTestResult.SelectedIndex = sIndex;
+                    tabControlTestResult.Refresh();
+                }
             }
-            if (pages.Count > 0)
-            {
-                tabControlTestResult.TabPages.AddRange(pages.ToArray());
-                tabControlTestResult.SelectedIndex = sIndex;
-                tabControlTestResult.Refresh();
-            }
+            catch (IndexOutOfRangeException) { OutOfNormaRsltPanel.Visible = false; this.Height = this.Height - OutOfNormaRsltPanel.Height; this.Refresh(); }
+
         }
 
         public void RefreshTabs()
@@ -308,11 +313,13 @@ namespace SAKProtocolManager
             long sts = CableTest.UpdateBruttoWeight(w);
             if (sts == 0)
             {
+                this.Cursor = Cursors.WaitCursor;
+                this.MainForm.UpdateSelectedTest(CableTest);
                 MessageBox.Show("Вес БРУТТО успешно обновлён", "", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
                 EditSaveBruttoButton.Enabled = false;
+                this.Cursor = Cursors.Default;
             }
         }
-
 
     }
 }
