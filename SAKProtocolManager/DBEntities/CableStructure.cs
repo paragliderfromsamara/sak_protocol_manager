@@ -112,8 +112,8 @@ namespace SAKProtocolManager.DBEntities
             string selectQuery =
                 "struktury_cab.StruktInd AS cable_structure_id," +
                 "struktury_cab.CabNum AS cable_id," +
-                "struktury_cab.Kolvo AS cable_structure_number_in_cable," +
-                "struktury_cab.Kolvo_ind AS cable_structure_real_number_in_cable," +
+                "struktury_cab.Kolvo AS cable_structure_real_number_in_cable," +
+                "struktury_cab.Kolvo_ind AS cable_structure_number_in_cable," +
                 "struktury_cab.DiamGil AS cable_structure_lead_diameter," +
                 "struktury_cab.Zwave AS cable_structure_wave_resistance," +
                 "struktury_cab.Puchek AS cable_structure_puchek," +

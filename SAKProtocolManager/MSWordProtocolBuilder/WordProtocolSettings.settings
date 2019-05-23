@@ -6,22 +6,22 @@
       <Value Profile="(Default)">wdColorBlack</Value>
     </Setting>
     <Setting Name="FontSize" Type="System.Single" Scope="User">
-      <Value Profile="(Default)">9</Value>
+      <Value Profile="(Default)">8.5</Value>
     </Setting>
     <Setting Name="FontName" Type="System.String" Scope="User">
       <Value Profile="(Default)">Times New Roman</Value>
     </Setting>
     <Setting Name="Page_MarginLeft" Type="System.Single" Scope="User">
-      <Value Profile="(Default)">10</Value>
+      <Value Profile="(Default)">20</Value>
     </Setting>
     <Setting Name="Page_MarginRight" Type="System.Single" Scope="User">
-      <Value Profile="(Default)">10</Value>
+      <Value Profile="(Default)">20</Value>
     </Setting>
     <Setting Name="Page_MarginTop" Type="System.Single" Scope="User">
-      <Value Profile="(Default)">10</Value>
+      <Value Profile="(Default)">20</Value>
     </Setting>
     <Setting Name="Page_MarginBottom" Type="System.Single" Scope="User">
-      <Value Profile="(Default)">10</Value>
+      <Value Profile="(Default)">20</Value>
     </Setting>
   </Settings>
 </SettingsFile>

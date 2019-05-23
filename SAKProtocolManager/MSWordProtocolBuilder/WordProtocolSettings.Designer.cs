@@ -37,7 +37,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("9")]
+        [global::System.Configuration.DefaultSettingValueAttribute("8.5")]
         public float FontSize {
             get {
                 return ((float)(this["FontSize"]));
@@ -61,7 +61,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        [global::System.Configuration.DefaultSettingValueAttribute("20")]
         public float Page_MarginLeft {
             get {
                 return ((float)(this["Page_MarginLeft"]));
@@ -73,7 +73,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        [global::System.Configuration.DefaultSettingValueAttribute("20")]
         public float Page_MarginRight {
             get {
                 return ((float)(this["Page_MarginRight"]));
@@ -85,7 +85,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        [global::System.Configuration.DefaultSettingValueAttribute("20")]
         public float Page_MarginTop {
             get {
                 return ((float)(this["Page_MarginTop"]));
@@ -97,7 +97,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        [global::System.Configuration.DefaultSettingValueAttribute("20")]
         public float Page_MarginBottom {
             get {
                 return ((float)(this["Page_MarginBottom"]));

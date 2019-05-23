@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SAKProtocolManager.DBEntities;
+using SAKProtocolManager.DBEntities.TestResultEntities;
 using Microsoft.Office.Interop.Word;
 using Word = Microsoft.Office.Interop.Word;
 using System.Diagnostics;
@@ -64,30 +65,99 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
+        private static int[] CalcMaxRowsCount(int cols, int rows)
+        {
+            int tablesAmount = 16 / cols;
+            int perTableRows = rows / tablesAmount;
+            int lastTableRows;
+            List<int> template = new List<int>();
+            if (perTableRows > 50)
+            {
+                perTableRows = 50;
+                tablesAmount = rows / perTableRows;
+            }
+            lastTableRows = (rows % perTableRows) + perTableRows;
+            for(int i=0; i<tablesAmount; i++)
+            {
+                if (i==tablesAmount-1)
+                {
+                    template.Add(lastTableRows);
+                }
+                else
+                {
+                    template.Add(perTableRows);
+                }
+            }
+            return template.ToArray();
+
+        }
+
         private static void BuildPrimaryParametersTable(MeasureParameterType[] pTypes, CableStructure structure, int cols)
         {
             int curElementNumber = 1;
-            int maxElementsPerTable = 50;
-            do
+            int[] tablesRowsCount = CalcMaxRowsCount(cols, structure.RealNumberInCable+3);
+            Debug.WriteLine($"{structure.RealNumberInCable}");
+            for(int idx = 0; idx<tablesRowsCount.Length;idx++)
             {
-                int rows = 2;
-                rows += (curElementNumber + maxElementsPerTable) > structure.RealNumberInCable ? structure.RealNumberInCable - curElementNumber : maxElementsPerTable;
+                int rows = 2+ tablesRowsCount[idx];
                 Word.Shape tableShape = wordProtocol.AddTable(cols, rows);
-                tableShape.Width = cols * 30f;
-                tableShape.Height = rows * 11.5f;
+                tableShape.Width = cols * 34.5f;
+                tableShape.Height = rows * 10.45f + 10f;
                 tableShape.Line.Transparency = 1f;
                 Word.Table table = tableShape.TextFrame.TextRange.Tables[1];
                 BuildPrimaryParamsTableHeader(pTypes, structure, table);
-                for(int i = 0; i< maxElementsPerTable; i++)
+                for(int i = 0; i< tablesRowsCount[idx]; i++)
                 {
-                    table.Cell(i+3, 1).Range.Text = curElementNumber.ToString();
-                    //curElementNumber++;
-                    if (++curElementNumber > structure.RealNumberInCable) break;
+                    int cellY = i + 3;
+                    if (curElementNumber <= structure.RealNumberInCable)
+                    {
+                        table.Cell(cellY, 1).Range.Text = curElementNumber.ToString();
+                        int colIdx = 2;
+                        for (int pIdx = 0; pIdx < pTypes.Length; pIdx++)//(MeasureParameterType mpt in pTypes)
+                        {
+                            int elsColsPerParam = ColumsCountForParameter(pTypes[pIdx], structure);
+                            TestResult[] results = pTypes[pIdx].ParameterDataList[0].TestResults;
+                            int resIdx = (curElementNumber - 1) * elsColsPerParam;
+                            for (int rIdx = resIdx; rIdx < resIdx + elsColsPerParam; rIdx++)
+                            {
+                                table.Cell(cellY, colIdx).Range.Text = results[rIdx].BringingValue.ToString();
+                                colIdx++;
+                            }
+                        }
+                        curElementNumber++;
+                    }else
+                    {
+                        int colIdx = 1;
+                        table.Cell(cellY, colIdx).Range.Text = "min";
+                        table.Cell(cellY+1, colIdx).Range.Text = "сред.";
+                        table.Cell(cellY + 2, colIdx).Range.Text = "max";
+                        colIdx += 1;
+                        for (int pIdx = 0; pIdx < pTypes.Length; pIdx++)//(MeasureParameterType mpt in pTypes)
+                        {
+                            int elsColsPerParam = ColumsCountForParameter(pTypes[pIdx], structure);
+                            int resIdx = (curElementNumber - 1) * elsColsPerParam;
+                            if (elsColsPerParam>1)
+                            {
+                                table.Cell(cellY, colIdx).Merge(table.Cell(cellY, colIdx + elsColsPerParam - 1));
+                                table.Cell(cellY + 1, colIdx).Merge(table.Cell(cellY + 1, colIdx + elsColsPerParam - 1));
+                                table.Cell(cellY + 2, colIdx).Merge(table.Cell(cellY + 2, colIdx + elsColsPerParam - 1));
+                            }
+                            table.Cell(cellY, colIdx).Range.Text = pTypes[pIdx].ParameterDataList[0].MinVal.ToString();
+                            table.Cell(cellY+1, colIdx).Range.Text = pTypes[pIdx].ParameterDataList[0].AverageVal.ToString();
+                            table.Cell(cellY+2, colIdx).Range.Text = pTypes[pIdx].ParameterDataList[0].MaxVal.ToString();
+                            colIdx += 1;
+                        }
+                        break;
+                    }
+
+
+                    //if (++curElementNumber > structure.RealNumberInCable) break;
                 }
+
                 //wordProtocol.ResizeShapeByTable(tableShape);
                 // curElementNumber += maxElementsPerTable;
 
-            } while (curElementNumber <= structure.RealNumberInCable);
+            }// while (curElementNumber <= structure.RealNumberInCable);
 
 
         }
@@ -111,7 +181,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 MeasureParameterType mpt = pTypes[i];
                 int colsForParameter = ColumsCountForParameter(mpt, structure);
 
-                table.Cell(1, pNameColNumb).Range.Text = mpt.Name;
+                table.Cell(1, pNameColNumb).Range.Text = $"{mpt.Name}, {mpt.ParameterDataList[0].ResultMeasure()}";
                 if (colsForParameter > 1)
                 {
                     table.Cell(1, pNameColNumb).Merge(table.Cell(1, pNameColNumb + colsForParameter - 1));
