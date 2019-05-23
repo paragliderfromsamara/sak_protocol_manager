@@ -283,6 +283,57 @@ namespace SAKProtocolManager.DBEntities
                     return value;
             }
         }
+
+        public bool Is_K_Parameter
+        {
+            get
+            {
+                switch(Id)
+                {
+                    case K1:
+                    case K2:
+                    case K3:
+                    case K23:
+                    case K9:
+                    case K10:
+                    case K11:
+                    case K12:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
+        public bool IsPrimaryParameter
+        {
+            get
+            {
+                return ((Id == Rleads) || (Id == dR) || Id == Risol1 || Id == Risol2 || (Id == Cp) || (Id == Co) || (Id == Ea) || Is_K_Parameter);
+            }
+        }
+        public const string Calling = "1";
+        public const string Rleads = "2";
+        public const string dR = "3";
+        public const string Risol1 = "4";
+        public const string Risol2 = "5";
+        public const string Risol3 = "6";
+        public const string Risol4 = "7";
+        public const string Cp = "8";
+        public const string dCp = "9";
+        public const string Co = "10";
+        public const string Ea = "11";
+        public const string K1 = "12";
+        public const string K23 = "13";
+        public const string K9_12 = "14";
+        public const string al = "15";
+        public const string Ao = "16";
+        public const string Az = "17";
+        public const string K2 = "18";
+        public const string K3 = "19";
+        public const string K9 = "20";
+        public const string K10 = "21";
+        public const string K11 = "22";
+        public const string K12 = "23";
     }
 
 

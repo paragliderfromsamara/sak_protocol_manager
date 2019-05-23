@@ -18,7 +18,7 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="NeedKey" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="ExpectedKey" Type="System.String" Scope="Application">
       <Value Profile="(Default)">GTHIUYTRFHJRRDCIUGFR</Value>

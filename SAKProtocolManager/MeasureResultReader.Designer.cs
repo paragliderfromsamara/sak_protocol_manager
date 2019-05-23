@@ -64,6 +64,7 @@
             this.OutOfNormaRsltPanel = new System.Windows.Forms.GroupBox();
             this.parameterTypeLbl = new System.Windows.Forms.Label();
             this.parameterTypeCB = new System.Windows.Forms.ComboBox();
+            this.MSWordImport = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.measureResultReaderDataSet)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cableTable)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.measured_parameters_table_1)).BeginInit();
@@ -275,9 +276,10 @@
             this.GeneratePDFProtocolButton.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.GeneratePDFProtocolButton.Location = new System.Drawing.Point(620, 15);
             this.GeneratePDFProtocolButton.Name = "GeneratePDFProtocolButton";
-            this.GeneratePDFProtocolButton.Size = new System.Drawing.Size(199, 48);
+            this.GeneratePDFProtocolButton.Size = new System.Drawing.Size(96, 48);
             this.GeneratePDFProtocolButton.TabIndex = 9;
-            this.GeneratePDFProtocolButton.Text = "экспорт в PDF";
+            this.GeneratePDFProtocolButton.Text = " PDF";
+            this.GeneratePDFProtocolButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.GeneratePDFProtocolButton.UseVisualStyleBackColor = false;
             this.GeneratePDFProtocolButton.Click += new System.EventHandler(this.GeneratePDFProtocolButton_Click);
             // 
@@ -410,11 +412,22 @@
             this.parameterTypeCB.TabIndex = 8;
             this.parameterTypeCB.SelectedIndexChanged += new System.EventHandler(this.parameterTypeCB_SelectedIndexChanged);
             // 
+            // MSWordImport
+            // 
+            this.MSWordImport.Location = new System.Drawing.Point(722, 15);
+            this.MSWordImport.Name = "MSWordImport";
+            this.MSWordImport.Size = new System.Drawing.Size(97, 47);
+            this.MSWordImport.TabIndex = 17;
+            this.MSWordImport.Text = "MSWord";
+            this.MSWordImport.UseVisualStyleBackColor = true;
+            this.MSWordImport.Click += new System.EventHandler(this.MSWordImport_Click);
+            // 
             // MeasureResultReader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(835, 615);
+            this.Controls.Add(this.MSWordImport);
             this.Controls.Add(this.OutOfNormaRsltPanel);
             this.Controls.Add(this.lengthUpdProgressBarField);
             this.Controls.Add(this.lengthEditor);
@@ -479,5 +492,6 @@
         private System.Windows.Forms.ComboBox parameterTypeCB;
         private System.Windows.Forms.Button EditSaveBruttoButton;
         private System.Windows.Forms.NumericUpDown BruttoWeightTextField;
+        private System.Windows.Forms.Button MSWordImport;
     }
 }

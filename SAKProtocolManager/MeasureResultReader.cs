@@ -14,6 +14,8 @@ using System.IO;
 using SAKProtocolManager.MyFormElements;
 using SAKProtocolManager.DBEntities.TestResultEntities;
 using SAKProtocolManager.PDFProtocolEntities;
+using SAKProtocolManager.MSWordProtocolBuilder;
+
 namespace SAKProtocolManager
 {
     public partial class MeasureResultReader : Form
@@ -321,5 +323,9 @@ namespace SAKProtocolManager
             }
         }
 
+        private void MSWordImport_Click(object sender, EventArgs e)
+        {
+            MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest);
+        }
     }
 }
