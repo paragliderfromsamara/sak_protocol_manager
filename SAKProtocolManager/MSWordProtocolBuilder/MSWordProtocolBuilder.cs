@@ -357,7 +357,30 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         }
 
 
+        public void CutCreatedTableFromTmpFile()
+        {
+            object file = @"C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\test.docx";
+            Word.Document tmp = WordApp.Documents.Add(ref file, ref oMissing, ref oMissing, ref oMissing);
+            tmp.Activate();
 
+            tmp.Tables[1].Select();
+            tmp.ActiveWindow.Selection.Copy();
+
+            WordDocument.Activate();
+            Word.Shape oShape = CreateShape();
+            oShape.Select();
+            WordDocument.ActiveWindow.Selection.Paste();
+            tmp.Close(false);
+            WordApp.Visible = true;
+            Word.Table table = oShape.TextFrame.TextRange.Tables[1];
+            table.Range.Font.Color = FontColor;
+            table.Range.Font.Name = FontName;
+            table.Range.Font.Size = FontSize;
+            table.AutoFitBehavior(WdAutoFitBehavior.wdAutoFitContent);
+            table.Rows.Height = 10;
+            table.AllowAutoFit = true;
+
+        }
 
         private Word.Shape CreateShape(float height = 50f, float width = 600f)
         {

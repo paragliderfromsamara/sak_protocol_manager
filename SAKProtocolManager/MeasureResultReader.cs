@@ -325,7 +325,12 @@ namespace SAKProtocolManager
 
         private void MSWordImport_Click(object sender, EventArgs e)
         {
-            MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest);
+            MSWordProtocol protocol = new MSWordProtocol();
+            protocol.Init();
+            protocol.CutCreatedTableFromTmpFile();
+            //OpenXMLTableCreator.GetTableFromFile();
+            //OpenXMLTableCreator.WDAddTable("test.docx", new string[,] { { "4", "5", "6" } });
+            //MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest);
         }
     }
 }
