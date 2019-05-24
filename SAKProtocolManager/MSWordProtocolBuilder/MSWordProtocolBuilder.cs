@@ -140,6 +140,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     if (curElementNumber <= structure.RealNumberInCable)
                     {
                         table.Cell(cellY, 1).Range.Text = curElementNumber.ToString();
+                        if (curElementNumber != structure.RealNumberInCable && i != tablesRowsCount[idx]-1) table.Cell(cellY, 1).Borders[WdBorderType.wdBorderBottom].Visible = false;
+                        if (curElementNumber % 2 == 1) table.Cell(cellY, 1).Range.Shading.BackgroundPatternColor = WdColor.wdColorGray05;
                         int colIdx = 2;
                         for (int pIdx = 0; pIdx < pTypes.Length; pIdx++)//(MeasureParameterType mpt in pTypes)
                         {
@@ -150,6 +152,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                             {
                                 TestResult res = results[rIdx];
                                 table.Cell(cellY, colIdx).Range.Text = ResultText(res);// res.BringingValue.ToString();
+                                if (curElementNumber % 2 == 1) table.Cell(cellY, colIdx).Range.Shading.BackgroundPatternColor = WdColor.wdColorGray05;
+                                if (curElementNumber != structure.RealNumberInCable && i != tablesRowsCount[idx] - 1) table.Cell(cellY, colIdx).Borders[WdBorderType.wdBorderBottom].Visible = false;
                                 colIdx++;
                             }
                         }
@@ -158,6 +162,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     {
                         int colIdx = 1;
                         table.Cell(cellY, colIdx).Range.Text = "max";
+                        table.Cell(cellY, colIdx).Borders[WdBorderType.wdBorderTop].LineWidth = WdLineWidth.wdLineWidth150pt;
                         table.Cell(cellY+1, colIdx).Range.Text = "сред.";
                         table.Cell(cellY + 2, colIdx).Range.Text = "min";
                         colIdx += 1;
@@ -172,6 +177,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                                 table.Cell(cellY + 2, colIdx).Merge(table.Cell(cellY + 2, colIdx + elsColsPerParam - 1));
                             }
                             table.Cell(cellY, colIdx).Range.Text = ResultValueText(pTypes[pIdx].ParameterDataList[0].MaxVal);
+                            table.Cell(cellY, colIdx).Borders[WdBorderType.wdBorderTop].LineWidth = WdLineWidth.wdLineWidth150pt;
                             table.Cell(cellY+1, colIdx).Range.Text = ResultValueText(pTypes[pIdx].ParameterDataList[0].AverageVal);
                             table.Cell(cellY+2, colIdx).Range.Text = ResultValueText(pTypes[pIdx].ParameterDataList[0].MinVal);
                             colIdx += 1;
@@ -191,6 +197,32 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
         }
 
+        private static string BindingTypeText(int els_amount)
+        {
+            if (els_amount == 1) return "жилы";
+            else if (els_amount == 2) return "пары";
+            else if (els_amount == 3) return "тройки";
+            else if (els_amount == 4) return "четв.";
+            else return "пары";
+        }
+
+        private static string ParameterNameText(MeasureParameterType pType)
+        {
+            switch(pType.Id)
+            {
+                case MeasureParameterType.Risol1:
+                case MeasureParameterType.Risol3:
+                    return "Rиз";
+                case MeasureParameterType.Risol2:
+                case MeasureParameterType.Risol4:
+                    return "T*";
+                case MeasureParameterType.dR:
+                    return "ΔR";
+                default:
+                    return pType.Name;
+            }
+        }
+
         /// <summary>
         /// Создаём шапку для таблицы первичных параметров
         /// </summary>
@@ -202,7 +234,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             int pNameColNumb = 1;
             int elColNumb = 1;
             table.Cell(1, 1).Merge(table.Cell(2, 1));
-            table.Cell(1, 1).Range.Text = "№/№";
+            table.Cell(1, 1).Range.Text = $"{ "№/№" } {BindingTypeText(structure.BendingTypeLeadsNumber)}";
+
             elColNumb += 1;
             pNameColNumb += 1;
             for (int i = 0; i < pTypes.Length; i++)
@@ -210,7 +243,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 MeasureParameterType mpt = pTypes[i];
                 int colsForParameter = ColumsCountForParameter(mpt, structure);
 
-                table.Cell(1, pNameColNumb).Range.Text = $"{mpt.Name}, {mpt.ParameterDataList[0].ResultMeasure()}";
+                table.Cell(1, pNameColNumb).Range.Text = $"{ParameterNameText(mpt)}, {mpt.ParameterDataList[0].ResultMeasure()}";
                 if (colsForParameter > 1)
                 {
                     table.Cell(1, pNameColNumb).Merge(table.Cell(1, pNameColNumb + colsForParameter - 1));
@@ -275,6 +308,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         public void Init()
         {
             WordApp = new Word.Application();
+            WordApp.Visible = false;
             WordDocument = WordApp.Documents.Add(ref oMissing, ref oMissing, ref oMissing, ref oMissing);
             WordDocument.PageSetup.LeftMargin = MarginLeft;
             WordDocument.PageSetup.RightMargin = MarginRight;
@@ -317,6 +351,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             object b1 = WdDefaultTableBehavior.wdWord9TableBehavior;
             object b2 = WdAutoFitBehavior.wdAutoFitContent;
             Table oTab = oShape.TextFrame.TextRange.Tables.Add(oShape.TextFrame.TextRange, rows, cols, ref b1, ref b2);
+            oTab.AllowAutoFit = true;
             oTab.Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
             return oTab;
         }
