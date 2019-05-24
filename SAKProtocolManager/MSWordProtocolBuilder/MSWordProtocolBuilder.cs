@@ -89,7 +89,35 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 }
             }
             return template.ToArray();
+        }
 
+        private static string ResultText(TestResult res)
+        {
+            if (res.Affected)
+            {
+                return res.Status;
+            }else
+            {
+                return ResultValueText(res.BringingValue);
+            }
+        }
+
+        private static string ResultValueText(decimal value)
+        {
+            int pow = 0;
+            decimal tmpVal = value;
+            if (value > 9999)
+            {
+                while(tmpVal/10 > 1)
+                {
+                    pow++;
+                    tmpVal /= 10;
+                }
+                return $"{Math.Round(tmpVal, 1)}∙e{pow}";
+            }else
+            {
+                return $"{value}";
+            }
         }
 
         private static void BuildPrimaryParametersTable(MeasureParameterType[] pTypes, CableStructure structure, int cols)
@@ -120,7 +148,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                             int resIdx = (curElementNumber - 1) * elsColsPerParam;
                             for (int rIdx = resIdx; rIdx < resIdx + elsColsPerParam; rIdx++)
                             {
-                                table.Cell(cellY, colIdx).Range.Text = results[rIdx].BringingValue.ToString();
+                                TestResult res = results[rIdx];
+                                table.Cell(cellY, colIdx).Range.Text = ResultText(res);// res.BringingValue.ToString();
                                 colIdx++;
                             }
                         }
@@ -128,9 +157,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     }else
                     {
                         int colIdx = 1;
-                        table.Cell(cellY, colIdx).Range.Text = "min";
+                        table.Cell(cellY, colIdx).Range.Text = "max";
                         table.Cell(cellY+1, colIdx).Range.Text = "сред.";
-                        table.Cell(cellY + 2, colIdx).Range.Text = "max";
+                        table.Cell(cellY + 2, colIdx).Range.Text = "min";
                         colIdx += 1;
                         for (int pIdx = 0; pIdx < pTypes.Length; pIdx++)//(MeasureParameterType mpt in pTypes)
                         {
@@ -142,9 +171,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                                 table.Cell(cellY + 1, colIdx).Merge(table.Cell(cellY + 1, colIdx + elsColsPerParam - 1));
                                 table.Cell(cellY + 2, colIdx).Merge(table.Cell(cellY + 2, colIdx + elsColsPerParam - 1));
                             }
-                            table.Cell(cellY, colIdx).Range.Text = pTypes[pIdx].ParameterDataList[0].MinVal.ToString();
-                            table.Cell(cellY+1, colIdx).Range.Text = pTypes[pIdx].ParameterDataList[0].AverageVal.ToString();
-                            table.Cell(cellY+2, colIdx).Range.Text = pTypes[pIdx].ParameterDataList[0].MaxVal.ToString();
+                            table.Cell(cellY, colIdx).Range.Text = ResultValueText(pTypes[pIdx].ParameterDataList[0].MaxVal);
+                            table.Cell(cellY+1, colIdx).Range.Text = ResultValueText(pTypes[pIdx].ParameterDataList[0].AverageVal);
+                            table.Cell(cellY+2, colIdx).Range.Text = ResultValueText(pTypes[pIdx].ParameterDataList[0].MinVal);
                             colIdx += 1;
                         }
                         break;
