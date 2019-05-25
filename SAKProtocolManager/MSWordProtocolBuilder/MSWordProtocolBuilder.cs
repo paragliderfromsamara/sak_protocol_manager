@@ -84,7 +84,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 foreach (OpenXML.TableRow r in headerRows) table.Append(r);
                 for (int i = 0; i < tablesRowsCount[idx]; i++)
                 {
-                    OpenXML.TableRow row = new OpenXML.TableRow();
+                    OpenXML.TableRow row = BuildRow();
                     if (curElementNumber <= structure.RealNumberInCable)
                     {
                         row.Append(BuildCell(curElementNumber.ToString())); //Ячейка номера элемента
@@ -105,9 +105,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     }
                     else
                     {
-                        OpenXML.TableRow maxValRow = new OpenXML.TableRow();
-                        OpenXML.TableRow minValRow = new OpenXML.TableRow();
-                        OpenXML.TableRow averValRow = new OpenXML.TableRow();
+                        OpenXML.TableRow maxValRow = BuildRow();
+                        OpenXML.TableRow minValRow = BuildRow();
+                        OpenXML.TableRow averValRow = BuildRow();
 
                         maxValRow.Append(BuildCell("max"));
                         minValRow.Append(BuildCell("min"));
@@ -149,30 +149,14 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         {
             int pNameColNumb = 1;
             int elColNumb = 1;
-            OpenXML.TableRow row_1 = new OpenXML.TableRow();
-            OpenXML.TableRow row_2 = new OpenXML.TableRow();
+            OpenXML.TableRow row_1 = BuildRow();
+            OpenXML.TableRow row_2 = BuildRow();
 
-            OpenXML.TableCell cell_1_1 = BuildCell();
+            OpenXML.TableCell cell_1_1 = BuildCell($"{ "№/№" } {BindingTypeText(structure.BendingTypeLeadsNumber)}");
             OpenXML.TableCell cell_1_2 = BuildCell();
 
             VerticalMergeCells(new OpenXML.TableCell[] { cell_1_1, cell_1_2 });
-            FillCellText(cell_1_1, $"{ "№/№" } {BindingTypeText(structure.BendingTypeLeadsNumber)}");
-            //cell_1_1.Append(new OpenXML.Paragraph(new OpenXML.Run(new OpenXML.Text($"{ "№/№" } {BindingTypeText(structure.BendingTypeLeadsNumber)}"))));
 
-            /*
-            OpenXML.TableCellProperties cell_1_1_Properties = new OpenXML.TableCellProperties();
-            cell_1_1_Properties.Append(new OpenXML.VerticalMerge()
-            {
-                Val = OpenXML.MergedCellValues.Restart
-            });
-
-            OpenXML.TableCellProperties cell_1_2_Properties = new OpenXML.TableCellProperties();
-            cell_1_2_Properties.Append(new OpenXML.VerticalMerge()
-            {
-                Val = OpenXML.MergedCellValues.Continue
-            });
-
-            */
             row_1.Append(cell_1_1);
             row_2.Append(cell_1_2);
 
@@ -208,14 +192,45 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return props;
         }
 
+        private static OpenXML.Paragraph BuildParagraph()
+        {
+            OpenXML.Paragraph p = new DocumentFormat.OpenXml.Wordprocessing.Paragraph();
+            OpenXML.ParagraphProperties props = new OpenXML.ParagraphProperties(
+                 new OpenXML.Indentation() { End = "0" }
+                );
+            return p;
+        }
+
+        private static OpenXML.Run GetDefaultTextRun(string content = null)
+        {
+            OpenXML.Run TextRun = new OpenXML.Run();
+            TextRun.AppendChild<OpenXML.RunProperties>(new OpenXML.RunProperties(new OpenXML.RunFonts() { Ascii = "Times New Roman" }, new OpenXML.FontSize() { Val = "18" }));
+            if (content != null) TextRun.Append(new OpenXML.Text(content));
+            return TextRun;
+        }
+
         private static OpenXML.TableCell BuildCell(string content = "")
         {
             OpenXML.TableCell cell = new DocumentFormat.OpenXml.Wordprocessing.TableCell();
+            OpenXML.Run cellTextRun = GetDefaultTextRun(content);
+            OpenXML.Paragraph cellParagraph = BuildParagraph();
+            cellParagraph.Append(cellTextRun);
             cell.Append(new OpenXML.TableCellProperties(
-                                                        new OpenXML.TableCellWidth() { Type = OpenXML.TableWidthUnitValues.Auto }
+                                                        new OpenXML.TableCellWidth() { Type = OpenXML.TableWidthUnitValues.Dxa, Width = "750" },
+                                                        new OpenXML.TableCellMargin(
+                                                                                    new OpenXML.TableCellRightMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 },
+                                                                                    new OpenXML.TableCellLeftMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 }
+                                                                                     //new OpenXML.TableCellMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 }
+                                                                                    ),
+                                                        new OpenXML.TableCellRightMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0},
+                                                        new OpenXML.TableCellLeftMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 },
+                                                        new OpenXML.LeftMargin() { Type = OpenXML.TableWidthUnitValues.Dxa, Width = "0.0" },
+                                                        new OpenXML.RightMargin() { Type = OpenXML.TableWidthUnitValues.Dxa, Width = "0.0" },
+                                                        new OpenXML.TableCellVerticalAlignment() { Val = OpenXML.TableVerticalAlignmentValues.Center }
                                                         )
+           
                         );
-            cell.Append(new OpenXML.Paragraph(new OpenXML.Run(new OpenXML.Text(content))));
+            cell.Append(cellParagraph);
             return cell;
         }
 
@@ -237,7 +252,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
         private static void FillCellText(OpenXML.TableCell cell, string content)
         {
-            cell.GetFirstChild<OpenXML.Paragraph>().Append(new OpenXML.Run(new OpenXML.Text(content)));
+            cell.RemoveAllChildren<OpenXML.Paragraph>();
+            cell.Append(BuildParagraph());
+            cell.GetFirstChild<OpenXML.Paragraph>().Append(GetDefaultTextRun(content));
         }
 
         private static OpenXML.TableCell[] BuildCells(int count, bool isMerged = false)
@@ -259,6 +276,16 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
             
             return cells.ToArray();
+        }
+
+        private static OpenXML.TableRow BuildRow()
+        {
+            OpenXML.TableRow row = new OpenXML.TableRow();
+            OpenXML.TableRowProperties props = new OpenXML.TableRowProperties(
+                new OpenXML.TableRowHeight() { HeightType = OpenXML.HeightRuleValues.AtLeast }
+                );
+            row.AppendChild<OpenXML.TableRowProperties>(props);
+            return row;
         }
 
         private static OpenXML.Table BuildTable()
@@ -608,52 +635,57 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 doc.MainDocumentPart.Document.Body.Append(table);
             }
             CutCreatedTableFromTmpFile(filePath);
-            DeleteTmpFile(filePath);
+            //DeleteTmpFile(filePath);
         }
+
+        private static OpenXML.TableBorders GetTableBordersStyle()
+        {
+            return new OpenXML.TableBorders(
+            new OpenXML.TopBorder()
+            {
+                Val =
+                new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+                Size = 2
+            },
+            new OpenXML.BottomBorder()
+            {
+                Val =
+                new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+                Size = 2
+            },
+            new OpenXML.LeftBorder()
+            {
+                Val =
+                new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+                Size = 2
+            },
+            new OpenXML.RightBorder()
+            {
+                Val =
+                new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+                Size = 2
+            },
+            new OpenXML.InsideHorizontalBorder()
+            {
+                Val =
+                new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+                Size = 2
+            },
+            new OpenXML.InsideVerticalBorder()
+            {
+                Val =
+                new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+                Size = 2
+            }
+         );
+        } 
 
         private static OpenXML.Table BuildTable()
         {
             OpenXML.Table table = new OpenXML.Table();
             OpenXML.TableProperties tblProp = new OpenXML.TableProperties(
-         new OpenXML.TableBorders(
-        new OpenXML.TopBorder()
-        {
-            Val =
-            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
-            Size = 2
-        },
-        new OpenXML.BottomBorder()
-        {
-            Val =
-            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
-            Size = 2
-        },
-        new OpenXML.LeftBorder()
-        {
-            Val =
-            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
-            Size = 2
-        },
-        new OpenXML.RightBorder()
-        {
-            Val =
-            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
-            Size = 2
-        },
-        new OpenXML.InsideHorizontalBorder()
-        {
-            Val =
-            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
-            Size = 2
-        },
-        new OpenXML.InsideVerticalBorder()
-        {
-            Val =
-            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
-            Size = 2
-        }
-    )
-);
+                GetTableBordersStyle()
+                );
             table.AppendChild<OpenXML.TableProperties>(tblProp);
             return table;
         }
@@ -694,10 +726,15 @@ new OpenXML.TableCellWidth() { Type = OpenXML.TableWidthUnitValues.Auto }));
             Word.Table table = oShape.TextFrame.TextRange.Tables[1];
             table.Range.Font.Color = FontColor;
             table.Range.Font.Name = FontName;
-            table.Range.Font.Size = FontSize;
-            table.AutoFitBehavior(WdAutoFitBehavior.wdAutoFitContent);
-            table.Rows.Height = 10;
-            table.AllowAutoFit = true;
+            table.Range.Paragraphs.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
+            table.Range.Paragraphs.LeftIndent = 0.0f;
+            table.Range.Paragraphs.SpaceAfter = 0f;
+            //table.Range.Font.Size = FontSize;
+            //table.AutoFitBehavior(WdAutoFitBehavior.wdAutoFitContent);
+            //table.Rows.Height = 10;
+            //table.Range.Cells.VerticalAlignment = WdCellVerticalAlignment.wdCellAlignVerticalCenter;
+            //table.Range.Cells.AutoFit();
+            //table.AllowAutoFit = true;
             ResizeShapeByTable(oShape);
 
 

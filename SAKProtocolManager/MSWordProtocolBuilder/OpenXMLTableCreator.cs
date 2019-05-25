@@ -102,6 +102,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                         TableCell cell = new TableCell();
                         cell.Append(new TableCellProperties(
     new TableCellWidth() { Type = TableWidthUnitValues.Auto}));
+                   
                         cell.Append(new DocumentFormat.OpenXml.Wordprocessing.Paragraph(new Run(new Text($"cell{i}{j}"))));
                         row.Append(cell);
                     }
