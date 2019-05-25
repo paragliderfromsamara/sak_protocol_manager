@@ -12,6 +12,7 @@ using System.IO;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using OpenXML =  DocumentFormat.OpenXml.Wordprocessing;
+using System.Windows.Forms;
 
 
 namespace SAKProtocolManager.MSWordProtocolBuilder
@@ -25,11 +26,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             CableTest = test;
             wordProtocol = new MSWordProtocol();
             wordProtocol.Init();
+           
             foreach (CableStructure s in CableTest.TestedCable.Structures)
             {
                 PrintStructure(s);
             }
             wordProtocol.Finalise();
+          
         }
 
         public static void PrintStructure(CableStructure structure)
@@ -85,9 +88,15 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 for (int i = 0; i < tablesRowsCount[idx]; i++)
                 {
                     OpenXML.TableRow row = BuildRow();
+                    
+
                     if (curElementNumber <= structure.RealNumberInCable)
                     {
-                        row.Append(BuildCell(curElementNumber.ToString())); //Ячейка номера элемента
+                        OpenXML.TableCell numbCell = BuildCell(curElementNumber.ToString());
+                        if (i % 2 == 1) FillCellByColor(numbCell, "ededed");
+                        OpenXML.TableCellBorders borderStyle = BuildBordersStyle(0, (uint)((i < tablesRowsCount[idx] - 1) ? 0 : 2) );
+                        SetCellBordersStyle(numbCell, borderStyle);
+                        row.Append(numbCell); //Ячейка номера элемента
                         for (int pIdx = 0; pIdx < pTypes.Length; pIdx++)//(MeasureParameterType mpt in pTypes)
                         {
                             int elsColsPerParam = ColumsCountForParameter(pTypes[pIdx], structure);
@@ -96,7 +105,10 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                             for (int rIdx = resIdx; rIdx < resIdx + elsColsPerParam; rIdx++)
                             {
                                 TestResult res = results[rIdx];
+                                OpenXML.TableCellBorders resBordStyle = BuildBordersStyle(0, (uint)((i < tablesRowsCount[idx] - 1) ? 0 : 2));
                                 OpenXML.TableCell resCell = BuildCell(ResultText(res));
+                                if (i % 2 == 1) FillCellByColor(resCell, "ededed");
+                                SetCellBordersStyle(resCell, resBordStyle);
                                 row.Append(resCell);
                             }
                         }
@@ -109,11 +121,14 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                         OpenXML.TableRow minValRow = BuildRow();
                         OpenXML.TableRow averValRow = BuildRow();
 
+                        OpenXML.TableCellBorders maxCellTitleBordStyle = BuildBordersStyle(8);
+
                         maxValRow.Append(BuildCell("max"));
+                        SetCellBordersStyle(maxValRow.GetFirstChild<OpenXML.TableCell>(), maxCellTitleBordStyle);
                         minValRow.Append(BuildCell("min"));
                         averValRow.Append(BuildCell("сред."));
 
-                        for (int pIdx = 0; pIdx < pTypes.Length; pIdx++)//(MeasureParameterType mpt in pTypes)
+                        for (int pIdx = 0; pIdx < pTypes.Length; pIdx++)
                         {
                             int elsColsPerParam = ColumsCountForParameter(pTypes[pIdx], structure);
                             int resIdx = (curElementNumber - 1) * elsColsPerParam;
@@ -127,6 +142,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
                             for (int cIdx = 0; cIdx < elsColsPerParam; cIdx++)
                             {
+                                OpenXML.TableCellBorders maxCellBordStyle = BuildBordersStyle(8);
+                                SetCellBordersStyle(maxValCells[cIdx], maxCellBordStyle);
                                 maxValRow.Append(maxValCells[cIdx]);
                                 minValRow.Append(minValCells[cIdx]);
                                 averValRow.Append(averValCells[cIdx]);
@@ -141,14 +158,12 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
                 wordProtocol.AddTable(table);
 
-            }// while (curElementNumber <= structure.RealNumberInCable);
+            }
 
         }
 
         private static OpenXML.TableRow[] BuildPrimaryParamsTableHeader_WithOpenXML(MeasureParameterType[] pTypes, CableStructure structure)
         {
-            int pNameColNumb = 1;
-            int elColNumb = 1;
             OpenXML.TableRow row_1 = BuildRow();
             OpenXML.TableRow row_2 = BuildRow();
 
@@ -167,14 +182,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 OpenXML.TableCell[] cellsFor_row1 = BuildCells(colsForParameter, true);
                 OpenXML.TableCell[] cellsFor_row2 = BuildCells(colsForParameter);
                 FillCellText(cellsFor_row1[0], $"{ParameterNameText(mpt)}, {mpt.ParameterDataList[0].ResultMeasure()}");
-                //cellsFor_row1[0].Append(new OpenXML.Paragraph(new OpenXML.Run(new OpenXML.Text($"{ParameterNameText(mpt)}, {mpt.ParameterDataList[0].ResultMeasure()}"))));
+               
                 for (int x = 0; x < colsForParameter; x++)
                 {
                     if (colsForParameter>1)
                     {
                         FillCellText(cellsFor_row2[x], (x + 1).ToString());
-                        //cellsFor_row2[x].GetFirstChild<OpenXML.Paragraph>().Append(new OpenXML.Run(new OpenXML.Text((x + 1).ToString())));
-                        //cellsFor_row2[x].Append(new OpenXML.Paragraph(new OpenXML.Run(new OpenXML.Text((x + 1).ToString()))));
+
                     }else
                     {
                         VerticalMergeCells(new OpenXML.TableCell[] { cellsFor_row1[x], cellsFor_row2[x] });
@@ -186,11 +200,6 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return new OpenXML.TableRow[] { row_1, row_2 };
         }
 
-        private static OpenXML.TableCellProperties GetDefaultCellProps()
-        {
-            OpenXML.TableCellProperties props = new OpenXML.TableCellProperties();
-            return props;
-        }
 
         private static OpenXML.Paragraph BuildParagraph()
         {
@@ -200,6 +209,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 );
             return p;
         }
+
+
 
         private static OpenXML.Run GetDefaultTextRun(string content = null)
         {
@@ -222,10 +233,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                                                                                     new OpenXML.TableCellLeftMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 }
                                                                                      //new OpenXML.TableCellMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 }
                                                                                     ),
-                                                        new OpenXML.TableCellRightMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0},
-                                                        new OpenXML.TableCellLeftMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 },
-                                                        new OpenXML.LeftMargin() { Type = OpenXML.TableWidthUnitValues.Dxa, Width = "0.0" },
-                                                        new OpenXML.RightMargin() { Type = OpenXML.TableWidthUnitValues.Dxa, Width = "0.0" },
+                                       
                                                         new OpenXML.TableCellVerticalAlignment() { Val = OpenXML.TableVerticalAlignmentValues.Center }
                                                         )
            
@@ -255,6 +263,33 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             cell.RemoveAllChildren<OpenXML.Paragraph>();
             cell.Append(BuildParagraph());
             cell.GetFirstChild<OpenXML.Paragraph>().Append(GetDefaultTextRun(content));
+        }
+
+        private static void FillCellByColor(OpenXML.TableCell cell, string color)
+        {
+            OpenXML.TableCellProperties props = cell.GetFirstChild<OpenXML.TableCellProperties>();
+            props.RemoveAllChildren<OpenXML.Shading>();
+            props.Append(
+                new OpenXML.Shading() { Val = OpenXML.ShadingPatternValues.Clear, Fill = color.ToUpper(), Color = "auto" }
+                );
+        }
+
+        private static void SetCellBordersStyle(OpenXML.TableCell cell, OpenXML.TableCellBorders bordersStyle)
+        {
+            OpenXML.TableCellProperties props = cell.GetFirstChild<OpenXML.TableCellProperties>();
+            props.RemoveAllChildren<OpenXML.TableCellBorders>();
+            props.Append(bordersStyle);
+        }
+
+        private static OpenXML.TableCellBorders BuildBordersStyle(uint top = 2, uint bottom = 2, uint left = 2, uint right = 2)
+        {
+            OpenXML.TableCellBorders borderStyle = new DocumentFormat.OpenXml.Wordprocessing.TableCellBorders(
+                new OpenXML.RightBorder() { Size = right < 2 ? 2 : right, Val = new EnumValue<OpenXML.BorderValues>(right != 0 ? OpenXML.BorderValues.Single : OpenXML.BorderValues.None) },
+                new OpenXML.LeftBorder() { Size = left < 2 ? 2 : left, Val = new EnumValue<OpenXML.BorderValues>(left != 0 ? OpenXML.BorderValues.Single : OpenXML.BorderValues.None) },
+                new OpenXML.TopBorder() { Size = top < 2 ? 2 : top, Val = new EnumValue<OpenXML.BorderValues>(top != 0 ? OpenXML.BorderValues.Single : OpenXML.BorderValues.None) },
+                new OpenXML.BottomBorder() { Size = bottom < 2 ? 2 : bottom, Val = new EnumValue<OpenXML.BorderValues>(bottom != 0 ? OpenXML.BorderValues.Single : OpenXML.BorderValues.None) }
+                );
+            return borderStyle;
         }
 
         private static OpenXML.TableCell[] BuildCells(int count, bool isMerged = false)
@@ -288,6 +323,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return row;
         }
 
+
+
         private static OpenXML.Table BuildTable()
         {
             OpenXML.Table table = new OpenXML.Table();
@@ -296,37 +333,37 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         new OpenXML.TopBorder()
         {
             Val =
-            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.Single),
             Size = 2
         },
         new OpenXML.BottomBorder()
         {
             Val =
-            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.Single),
             Size = 2
         },
         new OpenXML.LeftBorder()
         {
             Val =
-            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.Single),
             Size = 2
         },
         new OpenXML.RightBorder()
         {
             Val =
-            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.Single),
             Size = 2
         },
         new OpenXML.InsideHorizontalBorder()
         {
             Val =
-            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.Single),
             Size = 2
         },
         new OpenXML.InsideVerticalBorder()
         {
             Val =
-            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.Single),
             Size = 2
         }
     )
@@ -390,82 +427,6 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
-        private static void BuildPrimaryParametersTable(MeasureParameterType[] pTypes, CableStructure structure, int cols)
-        {
-            int curElementNumber = 1;
-            int[] tablesRowsCount = CalcMaxRowsCount(cols, structure.RealNumberInCable+3);
-            Debug.WriteLine($"{structure.RealNumberInCable}");
-            for(int idx = 0; idx<tablesRowsCount.Length;idx++)
-            {
-                int rows = 2+ tablesRowsCount[idx];
-                Word.Shape tableShape = wordProtocol.AddTable(cols, rows);
-                tableShape.Width = cols * 34.5f;
-                tableShape.Height = rows * 10.45f + 10f;
-                tableShape.Line.Transparency = 1f;
-                Word.Table table = tableShape.TextFrame.TextRange.Tables[1];
-                BuildPrimaryParamsTableHeader(pTypes, structure, table);
-                for(int i = 0; i< tablesRowsCount[idx]; i++)
-                {
-                    int cellY = i + 3;
-                    if (curElementNumber <= structure.RealNumberInCable)
-                    {
-                        table.Cell(cellY, 1).Range.Text = curElementNumber.ToString();
-                        if (curElementNumber != structure.RealNumberInCable && i != tablesRowsCount[idx]-1) table.Cell(cellY, 1).Borders[WdBorderType.wdBorderBottom].Visible = false;
-                        if (curElementNumber % 2 == 1) table.Cell(cellY, 1).Range.Shading.BackgroundPatternColor = WdColor.wdColorGray05;
-                        int colIdx = 2;
-                        for (int pIdx = 0; pIdx < pTypes.Length; pIdx++)//(MeasureParameterType mpt in pTypes)
-                        {
-                            int elsColsPerParam = ColumsCountForParameter(pTypes[pIdx], structure);
-                            TestResult[] results = pTypes[pIdx].ParameterDataList[0].TestResults;
-                            int resIdx = (curElementNumber - 1) * elsColsPerParam;
-                            for (int rIdx = resIdx; rIdx < resIdx + elsColsPerParam; rIdx++)
-                            {
-                                TestResult res = results[rIdx];
-                                table.Cell(cellY, colIdx).Range.Text = ResultText(res);// res.BringingValue.ToString();
-                                if (curElementNumber % 2 == 1) table.Cell(cellY, colIdx).Range.Shading.BackgroundPatternColor = WdColor.wdColorGray05;
-                                if (curElementNumber != structure.RealNumberInCable && i != tablesRowsCount[idx] - 1) table.Cell(cellY, colIdx).Borders[WdBorderType.wdBorderBottom].Visible = false;
-                                colIdx++;
-                            }
-                        }
-                        curElementNumber++;
-                    }else
-                    {
-                        int colIdx = 1;
-                        table.Cell(cellY, colIdx).Range.Text = "max";
-                        table.Cell(cellY, colIdx).Borders[WdBorderType.wdBorderTop].LineWidth = WdLineWidth.wdLineWidth150pt;
-                        table.Cell(cellY+1, colIdx).Range.Text = "сред.";
-                        table.Cell(cellY + 2, colIdx).Range.Text = "min";
-                        colIdx += 1;
-                        for (int pIdx = 0; pIdx < pTypes.Length; pIdx++)//(MeasureParameterType mpt in pTypes)
-                        {
-                            int elsColsPerParam = ColumsCountForParameter(pTypes[pIdx], structure);
-                            int resIdx = (curElementNumber - 1) * elsColsPerParam;
-                            if (elsColsPerParam>1)
-                            {
-                                table.Cell(cellY, colIdx).Merge(table.Cell(cellY, colIdx + elsColsPerParam - 1));
-                                table.Cell(cellY + 1, colIdx).Merge(table.Cell(cellY + 1, colIdx + elsColsPerParam - 1));
-                                table.Cell(cellY + 2, colIdx).Merge(table.Cell(cellY + 2, colIdx + elsColsPerParam - 1));
-                            }
-                            table.Cell(cellY, colIdx).Range.Text = ResultValueText(pTypes[pIdx].ParameterDataList[0].MaxVal);
-                            table.Cell(cellY, colIdx).Borders[WdBorderType.wdBorderTop].LineWidth = WdLineWidth.wdLineWidth150pt;
-                            table.Cell(cellY+1, colIdx).Range.Text = ResultValueText(pTypes[pIdx].ParameterDataList[0].AverageVal);
-                            table.Cell(cellY+2, colIdx).Range.Text = ResultValueText(pTypes[pIdx].ParameterDataList[0].MinVal);
-                            colIdx += 1;
-                        }
-                        break;
-                    }
-
-
-                    //if (++curElementNumber > structure.RealNumberInCable) break;
-                }
-
-                //wordProtocol.ResizeShapeByTable(tableShape);
-                // curElementNumber += maxElementsPerTable;
-
-            }// while (curElementNumber <= structure.RealNumberInCable);
-
-
-        }
 
         private static string BindingTypeText(int els_amount)
         {
@@ -493,44 +454,6 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
-        /// <summary>
-        /// Создаём шапку для таблицы первичных параметров
-        /// </summary>
-        /// <param name="pTypes"></param>
-        /// <param name="structure"></param>
-        /// <param name="table"></param>
-        private static void BuildPrimaryParamsTableHeader(MeasureParameterType[] pTypes, CableStructure structure, Word.Table table)
-        {
-            int pNameColNumb = 1;
-            int elColNumb = 1;
-            table.Cell(1, 1).Merge(table.Cell(2, 1));
-            table.Cell(1, 1).Range.Text = $"{ "№/№" } {BindingTypeText(structure.BendingTypeLeadsNumber)}";
-
-            elColNumb += 1;
-            pNameColNumb += 1;
-            for (int i = 0; i < pTypes.Length; i++)
-            {
-                MeasureParameterType mpt = pTypes[i];
-                int colsForParameter = ColumsCountForParameter(mpt, structure);
-
-                table.Cell(1, pNameColNumb).Range.Text = $"{ParameterNameText(mpt)}, {mpt.ParameterDataList[0].ResultMeasure()}";
-                if (colsForParameter > 1)
-                {
-                    table.Cell(1, pNameColNumb).Merge(table.Cell(1, pNameColNumb + colsForParameter - 1));
-                    for (int x = 0; x < colsForParameter; x++)
-                    {
-                        table.Cell(2, elColNumb + x).Range.Text = (x + 1).ToString();
-                    }
-                }
-                else
-                {
-                    table.Cell(1, pNameColNumb).Merge(table.Cell(2, elColNumb));
-                }
-                pNameColNumb += 1;
-                elColNumb += colsForParameter;
-            }
-        }
-
 
         private static int ColumsCountForParameter(MeasureParameterType t, CableStructure s)
         {
@@ -550,19 +473,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     return 1;
             }
         }
-        private static int CalcPrimaryParamsColumnsCount(CableStructure structure)
-        {
-            int count = 0;
 
-            foreach (MeasureParameterType mpt in structure.MeasuredParameters)
-            {
-                if (mpt.IsPrimaryParameter)
-                {
-                    count += ColumsCountForParameter(mpt, structure);
-                }
-            }
-            return count;
-        }
     }
 
     public class MSWordProtocol
@@ -593,29 +504,6 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             if (WordApp != null) WordApp.Visible = true;
         }
 
-        public Word.Shape AddTable(int cols, int rows) //ProtocolTable table
-        {
-            Word.Shape oShape = CreateShape();
-            Table oTab = BuildTable(cols, rows, oShape);
-            return oShape;
-
-        }
-
-        public void AddTestTable()
-        {
-            Word.Shape oShape = CreateShape();
-            Table oTab = BuildTable(10, 10, oShape);
-            oTab.Cell(1, 1).Merge(oTab.Cell(2, 1));
-            oTab.Cell(1, 2).Merge(oTab.Cell(1, 3));
-            oTab.Cell(1, 3).Merge(oTab.Cell(2, 4));
-            oTab.Cell(1, 4).Merge(oTab.Cell(1, 5));
-            oTab.Cell(1, 5).Merge(oTab.Cell(2, 7));
-            oTab.Cell(1, 6).Merge(oTab.Cell(1, 8));
-            ResizeShapeByTable(oShape);
-        }
-
-
-
         private Table BuildTable(int cols, int rows, Word.Shape oShape)
         {
             object b1 = WdDefaultTableBehavior.wdWord9TableBehavior;
@@ -635,78 +523,10 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 doc.MainDocumentPart.Document.Body.Append(table);
             }
             CutCreatedTableFromTmpFile(filePath);
-            //DeleteTmpFile(filePath);
+            DeleteTmpFile(filePath);
         }
 
-        private static OpenXML.TableBorders GetTableBordersStyle()
-        {
-            return new OpenXML.TableBorders(
-            new OpenXML.TopBorder()
-            {
-                Val =
-                new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
-                Size = 2
-            },
-            new OpenXML.BottomBorder()
-            {
-                Val =
-                new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
-                Size = 2
-            },
-            new OpenXML.LeftBorder()
-            {
-                Val =
-                new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
-                Size = 2
-            },
-            new OpenXML.RightBorder()
-            {
-                Val =
-                new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
-                Size = 2
-            },
-            new OpenXML.InsideHorizontalBorder()
-            {
-                Val =
-                new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
-                Size = 2
-            },
-            new OpenXML.InsideVerticalBorder()
-            {
-                Val =
-                new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
-                Size = 2
-            }
-         );
-        } 
 
-        private static OpenXML.Table BuildTable()
-        {
-            OpenXML.Table table = new OpenXML.Table();
-            OpenXML.TableProperties tblProp = new OpenXML.TableProperties(
-                GetTableBordersStyle()
-                );
-            table.AppendChild<OpenXML.TableProperties>(tblProp);
-            return table;
-        }
-        private OpenXML.Table testTable()
-        {
-            OpenXML.Table table = BuildTable();
-            for (int i = 0; i < 50; i++)
-            {
-                OpenXML.TableRow row = new OpenXML.TableRow();
-                for (int j = 0; j < 10; j++)
-                {
-                    OpenXML.TableCell cell = new OpenXML.TableCell();
-                    cell.Append(new OpenXML.TableCellProperties(
-new OpenXML.TableCellWidth() { Type = OpenXML.TableWidthUnitValues.Auto }));
-                    //cell.Append(new DocumentFormat.OpenXml.Wordprocessing.Paragraph(new OpenXML.Run(new OpenXML.Text($"cell{i}{j}"))));
-                    row.Append(cell);
-                }
-                table.Append(row);
-            }
-            return table;
-        }
 
         public void CutCreatedTableFromTmpFile(string file_path)
         {
@@ -736,7 +556,7 @@ new OpenXML.TableCellWidth() { Type = OpenXML.TableWidthUnitValues.Auto }));
             //table.Range.Cells.AutoFit();
             //table.AllowAutoFit = true;
             ResizeShapeByTable(oShape);
-
+            Clipboard.Clear();
 
         }
 
