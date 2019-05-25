@@ -4,10 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using SAKProtocolManager.DBEntities;
 
-
-using Microsoft.Office.Interop.Word;
-using Word = Microsoft.Office.Interop.Word;
 
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
@@ -17,17 +15,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 {
     public class OpenXMLTableCreator
     {
-        //Stream stream = new FileStream("test.docx", FileMode.CreateNew);
-        private static object oMissing = System.Reflection.Missing.Value;
-
-        public static void GetTableFromFile()
-        {
-            Word.Document WordDoc;
-            Word.Document WordDocTmp;
-            Word.Application wapp = new Word.Application();
-            wapp.Visible = true;
-
-        }
+        
 
         public static void WDAddTable(string fileName, string[,] data)
         {
@@ -35,7 +23,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             using (WordprocessingDocument doc = WordprocessingDocument.Open(@"test.docx", true))
             {
                 // Create an empty table.
-                DocumentFormat.OpenXml.Wordprocessing.Table table = new DocumentFormat.OpenXml.Wordprocessing.Table();
+                Table table = new DocumentFormat.OpenXml.Wordprocessing.Table();
 
                 /*
                 TableCellProperties cellOneProperties = new TableCellProperties();

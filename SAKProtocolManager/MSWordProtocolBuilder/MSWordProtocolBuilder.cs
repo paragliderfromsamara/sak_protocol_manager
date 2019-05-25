@@ -9,6 +9,10 @@ using Microsoft.Office.Interop.Word;
 using Word = Microsoft.Office.Interop.Word;
 using System.Diagnostics;
 
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using OpenXML =  DocumentFormat.OpenXml.Wordprocessing;
+
 
 namespace SAKProtocolManager.MSWordProtocolBuilder
 {
@@ -58,11 +62,252 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 }
                 if (needToBuildTable || ((i+1) == structure.MeasuredParameters.Length && typesForTable.Count > 0))
                 {
-                    BuildPrimaryParametersTable(typesForTable.ToArray(), structure, colsCount);
+                    BuildPrimaryParametersTable_WithOpenXML(typesForTable.ToArray(), structure, colsCount);
+                    //BuildPrimaryParametersTable(typesForTable.ToArray(), structure, colsCount);
                     typesForTable.Clear();
                     colsCount = 1;
                 }
             }
+        }
+
+
+        private static void BuildPrimaryParametersTable_WithOpenXML(MeasureParameterType[] pTypes, CableStructure structure, int cols)
+        {
+            int curElementNumber = 1;
+            int[] tablesRowsCount = CalcMaxRowsCount(cols, structure.RealNumberInCable + 3);
+            Debug.WriteLine($"{structure.RealNumberInCable}");
+            for (int idx = 0; idx < tablesRowsCount.Length; idx++)
+            {
+                int rows = 2 + tablesRowsCount[idx];
+                OpenXML.Table table = BuildTable();
+                OpenXML.TableRow[] headerRows = BuildPrimaryParamsTableHeader_WithOpenXML(pTypes, structure);
+                foreach (OpenXML.TableRow r in headerRows) table.Append(r);
+                wordProtocol.AddTable(table);
+                /*
+                Word.Shape tableShape = wordProtocol.AddTable(cols, rows);
+                tableShape.Width = cols * 34.5f;
+                tableShape.Height = rows * 10.45f + 10f;
+                tableShape.Line.Transparency = 1f;
+                Word.Table table = tableShape.TextFrame.TextRange.Tables[1];
+                 */
+
+                /*
+
+                for (int i = 0; i < tablesRowsCount[idx]; i++)
+                {
+                    int cellY = i + 3;
+                    if (curElementNumber <= structure.RealNumberInCable)
+                    {
+                        table.Cell(cellY, 1).Range.Text = curElementNumber.ToString();
+                        if (curElementNumber != structure.RealNumberInCable && i != tablesRowsCount[idx] - 1) table.Cell(cellY, 1).Borders[WdBorderType.wdBorderBottom].Visible = false;
+                        if (curElementNumber % 2 == 1) table.Cell(cellY, 1).Range.Shading.BackgroundPatternColor = WdColor.wdColorGray05;
+                        int colIdx = 2;
+                        for (int pIdx = 0; pIdx < pTypes.Length; pIdx++)//(MeasureParameterType mpt in pTypes)
+                        {
+                            int elsColsPerParam = ColumsCountForParameter(pTypes[pIdx], structure);
+                            TestResult[] results = pTypes[pIdx].ParameterDataList[0].TestResults;
+                            int resIdx = (curElementNumber - 1) * elsColsPerParam;
+                            for (int rIdx = resIdx; rIdx < resIdx + elsColsPerParam; rIdx++)
+                            {
+                                TestResult res = results[rIdx];
+                                table.Cell(cellY, colIdx).Range.Text = ResultText(res);// res.BringingValue.ToString();
+                                if (curElementNumber % 2 == 1) table.Cell(cellY, colIdx).Range.Shading.BackgroundPatternColor = WdColor.wdColorGray05;
+                                if (curElementNumber != structure.RealNumberInCable && i != tablesRowsCount[idx] - 1) table.Cell(cellY, colIdx).Borders[WdBorderType.wdBorderBottom].Visible = false;
+                                colIdx++;
+                            }
+                        }
+                        curElementNumber++;
+                    }
+                    else
+                    {
+                        int colIdx = 1;
+                        table.Cell(cellY, colIdx).Range.Text = "max";
+                        table.Cell(cellY, colIdx).Borders[WdBorderType.wdBorderTop].LineWidth = WdLineWidth.wdLineWidth150pt;
+                        table.Cell(cellY + 1, colIdx).Range.Text = "сред.";
+                        table.Cell(cellY + 2, colIdx).Range.Text = "min";
+                        colIdx += 1;
+                        for (int pIdx = 0; pIdx < pTypes.Length; pIdx++)//(MeasureParameterType mpt in pTypes)
+                        {
+                            int elsColsPerParam = ColumsCountForParameter(pTypes[pIdx], structure);
+                            int resIdx = (curElementNumber - 1) * elsColsPerParam;
+                            if (elsColsPerParam > 1)
+                            {
+                                table.Cell(cellY, colIdx).Merge(table.Cell(cellY, colIdx + elsColsPerParam - 1));
+                                table.Cell(cellY + 1, colIdx).Merge(table.Cell(cellY + 1, colIdx + elsColsPerParam - 1));
+                                table.Cell(cellY + 2, colIdx).Merge(table.Cell(cellY + 2, colIdx + elsColsPerParam - 1));
+                            }
+                            table.Cell(cellY, colIdx).Range.Text = ResultValueText(pTypes[pIdx].ParameterDataList[0].MaxVal);
+                            table.Cell(cellY, colIdx).Borders[WdBorderType.wdBorderTop].LineWidth = WdLineWidth.wdLineWidth150pt;
+                            table.Cell(cellY + 1, colIdx).Range.Text = ResultValueText(pTypes[pIdx].ParameterDataList[0].AverageVal);
+                            table.Cell(cellY + 2, colIdx).Range.Text = ResultValueText(pTypes[pIdx].ParameterDataList[0].MinVal);
+                            colIdx += 1;
+                        }
+                        break;
+                    }
+
+
+                    //if (++curElementNumber > structure.RealNumberInCable) break;
+                }
+
+                //wordProtocol.ResizeShapeByTable(tableShape);
+                // curElementNumber += maxElementsPerTable;
+                */
+            }// while (curElementNumber <= structure.RealNumberInCable);
+
+        }
+
+        private static OpenXML.TableRow[] BuildPrimaryParamsTableHeader_WithOpenXML(MeasureParameterType[] pTypes, CableStructure structure)
+        {
+            int pNameColNumb = 1;
+            int elColNumb = 1;
+            OpenXML.TableRow row_1 = new OpenXML.TableRow();
+            OpenXML.TableRow row_2 = new OpenXML.TableRow();
+
+            OpenXML.TableCell cell_1_1 = BuildCell();
+            OpenXML.TableCell cell_1_2 = BuildCell();
+
+            VerticalMergeCells(new OpenXML.TableCell[] { cell_1_1, cell_1_2 });
+            cell_1_1.Append(new OpenXML.Paragraph(new OpenXML.Run(new OpenXML.Text($"{ "№/№" } {BindingTypeText(structure.BendingTypeLeadsNumber)}"))));
+
+            /*
+            OpenXML.TableCellProperties cell_1_1_Properties = new OpenXML.TableCellProperties();
+            cell_1_1_Properties.Append(new OpenXML.VerticalMerge()
+            {
+                Val = OpenXML.MergedCellValues.Restart
+            });
+
+            OpenXML.TableCellProperties cell_1_2_Properties = new OpenXML.TableCellProperties();
+            cell_1_2_Properties.Append(new OpenXML.VerticalMerge()
+            {
+                Val = OpenXML.MergedCellValues.Continue
+            });
+
+            */
+            row_1.Append(cell_1_1);
+            row_2.Append(cell_1_2);
+
+            for (int i = 0; i < pTypes.Length; i++)
+            {
+                MeasureParameterType mpt = pTypes[i];
+                int colsForParameter = ColumsCountForParameter(mpt, structure);
+                OpenXML.TableCell[] cellsFor_row1 = BuildCells(colsForParameter, true);
+                OpenXML.TableCell[] cellsFor_row2 = BuildCells(colsForParameter);
+                cellsFor_row1[0].Append(new OpenXML.Paragraph(new OpenXML.Run(new OpenXML.Text($"{ParameterNameText(mpt)}, {mpt.ParameterDataList[0].ResultMeasure()}"))));
+                for (int x = 0; x < colsForParameter; x++)
+                {
+                    if (colsForParameter>1)
+                    {
+                        cellsFor_row2[x].Append(new OpenXML.Paragraph(new OpenXML.Run(new OpenXML.Text((x + 1).ToString()))));
+                    }else
+                    {
+                        VerticalMergeCells(new OpenXML.TableCell[] { cellsFor_row1[x], cellsFor_row2[x] });
+                    }
+                    row_1.Append(cellsFor_row1[x]);
+                    row_2.Append(cellsFor_row2[x]);
+                }
+            }
+            return new OpenXML.TableRow[] { row_1, row_2 };
+        }
+
+        private static OpenXML.TableCellProperties GetDefaultCellProps()
+        {
+            OpenXML.TableCellProperties props = new OpenXML.TableCellProperties();
+            return props;
+        }
+
+        private static OpenXML.TableCell BuildCell(bool hasContent = true)
+        {
+            OpenXML.TableCell cell = new DocumentFormat.OpenXml.Wordprocessing.TableCell();
+            cell.Append(new OpenXML.TableCellProperties(
+                                                        new OpenXML.TableCellWidth() { Type = OpenXML.TableWidthUnitValues.Auto }
+                                                        )
+                        );
+            cell.Append(new OpenXML.Paragraph(new OpenXML.Run(new OpenXML.Text(""))));
+            return cell;
+        }
+
+        private static void VerticalMergeCells(OpenXML.TableCell[] cells)
+        {
+            if (cells.Length>1)
+            {
+                for(int i=0; i<cells.Length; i++)
+                {
+                    OpenXML.TableCellProperties props = new OpenXML.TableCellProperties();
+                    props.Append(new OpenXML.VerticalMerge()
+                    {
+                        Val = i == 0 ? OpenXML.MergedCellValues.Restart : OpenXML.MergedCellValues.Continue
+                    });
+                    cells[0].AppendChild<OpenXML.TableCellProperties>(props);
+                }
+            }
+        }
+
+        private static OpenXML.TableCell[] BuildCells(int count, bool isMerged = false)
+        {
+            List<OpenXML.TableCell> cells = new List<DocumentFormat.OpenXml.Wordprocessing.TableCell>();
+            for (int i = 0; i < count; i++)
+            {
+                OpenXML.TableCell cell = BuildCell();
+                if (isMerged)
+                {
+                    OpenXML.TableCellProperties props = new OpenXML.TableCellProperties();
+                    props.Append(new OpenXML.HorizontalMerge()
+                    {
+                        Val = i == 0 ? OpenXML.MergedCellValues.Restart : OpenXML.MergedCellValues.Continue
+                    });
+                    cell.AppendChild<OpenXML.TableCellProperties>(props);
+                }
+                cells.Add(cell);
+            }
+            
+            return cells.ToArray();
+        }
+
+        private static OpenXML.Table BuildTable()
+        {
+            OpenXML.Table table = new OpenXML.Table();
+            OpenXML.TableProperties tblProp = new OpenXML.TableProperties(
+         new OpenXML.TableBorders(
+        new OpenXML.TopBorder()
+        {
+            Val =
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            Size = 2
+        },
+        new OpenXML.BottomBorder()
+        {
+            Val =
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            Size = 2
+        },
+        new OpenXML.LeftBorder()
+        {
+            Val =
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            Size = 2
+        },
+        new OpenXML.RightBorder()
+        {
+            Val =
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            Size = 2
+        },
+        new OpenXML.InsideHorizontalBorder()
+        {
+            Val =
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            Size = 2
+        },
+        new OpenXML.InsideVerticalBorder()
+        {
+            Val =
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            Size = 2
+        }
+    )
+);
+            table.AppendChild<OpenXML.TableProperties>(tblProp);
+            return table;
         }
 
         private static int[] CalcMaxRowsCount(int cols, int rows)
@@ -356,6 +601,78 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return oTab;
         }
 
+        public void AddTable(OpenXML.Table table)
+        {
+            using (WordprocessingDocument doc = WordprocessingDocument.Open(@"test.docx", true))
+            {
+                doc.MainDocumentPart.Document.Body.Append(table);
+            }
+        }
+
+        private static OpenXML.Table BuildTable()
+        {
+            OpenXML.Table table = new OpenXML.Table();
+            OpenXML.TableProperties tblProp = new OpenXML.TableProperties(
+         new OpenXML.TableBorders(
+        new OpenXML.TopBorder()
+        {
+            Val =
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            Size = 2
+        },
+        new OpenXML.BottomBorder()
+        {
+            Val =
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            Size = 2
+        },
+        new OpenXML.LeftBorder()
+        {
+            Val =
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            Size = 2
+        },
+        new OpenXML.RightBorder()
+        {
+            Val =
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            Size = 2
+        },
+        new OpenXML.InsideHorizontalBorder()
+        {
+            Val =
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            Size = 2
+        },
+        new OpenXML.InsideVerticalBorder()
+        {
+            Val =
+            new EnumValue<OpenXML.BorderValues>(OpenXML.BorderValues.BasicThinLines),
+            Size = 2
+        }
+    )
+);
+            table.AppendChild<OpenXML.TableProperties>(tblProp);
+            return table;
+        }
+        private OpenXML.Table testTable()
+        {
+            OpenXML.Table table = BuildTable();
+            for (int i = 0; i < 50; i++)
+            {
+                OpenXML.TableRow row = new OpenXML.TableRow();
+                for (int j = 0; j < 10; j++)
+                {
+                    OpenXML.TableCell cell = new OpenXML.TableCell();
+                    cell.Append(new OpenXML.TableCellProperties(
+new OpenXML.TableCellWidth() { Type = OpenXML.TableWidthUnitValues.Auto }));
+                    //cell.Append(new DocumentFormat.OpenXml.Wordprocessing.Paragraph(new OpenXML.Run(new OpenXML.Text($"cell{i}{j}"))));
+                    row.Append(cell);
+                }
+                table.Append(row);
+            }
+            return table;
+        }
 
         public void CutCreatedTableFromTmpFile()
         {
@@ -488,6 +805,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         }
 
 
+
+
         private Word.WdColor FontColor
         {
             get
@@ -500,6 +819,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 WordProtocolSettings.Default.Save();
             }
         }
+
+
+
 
         private float FontSize
         {
