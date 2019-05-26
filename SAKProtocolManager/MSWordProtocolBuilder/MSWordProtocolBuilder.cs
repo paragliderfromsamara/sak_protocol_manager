@@ -21,6 +21,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
     {
         static CableTest CableTest;
         static MSWordProtocol wordProtocol;
+        private const int MaxColsPerPage = 20;
         public static void BuildProtocolForTest(CableTest test)
         {
             CableTest = test;
@@ -38,12 +39,17 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         public static void PrintStructure(CableStructure structure)
         {
             addPrimaryParametersTable(structure);
+            addRizolByGroupTable(structure);
+        }
 
+        private static void addRizolByGroupTable(CableStructure structure)
+        {
+            //throw new NotImplementedException();
         }
 
         private static void addPrimaryParametersTable(CableStructure structure)
         {
-            int maxCols = 19;
+            int maxCols = MaxColsPerPage;
             int colsCount = 1; //Первая колонка номер элемента
             List<MeasureParameterType> typesForTable = new List<MeasureParameterType>();
 
@@ -374,7 +380,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
         private static int[] CalcMaxRowsCount(int cols, int rows)
         {
-            int tablesAmount = 16 / cols;
+            int tablesAmount = MaxColsPerPage / cols;
             int perTableRows = rows / tablesAmount;
             int lastTableRows;
             List<int> template = new List<int>();
@@ -432,8 +438,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         {
             if (els_amount == 1) return "жилы";
             else if (els_amount == 2) return "пары";
-            else if (els_amount == 3) return "тройки";
-            else if (els_amount == 4) return "четв.";
+            else if (els_amount == 3) return "тр.";
+            else if (els_amount == 4) return "чет.";
             else return "пары";
         }
 
@@ -481,6 +487,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private Word.Application WordApp;
         private Word.Document WordDocument;
         private object oMissing = System.Reflection.Missing.Value;
+        public float PageWidth;
+        public float PageHeight;
+        public float CellWidth;
+        public float CellHeight;
+        private float[] PageLine;
+
+        private List<ShapeCoord> ShapeCoordsList;
 
         public MSWordProtocol()
         {
@@ -495,7 +508,16 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             WordDocument.PageSetup.RightMargin = MarginRight;
             WordDocument.PageSetup.TopMargin = MarginTop;
             WordDocument.PageSetup.BottomMargin = MarginBottom;
-        }
+
+            PageWidth = WordDocument.PageSetup.PageWidth - WordDocument.PageSetup.LeftMargin;// - WordDocument.PageSetup.RightMargin;
+            PageHeight = WordDocument.PageSetup.PageHeight - WordDocument.PageSetup.TopMargin;// - WordDocument.PageSetup.BottomMargin;
+
+            CellHeight = FontSize * 1.3f;
+            CellWidth = 24f;
+            PageLine = new float[(int)PageWidth];
+            ShapeCoordsList = new List<ShapeCoord>();
+
+    }
 
         public void Finalise()
         {
@@ -524,9 +546,10 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
             Thread.Sleep(500);
             Word.Shape tableShape = CutCreatedTableFromTmpFile(filePath);
-            tableShape.Width = colsCount * 24.0f+15f;
-            tableShape.Height = rowsCount * 11.5f + 20f;
+            tableShape.Width = colsCount * CellWidth + 15f;
+            tableShape.Height = rowsCount * CellHeight + 20f;
             tableShape.Line.Transparency = 1f;
+            AddShapeToCoordsList(tableShape);
             DeleteTmpFile(filePath);
         }
 
@@ -586,15 +609,45 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return oShape;
         }
 
+        private void EstimateTablePosition(int colsCount, int rowsCount)
+        {
+
+        }
+
+        private void AddShapeToCoordsList(Word.Shape oShape)
+        {
+            //CutShape(oShape);
+
+            float cx = ShapeCoordsList.Count > 0 ? ShapeCoordsList.Last().x + ShapeCoordsList.Last().width : 0f;
+            int cpage = ShapeCoordsList.Count > 0 ? ShapeCoordsList.Last().page : 0;
+            float w = oShape.Width;
+            float h = oShape.Height;
+            object oEndOfDoc = "\\endofdoc";
+            if (w > PageWidth) w = PageWidth;
+            if ((cx + w) > PageWidth) cx = 0f;
+            if ((GetLine((int)cx, (int)w) + h) > PageHeight)
+            {
+                object ob = WdBreakType.wdPageBreak;
+                WordDocument.Bookmarks.get_Item(ref oEndOfDoc).Range.InsertBreak(ref ob);
+                for (int ps = 0; ps < PageLine.Length; ps++) PageLine[ps] = 0f;
+                cx = 0f;
+                cpage++;
+            }
+            ShapeCoordsList.Add(new ShapeCoord(cx, GetLine((int)cx, (int)w), cpage) { width = w, height = h});
+            Debug.WriteLine($"x={ShapeCoordsList.Last().x}; y={ShapeCoordsList.Last().y}; page={ShapeCoordsList.Last().page}; width={ShapeCoordsList.Last().width}; height={ShapeCoordsList.Last().height}");
+            SetLine((int)cx, (int)w, (int)h);
+        }
+
         public void PlaceShapes()
         {
-            object oEndOfDoc = "\\endofdoc";
-            float cx = 0f;
-            float wd = WordDocument.PageSetup.PageWidth - WordDocument.PageSetup.LeftMargin;// -WordDoc.PageSetup.RightMargin;
-            float ht = WordDocument.PageSetup.PageHeight - WordDocument.PageSetup.TopMargin;// -WordDoc.PageSetup.BottomMargin;
-            int cpage = 0;
-            List<ShapeCoord> lst = new List<ShapeCoord>();
-            float[] line = new float[(int)wd];
+            //object oEndOfDoc = "\\endofdoc";
+            //float cx = 0f;
+            //float wd = WordDocument.PageSetup.PageWidth - WordDocument.PageSetup.LeftMargin;// -WordDoc.PageSetup.RightMargin;
+            //float ht = WordDocument.PageSetup.PageHeight - WordDocument.PageSetup.TopMargin;// -WordDoc.PageSetup.BottomMargin;
+            //int cpage = 0;
+            //List<ShapeCoord> lst = new List<ShapeCoord>();
+            //float[] line = new float[(int)wd];
+            /*
             foreach (Word.Shape oShape in WordDocument.Shapes)
             {
                 //CutShape(oShape);
@@ -614,14 +667,15 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 SetLine(line, (int)cx, (int)w, (int)h);
                 cx += w;
             }
+            */
             object pos = 1;
             for (int i = 0; i < WordDocument.Shapes.Count; i++)
             {
-                if (lst[i].page == 0)
+                if (ShapeCoordsList[i].page == 0)
                 {
                     pos = i + 1;
-                    WordDocument.Shapes.get_Item(ref pos).Left = lst[i].x;
-                    WordDocument.Shapes.get_Item(ref pos).Top = lst[i].y;
+                    WordDocument.Shapes.get_Item(ref pos).Left = ShapeCoordsList[i].x;
+                    WordDocument.Shapes.get_Item(ref pos).Top = ShapeCoordsList[i].y;
                     pos = i + 2;
                 }
                 else
@@ -630,12 +684,12 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     object jdx = true;
                     srng.Select(ref jdx);
                     WordDocument.ActiveWindow.Selection.Cut();
-                    int tm = lst[i].page;
+                    int tm = ShapeCoordsList[i].page;
                     while (tm-- > 0) WordDocument.ActiveWindow.Selection.GoToNext(WdGoToItem.wdGoToPage);
                     WordDocument.ActiveWindow.Selection.Paste();
                     object tp = WordDocument.Shapes.Count;
-                    WordDocument.Shapes.get_Item(ref tp).Left = lst[i].x;
-                    WordDocument.Shapes.get_Item(ref tp).Top = lst[i].y;
+                    WordDocument.Shapes.get_Item(ref tp).Left = ShapeCoordsList[i].x;
+                    WordDocument.Shapes.get_Item(ref tp).Top = ShapeCoordsList[i].y;
                 }
             }
         }
@@ -719,16 +773,16 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
-        private float GetLine(float[] mass, int begin, int width)
+        private float GetLine(int begin, int width)
         {
             float ret = 0f;
-            for (int pos = begin; pos < (begin + width); pos++) if (mass[pos] > ret) ret = mass[pos];
+            for (int pos = begin; pos < (begin + width); pos++) if (PageLine[pos] > ret) ret = PageLine[pos];
             return ret;
         }
-        private void SetLine(float[] mass, int begin, int width, float height)
+        private void SetLine(int begin, int width, float height)
         {
-            float val = GetLine(mass, begin, width) + height;
-            for (int pos = begin; pos < (begin + width); pos++) mass[pos] = val;
+            float val = GetLine(begin, width) + height;
+            for (int pos = begin; pos < (begin + width); pos++) PageLine[pos] = val;
         }
 
 
@@ -812,12 +866,30 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         }
     }
 
+    internal class SubTable
+    {
+        public int ColumnsCount;
+        public int RowsCount;
+        public ShapeCoord TableShapePlanedCoord;
+
+        public SubTable()
+        {
+
+        }
+    }
+
     internal class ShapeCoord
     {
         public float x;
         public float y;
+        public float height;
+        public float width;
         public int page;
 
+        public ShapeCoord()
+        {
+
+        }
         public ShapeCoord(float tx, float ty, int tpage)
         {
             x = tx;
