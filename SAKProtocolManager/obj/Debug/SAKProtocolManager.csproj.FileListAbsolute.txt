@@ -36,3 +36,9 @@ C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtoco
 C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\System.IO.Packaging.dll
 C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\DocumentFormat.OpenXml.xml
 C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\log4net.xml
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\DocumentFormat.OpenXml.dll
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\log4net.dll
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\System.IO.FileSystem.Primitives.dll
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\System.IO.Packaging.dll
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\DocumentFormat.OpenXml.xml
+L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\log4net.xml

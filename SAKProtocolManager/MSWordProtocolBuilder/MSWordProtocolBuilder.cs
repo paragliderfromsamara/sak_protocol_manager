@@ -380,10 +380,14 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
         private static int[] CalcMaxRowsCount(int cols, int rows)
         {
+            SubTable[] subTables = wordProtocol.EstimateTablePosition(cols, rows);
+            List<int> template = new List<int>();
+            foreach (SubTable st in subTables) template.Add(st.RowsCount);
+            /*
             int tablesAmount = MaxColsPerPage / cols;
             int perTableRows = rows / tablesAmount;
             int lastTableRows;
-            List<int> template = new List<int>();
+
             if (perTableRows > 50)
             {
                 perTableRows = 50;
@@ -401,6 +405,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     template.Add(perTableRows);
                 }
             }
+            */
             return template.ToArray();
         }
 
@@ -609,59 +614,85 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return oShape;
         }
 
-        private void EstimateTablePosition(int colsCount, int rowsCount)
+        public SubTable[] EstimateTablePosition(int colsCount, int rowsCount)
         {
             float tableWidth = colsCount * CellWidth;
             if (tableWidth > PageWidth) tableWidth = PageWidth;
             int tablesOnPageRow = (int)(PageWidth / tableWidth);
+            int MinRowsPerTable = 5 > rowsCount ? rowsCount : 5;
+            int MaxRowsPerTable = 65;
             ShapeCoord lastCoord = LastShapeCoords == null ? new ShapeCoord() { x = 0, y = 0, width = 0, height =0, page=0} : LastShapeCoords;
             float[] pageLine = (float[])PageLine.Clone();
             List<SubTable> subTables = new List<SubTable>();
-            int currentPage = lastCoord.page;
-            float xCoord = (int)lastCoord.x + (int)lastCoord.width;
-            if (xCoord + tableWidth > PageWidth) xCoord = 0f;
-            float line = GetLine(pageLine, (int)xCoord, (int)tableWidth);
-            bool needNewLine = false; //Флаг перехода на новую строку
-            int rowsOnCurrentPlace; //Количество строк в данной строке документа
+            int curPage = lastCoord.page;
 
+            float xCoord = (int)lastCoord.x + (int)lastCoord.width;
+            if (xCoord + tableWidth > PageWidth || lastCoord.height < MinRowsPerTable*CellHeight) xCoord = 0f;
+            float line = GetLine(pageLine, (int)lastCoord.x, (int)tableWidth);
+            if (line + MinRowsPerTable*CellHeight > PageHeight)
+            {
+                for (int ps = 0; ps < pageLine.Length; ps++) pageLine[ps] = 0f;
+                xCoord = 0f;
+                curPage++;
+            }
+         
             while (rowsCount>0)
             {
-                setNewLine:
-                if (needNewLine)
-                {
-                    line++;
-                    xCoord = 0f;
-                    if (line > PageHeight)
-                    {
-                        currentPage++;
-                        for (int ps = 0; ps < pageLine.Length; ps++) pageLine[ps] = 0f;
-                        line = 0;
-                    }
-                    
-                }
 
-                xCoord = (int)lastCoord.x + (int)lastCoord.width;
-                if (xCoord + tableWidth > PageWidth) xCoord = 0f;
-                rowsOnCurrentPlace = (int)((PageHeight - line) / CellHeight) - 3;
+                int rowsOnCurrentPosition; //Количество строк в данной строке документа
+                int colsOnCurrentPosition; 
+                int tablesToAddCount = 0;
                 if (xCoord == 0)
                 {
-                    if ((rowsOnCurrentPlace * tablesOnPageRow) < tablesOnPageRow * 7)
+                    rowsOnCurrentPosition = (int)((PageHeight-line) / CellHeight);
+                    if (rowsOnCurrentPosition > MaxRowsPerTable) rowsOnCurrentPosition = MaxRowsPerTable;
+                    colsOnCurrentPosition = (int)((PageWidth) / CellWidth);
+                    if (rowsOnCurrentPosition * tablesOnPageRow > rowsCount)
                     {
-                        needNewLine = true;
-                        goto setNewLine;
+                        tablesToAddCount = tablesOnPageRow;
+                        for(int tCnt = 1; tCnt <= tablesOnPageRow; tCnt++)
+                        {
+                            if (rowsCount / tCnt > MinRowsPerTable)
+                            {
+                                tablesToAddCount = tCnt;
+                            }
+                        }
+                        rowsOnCurrentPosition = rowsCount / tablesToAddCount;
+                    } else
+                    {
+                        tablesToAddCount = tablesOnPageRow;
                     }
+
                 }else
                 {
-                    if (subTables.Count == 0)
+                    //Это выполняется только если таблица вставляется в строку с другим блоком и только для первой таблицы в коллекции
+                    rowsOnCurrentPosition = (int)(lastCoord.height / CellHeight);
+                    colsOnCurrentPosition = (int)((PageWidth - xCoord) / CellWidth);
+                    if (rowsOnCurrentPosition >= rowsCount)
                     {
-                        rowsOnCurrentPlace = (int)(lastCoord.height / CellHeight);
+                        rowsOnCurrentPosition = rowsCount;
+                        tablesToAddCount = 1;
+                    }else
+                    {
+                        tablesToAddCount = colsOnCurrentPosition / colsCount;
                     }
                 }
-                ShapeCoord curTableCoord = new ShapeCoord() { x = xCoord, y = line,  };
+                for(int tIdx = 0; tIdx < tablesToAddCount; tIdx++)
+                {
+                    int rowsToAddCount = rowsCount - rowsOnCurrentPosition < 0 ? rowsCount : rowsOnCurrentPosition;
+                    if (tIdx == tablesToAddCount-1 && (rowsCount - rowsToAddCount <= MinRowsPerTable)) rowsToAddCount = rowsCount;
 
+                    float tableHeight = rowsToAddCount * CellHeight;
+                    ShapeCoord curTableCoord = GetNextShapeCoord(tableWidth, tableHeight, lastCoord, pageLine);
+                    subTables.Add(new SubTable() { TableShapePlanedCoord = curTableCoord, ColumnsCount = colsCount, RowsCount = rowsToAddCount });
+                    rowsCount -= rowsToAddCount;
+                    lastCoord = curTableCoord;
+                }
             }
+            return subTables.ToArray();
         }
 
+        
 
         private ShapeCoord GetNextShapeCoord(float shapeWidth, float shapeHeight, ShapeCoord lastCoord, float[] LineArr=null)
         {
@@ -896,7 +927,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         }
     }
 
-    internal class SubTable
+    public class SubTable
     {
         public int ColumnsCount;
         public int RowsCount;
@@ -908,7 +939,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         }
     }
 
-    internal class ShapeCoord
+    public class ShapeCoord
     {
         public float x;
         public float y;
