@@ -611,63 +611,93 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
         private void EstimateTablePosition(int colsCount, int rowsCount)
         {
+            float tableWidth = colsCount * CellWidth;
+            if (tableWidth > PageWidth) tableWidth = PageWidth;
+            int tablesOnPageRow = (int)(PageWidth / tableWidth);
+            ShapeCoord lastCoord = LastShapeCoords == null ? new ShapeCoord() { x = 0, y = 0, width = 0, height =0, page=0} : LastShapeCoords;
+            float[] pageLine = (float[])PageLine.Clone();
+            List<SubTable> subTables = new List<SubTable>();
+            int currentPage = lastCoord.page;
+            float xCoord = (int)lastCoord.x + (int)lastCoord.width;
+            if (xCoord + tableWidth > PageWidth) xCoord = 0f;
+            float line = GetLine(pageLine, (int)xCoord, (int)tableWidth);
+            bool needNewLine = false; //Флаг перехода на новую строку
+            int rowsOnCurrentPlace; //Количество строк в данной строке документа
 
+            while (rowsCount>0)
+            {
+                setNewLine:
+                if (needNewLine)
+                {
+                    line++;
+                    xCoord = 0f;
+                    if (line > PageHeight)
+                    {
+                        currentPage++;
+                        for (int ps = 0; ps < pageLine.Length; ps++) pageLine[ps] = 0f;
+                        line = 0;
+                    }
+                    
+                }
+
+                xCoord = (int)lastCoord.x + (int)lastCoord.width;
+                if (xCoord + tableWidth > PageWidth) xCoord = 0f;
+                rowsOnCurrentPlace = (int)((PageHeight - line) / CellHeight) - 3;
+                if (xCoord == 0)
+                {
+                    if ((rowsOnCurrentPlace * tablesOnPageRow) < tablesOnPageRow * 7)
+                    {
+                        needNewLine = true;
+                        goto setNewLine;
+                    }
+                }else
+                {
+                    if (subTables.Count == 0)
+                    {
+                        rowsOnCurrentPlace = (int)(lastCoord.height / CellHeight);
+                    }
+                }
+                ShapeCoord curTableCoord = new ShapeCoord() { x = xCoord, y = line,  };
+
+            }
+        }
+
+
+        private ShapeCoord GetNextShapeCoord(float shapeWidth, float shapeHeight, ShapeCoord lastCoord, float[] LineArr=null)
+        {
+            float cx = lastCoord != null ? lastCoord.x + lastCoord.width : 0f;
+            int cpage = lastCoord != null ? lastCoord.page : 0;
+            if (LineArr == null) LineArr = PageLine;
+            if (shapeWidth > PageWidth) shapeWidth = PageWidth;
+            if ((cx + shapeWidth) > PageWidth) cx = 0f;
+            if ((GetLine(LineArr, (int)cx, (int)shapeWidth) + shapeHeight) > PageHeight)
+            {
+                for (int ps = 0; ps < LineArr.Length; ps++) LineArr[ps] = 0f;
+                cx = 0f;
+                cpage++;
+            }
+            ShapeCoord newCoord = new ShapeCoord(cx, GetLine(LineArr, (int)cx, (int)shapeWidth), cpage) { width = shapeWidth, height = shapeHeight };
+            SetLine(LineArr, (int)cx, (int)shapeWidth, (int)shapeHeight);
+            return newCoord;
         }
 
         private void AddShapeToCoordsList(Word.Shape oShape)
         {
             //CutShape(oShape);
-
-            float cx = ShapeCoordsList.Count > 0 ? ShapeCoordsList.Last().x + ShapeCoordsList.Last().width : 0f;
-            int cpage = ShapeCoordsList.Count > 0 ? ShapeCoordsList.Last().page : 0;
-            float w = oShape.Width;
-            float h = oShape.Height;
+            ShapeCoord newShape = GetNextShapeCoord(oShape.Width, oShape.Height, LastShapeCoords);
+            int lastShapePage = LastShapeCoords == null ? 0 : LastShapeCoords.page;
             object oEndOfDoc = "\\endofdoc";
-            if (w > PageWidth) w = PageWidth;
-            if ((cx + w) > PageWidth) cx = 0f;
-            if ((GetLine((int)cx, (int)w) + h) > PageHeight)
+            if (lastShapePage < newShape.page)
             {
                 object ob = WdBreakType.wdPageBreak;
                 WordDocument.Bookmarks.get_Item(ref oEndOfDoc).Range.InsertBreak(ref ob);
-                for (int ps = 0; ps < PageLine.Length; ps++) PageLine[ps] = 0f;
-                cx = 0f;
-                cpage++;
             }
-            ShapeCoordsList.Add(new ShapeCoord(cx, GetLine((int)cx, (int)w), cpage) { width = w, height = h});
+            ShapeCoordsList.Add(newShape);
             Debug.WriteLine($"x={ShapeCoordsList.Last().x}; y={ShapeCoordsList.Last().y}; page={ShapeCoordsList.Last().page}; width={ShapeCoordsList.Last().width}; height={ShapeCoordsList.Last().height}");
-            SetLine((int)cx, (int)w, (int)h);
         }
 
         public void PlaceShapes()
         {
-            //object oEndOfDoc = "\\endofdoc";
-            //float cx = 0f;
-            //float wd = WordDocument.PageSetup.PageWidth - WordDocument.PageSetup.LeftMargin;// -WordDoc.PageSetup.RightMargin;
-            //float ht = WordDocument.PageSetup.PageHeight - WordDocument.PageSetup.TopMargin;// -WordDoc.PageSetup.BottomMargin;
-            //int cpage = 0;
-            //List<ShapeCoord> lst = new List<ShapeCoord>();
-            //float[] line = new float[(int)wd];
-            /*
-            foreach (Word.Shape oShape in WordDocument.Shapes)
-            {
-                //CutShape(oShape);
-                float w = oShape.Width;
-                float h = oShape.Height;
-                if (w > wd) w = wd;
-                if ((cx + w) > wd) cx = 0f;
-                if ((GetLine(line, (int)cx, (int)w) + h) > ht)
-                {
-                    object ob = WdBreakType.wdPageBreak;
-                    WordDocument.Bookmarks.get_Item(ref oEndOfDoc).Range.InsertBreak(ref ob);
-                    for (int ps = 0; ps < line.Length; ps++) line[ps] = 0f;
-                    cx = 0f;
-                    cpage++;
-                }
-                lst.Add(new ShapeCoord(cx, GetLine(line, (int)cx, (int)w), cpage));
-                SetLine(line, (int)cx, (int)w, (int)h);
-                cx += w;
-            }
-            */
             object pos = 1;
             for (int i = 0; i < WordDocument.Shapes.Count; i++)
             {
@@ -773,19 +803,19 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
-        private float GetLine(int begin, int width)
+        private float GetLine(float[] arr, int begin, int width)
         {
             float ret = 0f;
-            for (int pos = begin; pos < (begin + width); pos++) if (PageLine[pos] > ret) ret = PageLine[pos];
+            for (int pos = begin; pos < (begin + width); pos++) if (arr[pos] > ret) ret = arr[pos];
             return ret;
         }
-        private void SetLine(int begin, int width, float height)
+        private void SetLine(float[] arr, int begin, int width, float height)
         {
-            float val = GetLine(begin, width) + height;
-            for (int pos = begin; pos < (begin + width); pos++) PageLine[pos] = val;
+            float val = GetLine(arr, begin, width) + height;
+            for (int pos = begin; pos < (begin + width); pos++) arr[pos] = val;
         }
 
-
+        private ShapeCoord LastShapeCoords => ShapeCoordsList.Count > 0 ? ShapeCoordsList.Last() : null;
 
 
         private Word.WdColor FontColor
