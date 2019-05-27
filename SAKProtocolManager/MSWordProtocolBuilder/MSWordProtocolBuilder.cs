@@ -14,6 +14,7 @@ using DocumentFormat.OpenXml.Packaging;
 using OpenXML =  DocumentFormat.OpenXml.Wordprocessing;
 using System.Windows.Forms;
 using System.Threading;
+using Microsoft.Office.Core;
 
 namespace SAKProtocolManager.MSWordProtocolBuilder
 {
@@ -27,11 +28,12 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             CableTest = test;
             wordProtocol = new MSWordProtocol();
             wordProtocol.Init();
-           
+            wordProtocol.AddHeader();
             foreach (CableStructure s in CableTest.TestedCable.Structures)
             {
                 PrintStructure(s);
             }
+            wordProtocol.AddFooter();
             wordProtocol.Finalise();
           
         }
@@ -72,11 +74,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 if (needToBuildTable || ((i+1) == structure.MeasuredParameters.Length && typesForTable.Count > 0))
                 {
                     BuildPrimaryParametersTable_WithOpenXML(typesForTable.ToArray(), structure, colsCount);
+
                     //BuildPrimaryParametersTable(typesForTable.ToArray(), structure, colsCount);
                     typesForTable.Clear();
                     colsCount = 1;
                 }
             }
+
         }
 
 
@@ -163,9 +167,25 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 }
 
                 wordProtocol.AddTable(table, colsAmount, rows);
-
+              //  wordProtocol.AddParagraph("Каждый охотник желает знать где сидит фазан", 18f);
             }
-
+            foreach (MeasureParameterType type in pTypes)
+            {
+                if (type.Id == MeasureParameterType.Risol2)
+                {
+                    decimal norma = 200;
+                    string measure = "МОм/км";
+                    foreach (MeasureParameterType r in structure.MeasuredParameters)
+                    {
+                        if (r.Id == MeasureParameterType.Risol1)
+                        {
+                            norma = r.ParameterDataList[0].MinVal;
+                            measure = r.ParameterDataList[0].ResultMeasure();
+                        }
+                    }
+                    wordProtocol.AddParagraph($"* Tиз—время достижения сопротивления изоляции свыше {norma} {measure}.", 18f);
+                }
+            }
         }
 
         private static OpenXML.TableRow[] BuildPrimaryParamsTableHeader_WithOpenXML(MeasureParameterType[] pTypes, CableStructure structure)
@@ -541,21 +561,48 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return oTab;
         }
 
+        public void AddParagraph(string text, float shape_height = 50f, float shape_width=0)
+        {
+            if (shape_width == 0) shape_width = PageWidth - MarginRight; 
+            Word.Shape pShape = CreateShape(shape_height, shape_width);
+        
+            pShape.TextFrame.TextRange.Text = text;
+            pShape.TextFrame.TextRange.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+            pShape.TextFrame.MarginLeft = 0;
+            pShape.TextFrame.MarginRight = 0;
+            
+            AddShapeToCoordsList(pShape);
+        }
+
         public void AddTable(OpenXML.Table table, int colsCount, int rowsCount)
         {
+            int timesForTrying = 10;
+            createTmp:
             DateTime time = DateTime.Now;
             string filePath = AddTmpFile($"tmp-{time.Day}-{time.Month}-{time.Year}-{time.Hour}-{time.Minute}-{time.Second}-{time.Millisecond}");
             using (WordprocessingDocument doc = WordprocessingDocument.Open(filePath, true))
             {
                 doc.MainDocumentPart.Document.Body.Append(table);
             }
-            Thread.Sleep(500);
-            Word.Shape tableShape = CutCreatedTableFromTmpFile(filePath);
-            tableShape.Width = colsCount * CellWidth + 15f;
-            tableShape.Height = rowsCount * CellHeight + 20f;
-            tableShape.Line.Transparency = 1f;
-            AddShapeToCoordsList(tableShape);
-            DeleteTmpFile(filePath);
+            //Thread.Sleep(1000);
+            try
+            {
+                Word.Shape tableShape = CutCreatedTableFromTmpFile(filePath);
+
+                tableShape.Width = colsCount * CellWidth + 15f;
+                tableShape.Height = rowsCount * CellHeight + 20f;
+                tableShape.Line.Transparency = 1f;
+                AddShapeToCoordsList(tableShape);
+                DeleteTmpFile(filePath);
+            }
+            catch(System.Runtime.InteropServices.COMException ex)
+            {
+                DeleteTmpFile(filePath);
+                Debug.WriteLine($"AddTable: timesForTrying = {timesForTrying}");
+                if (timesForTrying-- > 0) goto createTmp;
+                else throw ex;
+            }
+
         }
 
 
@@ -611,6 +658,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             oShape.TextFrame.TextRange.Font.Name = FontName;
             oShape.TextFrame.TextRange.Font.Color = FontColor;
             oShape.Fill.Transparency = 1f;
+            oShape.Line.Visible = MsoTriState.msoFalse;
             return oShape;
         }
 
@@ -763,6 +811,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
+
         public string AddTmpFile(string file_name)
         {
             object needSave = true;
@@ -770,41 +819,33 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             object fileName = file_name;
             string string_path = CreateTmpFile($"{file_name}.docx");
             object filePath = string_path;
-            Word.Document doc = WordApp.Documents.Add(ref filePath, ref isTemplate, ref oMissing, ref oMissing);
+            object oVisible = false;
+            Word.Document doc = WordApp.Documents.Add(ref filePath, ref isTemplate, ref oMissing, ref oVisible);
             doc.Content.Paragraphs.Add(ref oMissing);
             doc.SaveAs2(ref filePath);
             doc.Close();
             return string_path;
         }
 
+        private void CreateWordFile(string file_path)
+        {
+            if (!File.Exists(file_path))
+            {
+                FileStream fs = File.Create(file_path);
+                fs.Close();
+                fs.Dispose();
+            }
+        }
+
         public string CreateTmpFile(string file_name)
         {
-            string filePath = Path.Combine(GetTmpFileDir(), file_name);
+            string filePath = Path.Combine(TmpFilesFolderDir, file_name);
             if (File.Exists(filePath)) File.Delete(filePath);
-            FileStream fs = File.Create(filePath);
-            fs.Close();
-            fs.Dispose();
+            CreateWordFile(filePath);
             return filePath;
         }
 
-        public string GetTmpFileDir()
-        {
-            string path = Path.Combine(GetRootWordProtocolsDir(), "tmp");
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
-            return path;
-        }
-        public string GetRootWordProtocolsDir()
-        {
-            string path = Path.Combine(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath), "Протоколы MSWord");
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
-            return path;
-        }
+
 
         public void ResizeShapeByTable(Word.Shape oShape)
         {
@@ -846,6 +887,62 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             for (int pos = begin; pos < (begin + width); pos++) arr[pos] = val;
         }
 
+        internal void AddHeader()
+        {
+            object filePath = ProtocolHeaderFile;
+            object oSave = false;
+            Word.Document headerDoc = WordApp.Documents.Add(ref filePath, ref oMissing, ref oMissing, ref oMissing);
+            if (headerDoc.Shapes.Count > 0)
+            {
+                object idx = 1;
+                Word.Shape oShape = headerDoc.Shapes.get_Item(ref idx);
+                oShape.Width = PageWidth-MarginRight;
+                oShape.RelativeHorizontalPosition= WdRelativeHorizontalPosition.wdRelativeHorizontalPositionMargin;
+                AddShapeToCoordsList(oShape);
+                //replaceRegular(ref oShape, tres);
+                //oShape.Width = PageWidth;
+                Word.ShapeRange sr = headerDoc.Shapes.Range(ref idx);
+                object rep = true;
+                sr.Select(ref rep);
+                headerDoc.ActiveWindow.Selection.Copy();
+                WordDocument.Activate();
+                WordDocument.ActiveWindow.Selection.Paste();
+                WordDocument.ActiveWindow.Selection.Start = WordDocument.ActiveWindow.Selection.End;
+
+            }
+            headerDoc.Close(ref oSave, ref oMissing, ref oMissing);
+        }
+
+        internal void AddFooter()
+        {
+            object filePath = ProtocolFooterFile;
+            object oSave = false;
+            object oVisible = false;
+            Word.Document footerDoc = WordApp.Documents.Add(ref filePath, ref oMissing, ref oMissing, ref oMissing);
+            if (footerDoc.Shapes.Count > 0)
+            {
+                object idx = 1;
+                Word.Shape oShape = footerDoc.Shapes.get_Item(ref idx);
+                oShape.Width = PageWidth - MarginRight;
+                oShape.RelativeHorizontalPosition = WdRelativeHorizontalPosition.wdRelativeHorizontalPositionMargin;
+                AddShapeToCoordsList(oShape);
+                Word.ShapeRange sr = footerDoc.Shapes.Range(ref idx);
+                object rep = true;
+                sr.Select(ref rep);
+                footerDoc.ActiveWindow.Selection.Copy();
+                WordDocument.Activate();
+                if (WordDocument.Paragraphs.Count > 0)
+                {
+                    object rpt = false;
+                    WordDocument.Paragraphs[WordDocument.Paragraphs.Count].Range.Select();
+                }
+                WordDocument.ActiveWindow.Selection.Paste();
+                WordDocument.ActiveWindow.Selection.Start = WordDocument.ActiveWindow.Selection.End;
+                AddShapeToCoordsList(oShape);
+            }
+            footerDoc.Close(ref oSave, ref oMissing, ref oMissing);
+        }
+
         private ShapeCoord LastShapeCoords => ShapeCoordsList.Count > 0 ? ShapeCoordsList.Last() : null;
 
 
@@ -862,7 +959,72 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
+        private string ProtocolTemplatesDir
+        {
+            get
+            {
+                string path = Path.Combine(RootProtocolsDir, "Шаблоны");
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+                return path;
+            }
+        }
 
+        public string ProtocolFooterFile
+        {
+            get
+            {
+                string fileName = "Footer.docx";
+                string filePath = Path.Combine(ProtocolTemplatesDir, fileName);
+                if (!File.Exists(filePath))
+                {
+                    CreateWordFile(filePath);
+                }
+                return filePath;
+            }
+        }
+
+        public string ProtocolHeaderFile
+        {
+            get
+            {
+                string fileName = "Header.docx";
+                string filePath = Path.Combine(ProtocolTemplatesDir, fileName);
+                if (!File.Exists(filePath))
+                {
+                    CreateWordFile(filePath);
+                }
+                return filePath;
+            }
+        }
+
+        public string TmpFilesFolderDir
+        {
+            get
+            {
+                string path = path = Path.Combine(RootProtocolsDir, "tmp");
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+                return path;
+            }
+        }
+
+        public string RootProtocolsDir
+        {
+            get
+            {
+                string path = Path.Combine(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath), "Протоколы MSWord");
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+                return path;
+            }
+        }
 
 
         private float FontSize
