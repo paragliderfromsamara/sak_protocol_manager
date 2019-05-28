@@ -25,17 +25,24 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private const int MaxColsPerPage = 20;
         public static void BuildProtocolForTest(CableTest test)
         {
+            int tryingTime = 3;
             CableTest = test;
-            wordProtocol = new MSWordProtocol();
-            wordProtocol.Init();
-            wordProtocol.AddHeader();
-            foreach (CableStructure s in CableTest.TestedCable.Structures)
+            try
             {
-                PrintStructure(s);
+                wordProtocol = new MSWordProtocol();
+                wordProtocol.Init();
+                wordProtocol.AddHeader();
+                foreach (CableStructure s in CableTest.TestedCable.Structures)
+                {
+                    PrintStructure(s);
+                }
+                wordProtocol.AddFooter();
+                wordProtocol.Finalise();
             }
-            wordProtocol.AddFooter();
-            wordProtocol.Finalise();
-          
+            catch(System.Runtime.InteropServices.COMException ex)
+            {
+                if (tryingTime-- > 0) throw ex;
+            }
         }
 
         public static void PrintStructure(CableStructure structure)
@@ -48,6 +55,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         {
             MeasureParameterType type = null;
             MeasuredParameterData mpd = null;
+            OpenXmlElement[] elementsToPage = new OpenXmlElement[2]; 
             int i = 0;
             foreach (MeasureParameterType mpt in structure.MeasuredParameters)
             {
@@ -103,6 +111,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 resRow.Append(resCell);
                 table.Append(resRow);
             }
+            elementsToPage[0] = table;
+            
             wordProtocol.AddTable(table, colsAmount, mpd.ParameterType.TestResults.Length + 1);
         }
 
@@ -632,6 +642,40 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             AddShapeToCoordsList(pShape);
         }
 
+        public void AddElementsAsXML(OpenXmlElement[] elsToAdd, float shapeHeight, float shapeWidth )
+        {
+            int timesForTrying = 10;
+            createTmp:
+            DateTime time = DateTime.Now;
+            string filePath = AddTmpFile($"tmp-{time.Day}-{time.Month}-{time.Year}-{time.Hour}-{time.Minute}-{time.Second}-{time.Millisecond}");
+            using (WordprocessingDocument doc = WordprocessingDocument.Open(filePath, true))
+            {
+                doc.MainDocumentPart.Document.Body.RemoveAllChildren();
+                foreach(OpenXmlElement el in elsToAdd)
+                {
+                    doc.MainDocumentPart.Document.Body.Append(el);
+                }
+            }
+            //Thread.Sleep(1000);
+            try
+            {
+                Word.Shape tableShape = CutCreatedTableFromTmpFile(filePath);
+
+                tableShape.Width = shapeWidth;
+                tableShape.Height = shapeHeight;
+                tableShape.Line.Transparency = 1f;
+                AddShapeToCoordsList(tableShape);
+                DeleteTmpFile(filePath);
+            }
+            catch (System.Runtime.InteropServices.COMException ex)
+            {
+                DeleteTmpFile(filePath);
+                Debug.WriteLine($"AddTable: timesForTrying = {timesForTrying}");
+                if (timesForTrying-- > 0) goto createTmp;
+                else throw ex;
+            }
+        }
+
         public void AddTable(OpenXML.Table table, int colsCount, int rowsCount)
         {
             int timesForTrying = 10;
@@ -640,6 +684,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             string filePath = AddTmpFile($"tmp-{time.Day}-{time.Month}-{time.Year}-{time.Hour}-{time.Minute}-{time.Second}-{time.Millisecond}");
             using (WordprocessingDocument doc = WordprocessingDocument.Open(filePath, true))
             {
+                doc.MainDocumentPart.Document.Body.RemoveAllChildren();
                 doc.MainDocumentPart.Document.Body.Append(table);
             }
             //Thread.Sleep(1000);
@@ -648,9 +693,10 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 Word.Shape tableShape = CutCreatedTableFromTmpFile(filePath);
 
                 tableShape.Width = colsCount * CellWidth + 15f;
-                tableShape.Height = rowsCount * CellHeight + 20f;
+                tableShape.Height = rowsCount * (CellHeight + 0.3f)+15f;
                 tableShape.Line.Transparency = 1f;
                 AddShapeToCoordsList(tableShape);
+
                 DeleteTmpFile(filePath);
             }
             catch(System.Runtime.InteropServices.COMException ex)
@@ -671,7 +717,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             Word.Document tmp = WordApp.Documents.Add(ref file, ref oMissing, ref oMissing, ref oMissing);
             tmp.Activate();
 
-            tmp.Tables[1].Select();
+
+            tmp.Select();
+            //tmp.Tables[1].Select();
             tmp.ActiveWindow.Selection.Copy();
 
             WordDocument.Activate();
@@ -680,27 +728,18 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             WordDocument.ActiveWindow.Selection.Paste();
             tmp.Close(false);
             ///WordApp.Visible = true;
-            Word.Table table = oShape.TextFrame.TextRange.Tables[1];
-            table.Range.Font.Color = FontColor;
-            table.Range.Font.Name = FontName;
-            table.Range.Paragraphs.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
-            table.Range.Paragraphs.LeftIndent = 0.0f;
-            table.Range.Paragraphs.SpaceAfter = 0f;
-            oShape.TextFrame.MarginLeft = 1f;
-            oShape.TextFrame.MarginRight = 1f;
-            oShape.TextFrame.MarginTop = 5f;
-            oShape.TextFrame.MarginBottom = 5f;
-            //table.LeftPadding = 5f;
-            //table.BottomPadding = 5f;
-            //table.RightPadding = 0f;
-            //table.TopPadding = 0f;
-            //table.Spacing = 0f;
-            //table.Range.Font.Size = FontSize;
-            //table.AutoFitBehavior(WdAutoFitBehavior.wdAutoFitContent);
-            //table.Rows.Height = 10;
-            //table.Range.Cells.VerticalAlignment = WdCellVerticalAlignment.wdCellAlignVerticalCenter;
-            //table.Range.Cells.AutoFit();
-            //table.AllowAutoFit = true;
+            if (oShape.TextFrame.TextRange.Tables.Count > 0)
+            {
+                for(int i=1; i<= oShape.TextFrame.TextRange.Tables.Count; i++)
+                {
+                    Word.Table table = oShape.TextFrame.TextRange.Tables[i];
+                    table.Range.Paragraphs.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
+                    table.Range.Paragraphs.LeftIndent = 0.0f;
+                    table.Range.Paragraphs.SpaceAfter = 0f;
+                }
+            }
+            SetDefaultShapeStyle(oShape);
+
             Clipboard.Clear();
 
             return oShape;
@@ -709,14 +748,25 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
         }
 
-        private Word.Shape CreateShape(float height = 50f, float width = 600f)
+        private void SetDefaultShapeStyle(Word.Shape oShape)
         {
-            Word.Shape oShape = WordDocument.Shapes.AddShape(1, 50, 50, width, height, ref oMissing);
             oShape.TextFrame.TextRange.Font.Size = FontSize;
             oShape.TextFrame.TextRange.Font.Name = FontName;
             oShape.TextFrame.TextRange.Font.Color = FontColor;
+            oShape.TextFrame.MarginLeft = 1f;
+            oShape.TextFrame.MarginRight = 1f;
+            oShape.TextFrame.MarginTop = 1f;
+            oShape.TextFrame.MarginBottom = 1f;
+            oShape.TextFrame.TextRange.Paragraphs.LineUnitAfter = 0.07f;//FontSize * 1.3f;
+            oShape.TextFrame.VerticalAnchor = MsoVerticalAnchor.msoAnchorTop;
             oShape.Fill.Transparency = 1f;
             oShape.Line.Visible = MsoTriState.msoFalse;
+        }
+
+        private Word.Shape CreateShape(float height = 50f, float width = 600f)
+        {
+            Word.Shape oShape = WordDocument.Shapes.AddShape(1, 50, 50, width, height, ref oMissing);
+            SetDefaultShapeStyle(oShape);
             return oShape;
         }
 
@@ -879,7 +929,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             object filePath = string_path;
             object oVisible = false;
             Word.Document doc = WordApp.Documents.Add(ref filePath, ref isTemplate, ref oMissing, ref oVisible);
-            doc.Content.Paragraphs.Add(ref oMissing);
+            //doc..Add(ref oMissing);
             doc.SaveAs2(ref filePath);
             doc.Close();
             return string_path;
@@ -954,8 +1004,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             {
                 object idx = 1;
                 Word.Shape oShape = headerDoc.Shapes.get_Item(ref idx);
-                oShape.Width = PageWidth-MarginRight;
-                oShape.RelativeHorizontalPosition= WdRelativeHorizontalPosition.wdRelativeHorizontalPositionMargin;
+                oShape.Width = PageWidth - MarginRight;
+                oShape.RelativeHorizontalPosition = WdRelativeHorizontalPosition.wdRelativeHorizontalPositionMargin;
                 AddShapeToCoordsList(oShape);
                 //replaceRegular(ref oShape, tres);
                 //oShape.Width = PageWidth;
@@ -966,7 +1016,6 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 WordDocument.Activate();
                 WordDocument.ActiveWindow.Selection.Paste();
                 WordDocument.ActiveWindow.Selection.Start = WordDocument.ActiveWindow.Selection.End;
-
             }
             headerDoc.Close(ref oSave, ref oMissing, ref oMissing);
         }
