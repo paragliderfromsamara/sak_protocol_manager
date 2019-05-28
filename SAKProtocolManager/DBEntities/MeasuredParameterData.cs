@@ -259,7 +259,8 @@ namespace SAKProtocolManager.DBEntities
         }
 
         public decimal BringMeasuredValue(decimal value)
-        { 
+        {
+            if (this.ParameterType.Id == MeasureParameterType.Risol2 || this.ParameterType.Id == MeasureParameterType.Risol4) return value;
             decimal brLength = getBringingLength();
             decimal tstLength = this.ParameterType.Structure.Cable.Test.TestedLength;
             value = bringToCoeffs(value);

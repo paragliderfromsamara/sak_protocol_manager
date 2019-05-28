@@ -46,7 +46,64 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
         private static void addRizolByGroupTable(CableStructure structure)
         {
-            //throw new NotImplementedException();
+            MeasureParameterType type = null;
+            MeasuredParameterData mpd = null;
+            int i = 0;
+            foreach (MeasureParameterType mpt in structure.MeasuredParameters)
+            {
+                if (mpt.Id != MeasureParameterType.Risol3 && mpt.Id != MeasureParameterType.Risol4 || mpt.TestResults.Length == 0) continue;
+                type = mpt;
+                break;
+            }
+            if (type == null) return;
+            mpd = type.ParameterDataList[0];
+            Debug.WriteLine(mpd.ParameterType.Name);
+            bool MoreThanOneGroups = mpd.TestResults[0].ElementNumber > 0;
+            int colsAmount = 2;
+            OpenXML.Table table = BuildTable();
+            OpenXML.TableRow headerRow = BuildRow();
+            OpenXML.TableCell cellGroupElNumber = BuildCell("№/№ Гр.");
+            OpenXML.TableCell cellElNumber = BuildCell("№/№ Комб.");
+            OpenXML.TableCell cellParameterName = BuildCell($"{ParameterNameText(mpd.ParameterType)}, {mpd.ParameterType.ParameterDataList[0].ResultMeasure()}");
+
+            if (MoreThanOneGroups)
+            {
+                colsAmount++;
+                headerRow.AppendChild(cellGroupElNumber);
+            }
+
+            headerRow.AppendChild(cellElNumber);
+            headerRow.AppendChild(cellParameterName);
+            table.Append(headerRow);
+            foreach (TestResult r in mpd.TestResults)
+            {
+                uint bottomDorderWidth = (uint)((i < mpd.TestResults.Length - 1) ? 0 : 2);
+                OpenXML.TableCellBorders borderStyle = BuildBordersStyle(0, bottomDorderWidth);
+
+                OpenXML.TableRow resRow = BuildRow();
+
+                OpenXML.TableCell groupCell = BuildCell($"{r.ElementNumber}");
+                SetCellBordersStyle(groupCell, BuildBordersStyle(0, bottomDorderWidth));
+
+                OpenXML.TableCell numCell = BuildCell($"{r.SubElementNumber}");
+                SetCellBordersStyle(numCell, BuildBordersStyle(0, bottomDorderWidth));
+
+                OpenXML.TableCell resCell = BuildCell($"{ResultText(r)}");
+                SetCellBordersStyle(resCell, BuildBordersStyle(0, bottomDorderWidth));
+
+                if (i++ % 2 == 1)
+                {
+                    FillCellByColor(groupCell, "ededed");
+                    FillCellByColor(numCell, "ededed");
+                    FillCellByColor(resCell, "ededed");
+                }
+
+                if (MoreThanOneGroups) resRow.Append(groupCell);
+                resRow.Append(numCell);
+                resRow.Append(resCell);
+                table.Append(resRow);
+            }
+            wordProtocol.AddTable(table, colsAmount, mpd.ParameterType.TestResults.Length + 1);
         }
 
         private static void addPrimaryParametersTable(CableStructure structure)
@@ -433,10 +490,11 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         {
             if (res.Affected)
             {
-                return res.Status;
+                return "222";// res.Status;
             }else
             {
-                return ResultValueText(res.BringingValue);
+                return res.GetStringTableValue();
+                //return ResultValueText(res.BringingValue);
             }
         }
 
