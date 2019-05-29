@@ -14,7 +14,7 @@ namespace SAKProtocolManager.DBEntities
         public string Name, Description, Measure;
         public static string[] PrimaryParametersList = new string[] {};
         internal TestResult[] TestResults = new TestResult[] { };
-        internal MeasuredParameterData[] ParameterDataList = new MeasuredParameterData[] {};
+        internal MeasuredParameterData[] ParameterDataList = new MeasuredParameterData[] { };
         internal CableStructure Structure = null;
         private int curParameterDataIdx = -1;
         private string deviationMeasure = null;
@@ -284,6 +284,22 @@ namespace SAKProtocolManager.DBEntities
             }
         }
 
+        public bool IsRizol
+        {
+            get
+            {
+                switch (Id)
+                {
+                    case Risol1:
+                    case Risol2:
+                    case Risol3:
+                    case Risol4:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
         public bool Is_K_Parameter
         {
             get

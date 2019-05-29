@@ -55,6 +55,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         {
             MeasureParameterType type = null;
             MeasuredParameterData mpd = null;
+
             OpenXmlElement[] elementsToPage = new OpenXmlElement[2]; 
             int i = 0;
             foreach (MeasureParameterType mpt in structure.MeasuredParameters)
@@ -72,7 +73,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             OpenXML.TableRow headerRow = BuildRow();
             OpenXML.TableCell cellGroupElNumber = BuildCell("№/№ Гр.");
             OpenXML.TableCell cellElNumber = BuildCell("№/№ Комб.");
-            OpenXML.TableCell cellParameterName = BuildCell($"{ParameterNameText(mpd.ParameterType)}, {mpd.ParameterType.ParameterDataList[0].ResultMeasure()}");
+            OpenXML.TableCell cellParameterName = BuildCell(ParameterNameText(mpd.ParameterType, mpd.ResultMeasure()).ToArray());//}, {mpd.ParameterType.ParameterDataList[0].ResultMeasure()}");
+
+
 
             if (MoreThanOneGroups)
             {
@@ -111,9 +114,29 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 resRow.Append(resCell);
                 table.Append(resRow);
             }
+            OpenXML.Paragraph p = new OpenXML.Paragraph();
+            List<OpenXML.Run> noteRun = new List<OpenXML.Run>();
+            foreach (MeasureParameterType t in structure.MeasuredParameters)
+            {
+                Debug.WriteLine($"Параметр {t.Id}");
+                if (type.Id == MeasureParameterType.Risol4 && t.Id == MeasureParameterType.Risol3)
+                {
+                    noteRun = ParameterNameText(t);
+                    noteRun.Add(AddRun($"норма: {t.ParameterDataList[0].MinValue} МОм"));
+                    
+                    //text = $"Rиз Норма: {}";
+                }else if (type.Id == MeasureParameterType.Risol3 && t.Id == MeasureParameterType.Risol4)
+                {
+                    noteRun = ParameterNameText(t);
+                    noteRun.Add(AddRun($"За время {t.ParameterDataList[0].MaxValue}"));
+                }
+            }
+            //noteRun.Add(AddRun($"За время 100500 лет"));
             elementsToPage[0] = table;
-            
-            wordProtocol.AddTable(table, colsAmount, mpd.ParameterType.TestResults.Length + 1);
+            elementsToPage[1] = BuildParagraph(noteRun.ToArray());
+
+           // wordProtocol.AddTable(table, colsAmount, mpd.ParameterType.TestResults.Length + 2);
+            wordProtocol.AddElementsAsXML(elementsToPage, wordProtocol.CellHeight*(mpd.ParameterType.TestResults.Length + 4), wordProtocol.CellWidth * colsAmount);
         }
 
         private static void addPrimaryParametersTable(CableStructure structure)
@@ -236,11 +259,11 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 wordProtocol.AddTable(table, colsAmount, rows);
               //  wordProtocol.AddParagraph("Каждый охотник желает знать где сидит фазан", 18f);
             }
-            foreach (MeasureParameterType type in pTypes)
+            foreach (MeasuredParameterData mpd in structure.pa)
             {
                 if (type.Id == MeasureParameterType.Risol2)
                 {
-                    decimal norma = 200;
+                    decimal norma = 600;
                     string measure = "МОм/км";
                     foreach (MeasureParameterType r in structure.MeasuredParameters)
                     {
@@ -274,7 +297,17 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 int colsForParameter = ColumsCountForParameter(mpt, structure);
                 OpenXML.TableCell[] cellsFor_row1 = BuildCells(colsForParameter, true);
                 OpenXML.TableCell[] cellsFor_row2 = BuildCells(colsForParameter);
-                FillCellText(cellsFor_row1[0], $"{ParameterNameText(mpt)}, {mpt.ParameterDataList[0].ResultMeasure()}");
+                List<OpenXML.Run> parameterNameRun;
+                if (!pTypes[0].IsRizol)
+                {
+                    parameterNameRun = ParameterNameText(mpt, mpt.ParameterDataList[0].ResultMeasure());
+                }else
+                {
+                    parameterNameRun = ParameterNameText(mpt);
+                    parameterNameRun.Add(AddRun("*", MSWordStringTypes.Superscript));
+                    parameterNameRun.Add(AddRun(mpt.ParameterDataList[0].ResultMeasure()));
+                }
+                FillCellText(cellsFor_row1[0], parameterNameRun.ToArray());
                
                 for (int x = 0; x < colsForParameter; x++)
                 {
@@ -294,6 +327,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         }
 
 
+        private static OpenXML.Paragraph BuildParagraph(OpenXML.Run[] textRuns)
+        {
+            OpenXML.Paragraph p = BuildParagraph();
+            p.Append(textRuns);
+            return p;
+        }
+
         private static OpenXML.Paragraph BuildParagraph()
         {
             OpenXML.Paragraph p = new DocumentFormat.OpenXml.Wordprocessing.Paragraph();
@@ -305,34 +345,59 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
 
 
-        private static OpenXML.Run GetDefaultTextRun(string content = null)
+
+
+        private static OpenXML.Run AddRun(string text, MSWordStringTypes strType = MSWordStringTypes.Typical)
         {
-            OpenXML.Run TextRun = new OpenXML.Run();
-            TextRun.AppendChild<OpenXML.RunProperties>(new OpenXML.RunProperties(new OpenXML.RunFonts() { Ascii = "Times New Roman" }, new OpenXML.FontSize() { Val = "18" }));
-            if (content != null) TextRun.Append(new OpenXML.Text(content));
-            return TextRun;
+            OpenXML.Run run = new OpenXML.Run();
+            var props = new OpenXML.RunProperties(new OpenXML.RunFonts() { Ascii = "Times New Roman" }, new OpenXML.FontSize() { Val = "18" });
+
+            switch (strType)
+            {
+                case MSWordStringTypes.Subscript:
+                    props.Append(new OpenXML.VerticalTextAlignment() { Val = OpenXML.VerticalPositionValues.Subscript });
+                    break;
+                case MSWordStringTypes.Superscript:
+                    props.Append(new OpenXML.VerticalTextAlignment() { Val = OpenXML.VerticalPositionValues.Superscript });
+                    break;
+            }
+            if (strType != MSWordStringTypes.Typical) run.Append(props);
+            run.Append(new OpenXML.Text(text));
+            return run;
+        }
+
+        
+        private static OpenXML.TableCell BuildCell(OpenXML.Paragraph p)
+        {
+            OpenXML.TableCell cell = new DocumentFormat.OpenXml.Wordprocessing.TableCell();
+            cell.Append(new OpenXML.TableCellProperties(
+                                            new OpenXML.TableCellWidth() { Type = OpenXML.TableWidthUnitValues.Dxa, Width = "750" },
+                                            new OpenXML.TableCellMargin(
+                                                                        new OpenXML.TableCellRightMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 },
+                                                                        new OpenXML.TableCellLeftMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 }
+                                                                        //new OpenXML.TableCellMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 }
+                                                                        ),
+
+                                            new OpenXML.TableCellVerticalAlignment() { Val = OpenXML.TableVerticalAlignmentValues.Center }
+                                            )
+
+            );
+            cell.Append(p);
+            return cell;
+        }
+        private static OpenXML.TableCell BuildCell(OpenXML.Run[] runList)
+        {
+            OpenXML.Paragraph cellParagraph = BuildParagraph();
+            cellParagraph.Append(runList);
+            return BuildCell(cellParagraph);
         }
 
         private static OpenXML.TableCell BuildCell(string content = "")
         {
-            OpenXML.TableCell cell = new DocumentFormat.OpenXml.Wordprocessing.TableCell();
-            OpenXML.Run cellTextRun = GetDefaultTextRun(content);
+            OpenXML.Run cellTextRun = AddRun(content);
             OpenXML.Paragraph cellParagraph = BuildParagraph();
             cellParagraph.Append(cellTextRun);
-            cell.Append(new OpenXML.TableCellProperties(
-                                                        new OpenXML.TableCellWidth() { Type = OpenXML.TableWidthUnitValues.Dxa, Width = "750" },
-                                                        new OpenXML.TableCellMargin(
-                                                                                    new OpenXML.TableCellRightMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 },
-                                                                                    new OpenXML.TableCellLeftMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 }
-                                                                                     //new OpenXML.TableCellMargin() { Type = OpenXML.TableWidthValues.Dxa, Width = 0 }
-                                                                                    ),
-                                       
-                                                        new OpenXML.TableCellVerticalAlignment() { Val = OpenXML.TableVerticalAlignmentValues.Center }
-                                                        )
-           
-                        );
-            cell.Append(cellParagraph);
-            return cell;
+            return BuildCell(cellParagraph);
         }
 
         private static void VerticalMergeCells(OpenXML.TableCell[] cells)
@@ -351,11 +416,18 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
+        private static void FillCellText(OpenXML.TableCell cell, OpenXML.Run[] textRun)
+        {
+            cell.RemoveAllChildren<OpenXML.Paragraph>();
+            cell.Append(BuildParagraph());
+            cell.GetFirstChild<OpenXML.Paragraph>().Append(textRun);
+        }
+
         private static void FillCellText(OpenXML.TableCell cell, string content)
         {
             cell.RemoveAllChildren<OpenXML.Paragraph>();
             cell.Append(BuildParagraph());
-            cell.GetFirstChild<OpenXML.Paragraph>().Append(GetDefaultTextRun(content));
+            cell.GetFirstChild<OpenXML.Paragraph>().Append(AddRun(content));
         }
 
         private static void FillCellByColor(OpenXML.TableCell cell, string color)
@@ -470,29 +542,6 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             SubTable[] subTables = wordProtocol.EstimateTablePosition(cols, rows);
             List<int> template = new List<int>();
             foreach (SubTable st in subTables) template.Add(st.RowsCount);
-            /*
-            int tablesAmount = MaxColsPerPage / cols;
-            int perTableRows = rows / tablesAmount;
-            int lastTableRows;
-
-            if (perTableRows > 50)
-            {
-                perTableRows = 50;
-                tablesAmount = rows / perTableRows;
-            }
-            lastTableRows = (rows % perTableRows) + perTableRows;
-            for(int i=0; i<tablesAmount; i++)
-            {
-                if (i==tablesAmount-1)
-                {
-                    template.Add(lastTableRows);
-                }
-                else
-                {
-                    template.Add(perTableRows);
-                }
-            }
-            */
             return template.ToArray();
         }
 
@@ -500,7 +549,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         {
             if (res.Affected)
             {
-                return "222";// res.Status;
+                return res.Status;
             }else
             {
                 return res.GetStringTableValue();
@@ -536,21 +585,87 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             else return "пары";
         }
 
-        private static string ParameterNameText(MeasureParameterType pType)
+        private static List<OpenXML.Run> ParameterNameText(MeasureParameterType pType, string measure = null)
         {
+            List<OpenXML.Run> runList = new List<OpenXML.Run>();
             switch(pType.Id)
             {
+                case MeasureParameterType.K12:
+                    runList.Add(AddRun("K"));
+                    runList.Add(AddRun("12", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.K11:
+                    runList.Add(AddRun("K"));
+                    runList.Add(AddRun("11", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.K10:
+                    runList.Add(AddRun("K"));
+                    runList.Add(AddRun("10", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.K9:
+                    runList.Add(AddRun("K"));
+                    runList.Add(AddRun("9", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.K3:
+                    runList.Add(AddRun("K"));
+                    runList.Add(AddRun("3", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.K2:
+                    runList.Add(AddRun("K"));
+                    runList.Add(AddRun("2", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.K1:
+                    runList.Add(AddRun("K"));
+                    runList.Add(AddRun("1", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.Ea:
+                    runList.Add(AddRun("E"));
+                    runList.Add(AddRun("a", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.Cp:
+                    runList.Add(AddRun("С"));
+                    runList.Add(AddRun("р", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.Co:
+                    runList.Add(AddRun("С"));
+                    runList.Add(AddRun("0", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.Rleads:
+                    runList.Add(AddRun("R"));
+                    runList.Add(AddRun("ж", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.Ao:
+                    runList.Add(AddRun("A"));
+                    runList.Add(AddRun("0", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.Az:
+                    runList.Add(AddRun("A"));
+                    runList.Add(AddRun("z", MSWordStringTypes.Subscript));
+                    break;
+                case MeasureParameterType.al:
+                    runList.Add(AddRun("α"));
+                    runList.Add(AddRun("l", MSWordStringTypes.Subscript));
+                    break;
                 case MeasureParameterType.Risol1:
                 case MeasureParameterType.Risol3:
-                    return "Rиз";
+                    runList.Add(AddRun("R"));
+                    runList.Add(AddRun("из", MSWordStringTypes.Subscript));
+                    break;
                 case MeasureParameterType.Risol2:
                 case MeasureParameterType.Risol4:
-                    return "T*";
+                    runList.Add(AddRun("T"));
+                    runList.Add(AddRun("из", MSWordStringTypes.Subscript));
+                    break;
                 case MeasureParameterType.dR:
-                    return "ΔR";
+                    runList.Add(AddRun("ΔR"));
+                    break;
                 default:
-                    return pType.Name;
+                    runList.Add(AddRun(pType.Name));
+                    break;
             }
+            if (measure != null) runList.Add(AddRun($",{measure}"));
+            return runList;
+
         }
 
 
@@ -605,7 +720,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             PageWidth = WordDocument.PageSetup.PageWidth - WordDocument.PageSetup.LeftMargin;// - WordDocument.PageSetup.RightMargin;
             PageHeight = WordDocument.PageSetup.PageHeight - WordDocument.PageSetup.TopMargin;// - WordDocument.PageSetup.BottomMargin;
 
-            CellHeight = FontSize * 1.3f;
+            CellHeight = FontSize * 1.3f + 0.3f;
             CellWidth = 24f;
             PageLine = new float[(int)PageWidth];
             ShapeCoordsList = new List<ShapeCoord>();
@@ -693,7 +808,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 Word.Shape tableShape = CutCreatedTableFromTmpFile(filePath);
 
                 tableShape.Width = colsCount * CellWidth + 15f;
-                tableShape.Height = rowsCount * (CellHeight + 0.3f)+15f;
+                tableShape.Height = rowsCount * CellHeight+15f;
                 tableShape.Line.Transparency = 1f;
                 AddShapeToCoordsList(tableShape);
 
@@ -1226,5 +1341,11 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             y = ty;
             page = tpage;
         }
+    }
+    internal enum MSWordStringTypes
+    {
+        Typical,
+        Subscript,
+        Superscript
     }
 }
