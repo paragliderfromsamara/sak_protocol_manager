@@ -52,10 +52,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             add_al_Table(structure);
         }
 
-        private static void add_al_Table(CableStructure structure)
-        {
-            throw new NotImplementedException();
-        }
+
 
         private static void addRizolByGroupTable(CableStructure structure)
         {
@@ -144,6 +141,62 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
            // wordProtocol.AddTable(table, colsAmount, mpd.ParameterType.TestResults.Length + 2);
             wordProtocol.AddElementsAsXML(elementsToPage, wordProtocol.CellHeight*(mpd.ParameterType.TestResults.Length + 4), wordProtocol.CellWidth * colsAmount);
         }
+
+        private static void add_al_Table(CableStructure structure)
+        {
+            MeasureParameterType alType = null;
+            List<string> printedRangesIds = new List<string>();
+            int maxCols = MaxColsPerPage;
+            int colsCount = 1; //Первая колонка номер элемента
+            foreach (MeasureParameterType t in structure.MeasuredParameters)
+            {
+                if (t.Id == MeasureParameterType.al)
+                {
+                    alType = t;
+                    foreach (MeasuredParameterData d in t.ParameterDataList)
+                    {
+                        if (!printedRangesIds.Contains(d.FrequencyRangeId)) printedRangesIds.Add(d.FrequencyRangeId);
+                    }
+                    break;
+                }
+            }
+            if (alType == null || printedRangesIds.Count == 0) return;
+
+            for (int i = 0; i < alType.ParameterDataList.Length; i++)
+            {
+                MeasuredParameterData mpd = alType.ParameterDataList[i];
+                bool needToBuildTable = false;
+                colsCount += structure.BendingTypeLeadsNumber / 2;
+                if ((colsCount + structure.BendingTypeLeadsNumber / 2)>maxCols)
+                {
+
+                }
+                if (mpt.IsPrimaryParameter)
+                {
+                    int colsForParameter = ColumsCountForParameter(mpt, structure);
+                    if ((colsCount + colsForParameter) > maxCols)
+                    {
+                        needToBuildTable = true;
+                    }
+                    else
+                    {
+                        typesForTable.Add(mpt);
+                        colsCount += ColumsCountForParameter(mpt, structure);
+                    }
+                }
+                if (needToBuildTable || ((i + 1) == structure.MeasuredParameters.Length && typesForTable.Count > 0))
+                {
+                    BuildPrimaryParametersTable_WithOpenXML(typesForTable.ToArray(), structure, colsCount);
+
+                    //BuildPrimaryParametersTable(typesForTable.ToArray(), structure, colsCount);
+                    typesForTable.Clear();
+                    colsCount = 1;
+                }
+            }
+
+        }
+
+    }
 
         private static void addPrimaryParametersTable(CableStructure structure)
         {
