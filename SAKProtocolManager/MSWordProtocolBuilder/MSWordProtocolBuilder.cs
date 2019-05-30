@@ -49,6 +49,12 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         {
             addPrimaryParametersTable(structure);
             addRizolByGroupTable(structure);
+            add_al_Table(structure);
+        }
+
+        private static void add_al_Table(CableStructure structure)
+        {
+            throw new NotImplementedException();
         }
 
         private static void addRizolByGroupTable(CableStructure structure)
@@ -116,7 +122,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
             OpenXML.Paragraph p = new OpenXML.Paragraph();
             List<OpenXML.Run> noteRun = new List<OpenXML.Run>();
-            foreach (MeasureParameterType t in structure.MeasuredParameters)
+            foreach (MeasureParameterType t in structure.MeasuredParameters_Full)
             {
                 Debug.WriteLine($"Параметр {t.Id}");
                 if (type.Id == MeasureParameterType.Risol4 && t.Id == MeasureParameterType.Risol3)
@@ -177,13 +183,16 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private static void BuildPrimaryParametersTable_WithOpenXML(MeasureParameterType[] pTypes, CableStructure structure, int colsAmount)
         {
             int curElementNumber = 1;
-            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, structure.RealNumberInCable + 3);
+            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, structure.RealNumberInCable + 3+2);
             Debug.WriteLine($"{structure.RealNumberInCable}");
+
             for (int idx = 0; idx < tablesRowsCount.Length; idx++)
             {
+
                 int rows = 2 + tablesRowsCount[idx];
                 OpenXML.Table table = BuildTable();
                 OpenXML.TableRow[] headerRows = BuildPrimaryParamsTableHeader_WithOpenXML(pTypes, structure);
+                List<OpenXmlElement> elementsToPage = new List<OpenXmlElement>();
                 foreach (OpenXML.TableRow r in headerRows) table.Append(r);
                 for (int i = 0; i < tablesRowsCount[idx]; i++)
                 {
@@ -255,27 +264,43 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                         break;
                     }
                 }
-
-                wordProtocol.AddTable(table, colsAmount, rows);
-              //  wordProtocol.AddParagraph("Каждый охотник желает знать где сидит фазан", 18f);
-            }
-            foreach (MeasuredParameterData mpd in structure.pa)
-            {
-                if (type.Id == MeasureParameterType.Risol2)
+                elementsToPage.Add(table);
+                if (idx == tablesRowsCount.Length -1)
                 {
-                    decimal norma = 600;
-                    string measure = "МОм/км";
-                    foreach (MeasureParameterType r in structure.MeasuredParameters)
+                    foreach (MeasureParameterType t in pTypes)
                     {
-                        if (r.Id == MeasureParameterType.Risol1)
+                        if (t.Id == MeasureParameterType.Risol2)
                         {
-                            norma = r.ParameterDataList[0].MinVal;
-                            measure = r.ParameterDataList[0].ResultMeasure();
+                            decimal norma = 600;
+                            string measure = "МОм/км";
+                            foreach (MeasureParameterType r in structure.MeasuredParameters_Full)
+                            {
+                                if (r.Id == MeasureParameterType.Risol1)
+                                {
+                                    norma = r.ParameterDataList[0].MinValue;
+                                    measure = r.ParameterDataList[0].ResultMeasure();
+                                }
+                            }
+
+                            List<OpenXML.Run> txt = new List<DocumentFormat.OpenXml.Wordprocessing.Run>();
+                            txt.Add(AddRun("*"));
+                            foreach(OpenXML.Run r in ParameterNameText(t)) txt.Add(r);
+
+                            
+                            txt.Add(AddRun($" - время достижения сопротивления изоляции свыше {norma} {measure}."));
+                            elementsToPage.Add(BuildParagraph(txt.ToArray()));
+                            //wordProtocol.AddParagraph($"* Tиз—время достижения сопротивления изоляции свыше {norma} {measure}.", 18f);
                         }
                     }
-                    wordProtocol.AddParagraph($"* Tиз—время достижения сопротивления изоляции свыше {norma} {measure}.", 18f);
+
                 }
+                wordProtocol.AddElementsAsXML(elementsToPage.ToArray(), wordProtocol.CellHeight * (tablesRowsCount[idx]+3), wordProtocol.CellWidth*colsAmount);
+
+
+                //  wordProtocol.AddParagraph("Каждый охотник желает знать где сидит фазан", 18f);
             }
+
+
         }
 
         private static OpenXML.TableRow[] BuildPrimaryParamsTableHeader_WithOpenXML(MeasureParameterType[] pTypes, CableStructure structure)
@@ -298,14 +323,14 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 OpenXML.TableCell[] cellsFor_row1 = BuildCells(colsForParameter, true);
                 OpenXML.TableCell[] cellsFor_row2 = BuildCells(colsForParameter);
                 List<OpenXML.Run> parameterNameRun;
-                if (!pTypes[0].IsRizol)
+                if (pTypes[i].Id != MeasureParameterType.Risol2)
                 {
                     parameterNameRun = ParameterNameText(mpt, mpt.ParameterDataList[0].ResultMeasure());
                 }else
                 {
                     parameterNameRun = ParameterNameText(mpt);
                     parameterNameRun.Add(AddRun("*", MSWordStringTypes.Superscript));
-                    parameterNameRun.Add(AddRun(mpt.ParameterDataList[0].ResultMeasure()));
+                    parameterNameRun.Add(AddRun($",{mpt.ParameterDataList[0].ResultMeasure()}"));
                 }
                 FillCellText(cellsFor_row1[0], parameterNameRun.ToArray());
                

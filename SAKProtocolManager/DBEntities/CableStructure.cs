@@ -14,6 +14,7 @@ namespace SAKProtocolManager.DBEntities
         public LeadMaterial LeadMaterial = null;
         public IsolationMaterial IsolationMaterial = null;
         public MeasureParameterType[] MeasuredParameters = new MeasureParameterType[] { };
+        public MeasureParameterType[] MeasuredParameters_Full = new MeasureParameterType[] { };
         public int[] AffectedElementNumbers = new int[] { };
         public ProzvonTestResult[] AffectedElements = new ProzvonTestResult[] { };
 
@@ -158,6 +159,7 @@ namespace SAKProtocolManager.DBEntities
             this.IsolationMaterial = new IsolationMaterial(this.IsolationMaterialId);
             this.LeadMaterial = new LeadMaterial(this.LeadMaterialId);
             this.MeasuredParameters = mParameter.GetAll();
+            MeasuredParameters_Full = (MeasureParameterType[])this.MeasuredParameters.Clone();
             if (this.Cable.Test != null) filterTested(); // Если кабель вызван через испытание то фильтруем типы испытаний по наличию результата измерения
         }
 

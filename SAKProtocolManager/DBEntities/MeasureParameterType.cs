@@ -145,6 +145,7 @@ namespace SAKProtocolManager.DBEntities
             if (this.Structure == null) return;
             MeasuredParameterData mpd = new MeasuredParameterData(this);
             this.ParameterDataList = mpd.GetStructureMeasureParameters();
+
         }
 
         protected override void fillParametersFromRow(DataRow row)
