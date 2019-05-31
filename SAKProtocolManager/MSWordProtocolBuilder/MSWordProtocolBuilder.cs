@@ -145,9 +145,11 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private static void add_al_Table(CableStructure structure)
         {
             MeasureParameterType alType = null;
-            List<string> printedRangesIds = new List<string>();
+            Dictionary<string, MeasuredParameterData> printedData = new Dictionary<string, MeasuredParameterData>();
+            List<MeasuredParameterData> curTableData = new List<MeasuredParameterData>();
             int maxCols = MaxColsPerPage;
             int colsCount = 1; //Первая колонка номер элемента
+
             foreach (MeasureParameterType t in structure.MeasuredParameters)
             {
                 if (t.Id == MeasureParameterType.al)
@@ -155,48 +157,39 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     alType = t;
                     foreach (MeasuredParameterData d in t.ParameterDataList)
                     {
-                        if (!printedRangesIds.Contains(d.FrequencyRangeId)) printedRangesIds.Add(d.FrequencyRangeId);
+                        if (!printedData.Keys.Contains(d.FrequencyRangeId)) printedData.Add(d.FrequencyRangeId, d);
                     }
                     break;
                 }
             }
-            if (alType == null || printedRangesIds.Count == 0) return;
+            if (alType == null || printedData.Count==0) return;
 
-            for (int i = 0; i < alType.ParameterDataList.Length; i++)
+            foreach (string key in printedData.Keys)
             {
-                MeasuredParameterData mpd = alType.ParameterDataList[i];
-                bool needToBuildTable = false;
+                MeasuredParameterData mpd = printedData[key];
+                repeat_adding:
+                bool needToBuildTable = (colsCount + structure.BendingTypeLeadsNumber / 2) > maxCols;
                 colsCount += structure.BendingTypeLeadsNumber / 2;
-                if ((colsCount + structure.BendingTypeLeadsNumber / 2)>maxCols)
+                if (!needToBuildTable)
                 {
-
+                    curTableData.Add(mpd);
+                    colsCount += structure.BendingTypeLeadsNumber / 2;
                 }
-                if (mpt.IsPrimaryParameter)
+                if (needToBuildTable || key == printedData.Keys.Last())
                 {
-                    int colsForParameter = ColumsCountForParameter(mpt, structure);
-                    if ((colsCount + colsForParameter) > maxCols)
-                    {
-                        needToBuildTable = true;
-                    }
-                    else
-                    {
-                        typesForTable.Add(mpt);
-                        colsCount += ColumsCountForParameter(mpt, structure);
-                    }
-                }
-                if (needToBuildTable || ((i + 1) == structure.MeasuredParameters.Length && typesForTable.Count > 0))
-                {
-                    BuildPrimaryParametersTable_WithOpenXML(typesForTable.ToArray(), structure, colsCount);
-
-                    //BuildPrimaryParametersTable(typesForTable.ToArray(), structure, colsCount);
-                    typesForTable.Clear();
+                    Build_al_Table(curTableData);
+                    needToBuildTable = false;
+                    curTableData.Clear();
                     colsCount = 1;
+                    if (key != printedData.Keys.Last()) goto repeat_adding;
                 }
             }
-
         }
 
-    }
+        private static void Build_al_Table(List<MeasuredParameterData> curTableData)
+        {
+            throw new NotImplementedException();
+        }
 
         private static void addPrimaryParametersTable(CableStructure structure)
         {
