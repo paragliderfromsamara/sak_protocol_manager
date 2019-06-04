@@ -177,7 +177,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 }
                 if (needToBuildTable || key == printedData.Keys.Last())
                 {
-                    Build_al_Table(curTableData);
+                    Build_al_Table(curTableData, colsCount, structure);
                     needToBuildTable = false;
                     curTableData.Clear();
                     colsCount = 1;
@@ -186,9 +186,78 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
-        private static void Build_al_Table(List<MeasuredParameterData> curTableData)
+        private static void Build_al_Table(List<MeasuredParameterData> curTableData, int colsAmount, CableStructure structure)
         {
-            throw new NotImplementedException();
+            int curElementNumber = 1;
+            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, structure.RealNumberInCable + 3 + 2);
+
+            OpenXML.Table table = BuildTable();
+            OpenXML.TableRow[] headerRows = Build_al_TableHeader_WithOpenXML(curTableData, structure);
+            foreach (OpenXML.TableRow r in headerRows) table.Append(r);
+
+            foreach (MeasuredParameterData mpd in curTableData)
+            {
+
+            }
+            wordProtocol.AddTable(table, colsAmount, 4);
+
+        }
+
+        private static OpenXML.TableRow[] Build_al_TableHeader_WithOpenXML(List<MeasuredParameterData> curTableData, CableStructure structure)
+        {
+
+            OpenXML.TableRow row_1 = BuildRow();
+            OpenXML.TableRow row_2 = BuildRow();
+
+            OpenXML.TableCell cell_1_1 = BuildCell($"{ "№/№" } {BindingTypeText(structure.BendingTypeLeadsNumber)}");
+            OpenXML.TableCell cell_1_2 = BuildCell();
+
+            VerticalMergeCells(new OpenXML.TableCell[] { cell_1_1, cell_1_2 });
+
+            row_1.Append(cell_1_1);
+            row_2.Append(cell_1_2);
+
+            for (int i = 0; i < curTableData.Count; i++)
+            {
+                MeasuredParameterData mpd = curTableData[i];
+                OpenXML.Paragraph[] freqParagraphs = BuildFreqParagraphs(mpd);
+
+                int colsForParameter = ColumsCountForParameter(mpd, structure);
+                OpenXML.TableCell[] cellsFor_row1 = BuildCells(colsForParameter, true);
+                OpenXML.TableCell[] cellsFor_row2 = BuildCells(colsForParameter);
+                List<OpenXML.Run> parameterNameRun = ParameterNameText(mpd.ParameterType);
+                parameterNameRun.Add(AddRun($",{mpd.ResultMeasure()}"));
+                FillCellText(cellsFor_row1[0], parameterNameRun.ToArray());
+                foreach (OpenXML.Paragraph p in freqParagraphs) cellsFor_row1[0].Append(p);
+
+                for (int x = 0; x < colsForParameter; x++)
+                {
+                    if (colsForParameter > 1)
+                    {
+                        FillCellText(cellsFor_row2[x], $"Пара {x + 1}");// (x + 1).ToString());
+                    }
+                    else
+                    {
+                        VerticalMergeCells(new OpenXML.TableCell[] { cellsFor_row1[x], cellsFor_row2[x] });
+                    }
+                    row_1.Append(cellsFor_row1[x]);
+                    row_2.Append(cellsFor_row2[x]);
+                }
+            }
+            return new OpenXML.TableRow[] { row_1, row_2 };
+        }
+
+        private static OpenXML.Paragraph[] BuildFreqParagraphs(MeasuredParameterData mpd)
+        {
+            OpenXML.Paragraph minFreqParagraph, maxFreqParagraph;
+            minFreqParagraph = BuildParagraph(new OpenXML.Run[] { AddRun("f"), AddRun("1", MSWordStringTypes.Subscript), AddRun($"={mpd.MinFrequency}кГц")});
+            if (mpd.MaxFrequency > 0)
+            {
+                maxFreqParagraph = BuildParagraph(new OpenXML.Run[] { AddRun("f"), AddRun("2", MSWordStringTypes.Subscript), AddRun($"={mpd.MaxFrequency}кГц") });
+                return new OpenXML.Paragraph[] { minFreqParagraph, maxFreqParagraph };
+            }else return new OpenXML.Paragraph[] { minFreqParagraph };
+
+
         }
 
         private static void addPrimaryParametersTable(CableStructure structure)
@@ -739,7 +808,10 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
         }
 
-
+        private static int ColumsCountForParameter(MeasuredParameterData d, CableStructure s)
+        {
+            return ColumsCountForParameter(d.ParameterType, s);
+        }
         private static int ColumsCountForParameter(MeasureParameterType t, CableStructure s)
         {
             int LeadsNumber = s.BendingTypeLeadsNumber;
@@ -753,6 +825,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 case MeasureParameterType.Cp:
                 case MeasureParameterType.Ea:
                 case MeasureParameterType.dR:
+                case MeasureParameterType.al:
                     return (LeadsNumber / 2);
                 default:
                     return 1;
