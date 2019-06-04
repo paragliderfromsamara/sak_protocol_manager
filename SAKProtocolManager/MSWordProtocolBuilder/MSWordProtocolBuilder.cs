@@ -906,15 +906,24 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             int timesForTrying = 10;
             createTmp:
             DateTime time = DateTime.Now;
+            repeat: 
             string filePath = AddTmpFile($"tmp-{time.Day}-{time.Month}-{time.Year}-{time.Hour}-{time.Minute}-{time.Second}-{time.Millisecond}");
-            using (WordprocessingDocument doc = WordprocessingDocument.Open(filePath, true))
+            try
             {
-                doc.MainDocumentPart.Document.Body.RemoveAllChildren();
-                foreach(OpenXmlElement el in elsToAdd)
+                using (WordprocessingDocument doc = WordprocessingDocument.Open(filePath, true))
                 {
-                    doc.MainDocumentPart.Document.Body.Append(el);
+                    doc.MainDocumentPart.Document.Body.RemoveAllChildren();
+                    foreach (OpenXmlElement el in elsToAdd)
+                    {
+                        doc.MainDocumentPart.Document.Body.Append(el);
+                    }
                 }
             }
+            catch(System.IO.IOException ex)
+            {
+                goto repeat;
+            }
+
             //Thread.Sleep(1000);
             try
             {
