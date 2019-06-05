@@ -191,16 +191,82 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             int curElementNumber = 1;
             int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, structure.RealNumberInCable + 3 + 2);
 
-            OpenXML.Table table = BuildTable();
-            OpenXML.TableRow[] headerRows = Build_al_TableHeader_WithOpenXML(curTableData, structure);
-            foreach (OpenXML.TableRow r in headerRows) table.Append(r);
-
-            foreach (MeasuredParameterData mpd in curTableData)
+            for(int idx = 0; idx < tablesRowsCount.Length; idx++)
             {
+                OpenXML.Table table = BuildTable();
+                OpenXML.TableRow[] headerRows = Build_al_TableHeader_WithOpenXML(curTableData, structure);
+                foreach (OpenXML.TableRow r in headerRows) table.Append(r);
 
+                for (int i = 0; i < tablesRowsCount[idx]; i++)
+                {
+                    OpenXML.TableRow row = BuildRow();
+                    if (curElementNumber <= structure.RealNumberInCable)
+                    {
+                        OpenXML.TableCell numbCell = BuildCell(curElementNumber.ToString());
+                        if (i % 2 == 1) FillCellByColor(numbCell, "ededed");
+                        OpenXML.TableCellBorders borderStyle = BuildBordersStyle(0, (uint)((i < tablesRowsCount[idx] - 1) ? 0 : 2));
+                        SetCellBordersStyle(numbCell, borderStyle);
+                        row.Append(numbCell); //Ячейка номера элемента
+                        foreach (MeasuredParameterData mpd in curTableData)//(MeasureParameterType mpt in pTypes)
+                        {
+                            int elsColsPerParam = ColumsCountForParameter(mpd.ParameterType, structure);
+                            TestResult[] results = mpd.TestResults;
+                            int resIdx = (curElementNumber - 1) * elsColsPerParam;
+                            for (int rIdx = resIdx; rIdx < resIdx + elsColsPerParam; rIdx++)
+                            {
+                                TestResult res = results[rIdx];
+                                OpenXML.TableCellBorders resBordStyle = BuildBordersStyle(0, (uint)((i < tablesRowsCount[idx] - 1) ? 0 : 2));
+                                OpenXML.TableCell resCell = BuildCell(ResultText(res));
+                                if (i % 2 == 1) FillCellByColor(resCell, "ededed");
+                                SetCellBordersStyle(resCell, resBordStyle);
+                                row.Append(resCell);
+                            }
+                        }
+                        table.Append(row);
+                        curElementNumber++;
+                    }
+                    else
+                    {
+                        OpenXML.TableRow maxValRow = BuildRow();
+                        OpenXML.TableRow minValRow = BuildRow();
+                        OpenXML.TableRow averValRow = BuildRow();
+
+                        OpenXML.TableCellBorders maxCellTitleBordStyle = BuildBordersStyle(8);
+
+                        maxValRow.Append(BuildCell("max"));
+                        SetCellBordersStyle(maxValRow.GetFirstChild<OpenXML.TableCell>(), maxCellTitleBordStyle);
+                        minValRow.Append(BuildCell("min"));
+                        averValRow.Append(BuildCell("сред."));
+                        foreach (MeasuredParameterData mpd in curTableData)
+                        {
+                            int elsColsPerParam = ColumsCountForParameter(mpd.ParameterType, structure);
+                            int resIdx = (curElementNumber - 1) * elsColsPerParam;
+                            OpenXML.TableCell[] maxValCells = BuildCells(elsColsPerParam, elsColsPerParam > 1);
+                            OpenXML.TableCell[] minValCells = BuildCells(elsColsPerParam, elsColsPerParam > 1);
+                            OpenXML.TableCell[] averValCells = BuildCells(elsColsPerParam, elsColsPerParam > 1);
+
+                            FillCellText(maxValCells[0], ResultValueText(mpd.MaxVal));
+                            FillCellText(minValCells[0], ResultValueText(mpd.MinVal));
+                            FillCellText(averValCells[0], ResultValueText(mpd.AverageVal));
+
+                            for (int cIdx = 0; cIdx < elsColsPerParam; cIdx++)
+                            {
+                                OpenXML.TableCellBorders maxCellBordStyle = BuildBordersStyle(8);
+                                SetCellBordersStyle(maxValCells[cIdx], maxCellBordStyle);
+                                maxValRow.Append(maxValCells[cIdx]);
+                                minValRow.Append(minValCells[cIdx]);
+                                averValRow.Append(averValCells[cIdx]);
+                            }
+                        }
+                        table.Append(maxValRow);
+                        table.Append(averValRow);
+                        table.Append(minValRow);
+                        break;
+                    }
+
+                }
+                wordProtocol.AddTable(table, colsAmount, tablesRowsCount[idx]+2);
             }
-            wordProtocol.AddTable(table, colsAmount, 4);
-
         }
 
         private static OpenXML.TableRow[] Build_al_TableHeader_WithOpenXML(List<MeasuredParameterData> curTableData, CableStructure structure)
@@ -677,10 +743,10 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return table;
         }
 
-        private static int[] CalcMaxRowsCount(int cols, int rows)
+        private static int[] CalcMaxRowsCount(int cols, int rows, int minRowsPerTable = 5)
         {
-            SubTable[] subTables = wordProtocol.EstimateTablePosition(cols, rows);
-            List<int> template = new List<int>();
+            SubTable[] subTables = wordProtocol.EstimateTablePosition(cols, rows, minRowsPerTable);
+            List <int> template = new List<int>();
             foreach (SubTable st in subTables) template.Add(st.RowsCount);
             return template.ToArray();
         }
@@ -1038,13 +1104,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return oShape;
         }
 
-        public SubTable[] EstimateTablePosition(int colsCount, int rowsCount)
+        public SubTable[] EstimateTablePosition(int colsCount, int rowsCount, int MinRowsPerTable = 5)
         {
             float tableWidth = colsCount * CellWidth;
             if (tableWidth > PageWidth) tableWidth = PageWidth;
             int tablesOnPageRow = (int)(PageWidth / tableWidth);
-            int MinRowsPerTable = 5 > rowsCount ? rowsCount : 5;
             int MaxRowsPerTable = 65;
+            if (MinRowsPerTable > rowsCount) MinRowsPerTable = rowsCount;
             ShapeCoord lastCoord = LastShapeCoords == null ? new ShapeCoord() { x = 0, y = 0, width = 0, height =0, page=0} : LastShapeCoords;
             float[] pageLine = (float[])PageLine.Clone();
             List<SubTable> subTables = new List<SubTable>();
