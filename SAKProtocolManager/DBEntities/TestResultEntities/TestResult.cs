@@ -121,7 +121,24 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         public string GetStringTableValue()
         {
             if (IsAffected()) return "Брак";
-            return String.Format("{0}", this.BringingValue);
+            else
+            {
+                int pow = 0;
+                decimal tmpVal = BringingValue;
+                if (tmpVal > 9999)
+                {
+                    while (tmpVal / 10 > 1)
+                    {
+                        pow++;
+                        tmpVal /= 10;
+                    }
+                    return $"{Math.Round(tmpVal, 1)}∙e{pow}";
+                }
+                else
+                {
+                    return $"{BringingValue}";
+                }
+            }
         }
 
 

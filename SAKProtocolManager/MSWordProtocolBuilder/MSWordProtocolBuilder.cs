@@ -50,9 +50,52 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             addPrimaryParametersTable(structure);
             addRizolByGroupTable(structure);
             add_al_Table(structure);
+            add_Ao_Table(structure);
         }
 
+        private static void add_Ao_Table(CableStructure structure)
+        {
+            MeasureParameterType type = null;
+            foreach(MeasureParameterType t in structure.MeasuredParameters)
+            {
+                if (t.Id == MeasureParameterType.Ao)
+                {
+                    type = t;
+                    break;
+                }
+            }
+            if (type == null) return;
+            foreach(MeasuredParameterData mpd in type.ParameterDataList)
+            {
+                List<TestResult[]> resLists = SplitByGeneralTables_ForAoAz(mpd.TestResults); 
+            }
+        }
 
+        private static List<TestResult[]> SplitByGeneralTables_ForAoAz(TestResult[] testResults)
+        {
+            List<TestResult[]> rslt = new List<TestResult[]>();
+            List<TestResult> tmpResults = new List<TestResult>();
+            int lastRecElNum = 0;
+            int lastGenElNum = 0;
+            int elsCount = testResults[testResults.Length-1].GeneratorElementNumber;
+            for (TestResult r in testResults)
+            {
+                if (lastGenElNum != r.GeneratorElementNumber)
+                {
+
+                }
+                repeatAdd:
+                if (r.ElementNumber >= lastRecElNum)
+                {
+                    tmpResults.Add(r);
+                    lastRecElNum = r.ElementNumber;
+                }
+                if (r.ElementNumber < lastRecElNum)
+                {
+                    rslt.Add(tmpResults.ToArray());
+                }
+            }
+        }
 
         private static void addRizolByGroupTable(CableStructure structure)
         {
@@ -1561,6 +1604,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             page = tpage;
         }
     }
+
+
     internal enum MSWordStringTypes
     {
         Typical,
