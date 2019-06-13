@@ -75,26 +75,23 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         {
             List<TestResult[]> rslt = new List<TestResult[]>();
             List<TestResult> tmpResults = new List<TestResult>();
-            int lastRecElNum = 0;
             int lastGenElNum = 0;
             int elsCount = testResults[testResults.Length-1].GeneratorElementNumber;
-            for (TestResult r in testResults)
+            foreach(TestResult r in testResults)
             {
                 if (lastGenElNum != r.GeneratorElementNumber)
                 {
-
+                    if (r.ElementNumber > r.GeneratorElementNumber)
+                    {
+                        rslt.Add(tmpResults.ToArray());
+                        tmpResults.Clear();
+                    }
+                    lastGenElNum = r.GeneratorElementNumber;
                 }
-                repeatAdd:
-                if (r.ElementNumber >= lastRecElNum)
-                {
-                    tmpResults.Add(r);
-                    lastRecElNum = r.ElementNumber;
-                }
-                if (r.ElementNumber < lastRecElNum)
-                {
-                    rslt.Add(tmpResults.ToArray());
-                }
+                tmpResults.Add(r);
             }
+            if (tmpResults.Count > 0) rslt.Add(tmpResults.ToArray());
+            return rslt;
         }
 
         private static void addRizolByGroupTable(CableStructure structure)
