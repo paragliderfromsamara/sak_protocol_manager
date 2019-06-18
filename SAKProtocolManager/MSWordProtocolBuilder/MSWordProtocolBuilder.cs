@@ -65,32 +65,68 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 }
             }
             if (type == null) return;
-            foreach(MeasuredParameterData mpd in type.ParameterDataList)
+            foreach (MeasuredParameterData mpd in type.ParameterDataList)
             {
-                List<TestResult[]> resLists = SplitByGeneralTables_ForAoAz(mpd.TestResults); 
+                List<AoAz_TableValues> resLists = SplitByGeneralTables_ForAoAz(mpd.TestResults);
+                Debug.WriteLine($"add_Ao_Table: {resLists.Count}");
+                foreach (AoAz_TableValues rList in resLists)
+                {
+                    draw_Ao_Table(rList);
+
+                }
             }
+
         }
 
-        private static List<TestResult[]> SplitByGeneralTables_ForAoAz(TestResult[] testResults)
+        private static void draw_Ao_Table(AoAz_TableValues resList)
         {
-            List<TestResult[]> rslt = new List<TestResult[]>();
-            List<TestResult> tmpResults = new List<TestResult>();
-            int lastGenElNum = 0;
-            int elsCount = testResults[testResults.Length-1].GeneratorElementNumber;
+            int curGenEl = 0;
+            int rowsAmount;
+            int colsAmount = rowsAmount = (resList.endElNumber - resList.startElNumber+1) * resList.endSubElNumber;
+            OpenXML.Table table = BuildTable();
+            for(int genEl = resList.startElNumber; genEl<=resList.endElNumber; genEl++)
+            {
+                for(int genSubEl = resList.startSubElNumber; genSubEl <= resList.endSubElNumber; genSubEl++)
+                {
+                    OpenXML.TableRow tabRow = BuildRow();
+                    for (int recEl = resList.startElNumber; recEl <= resList.endElNumber; recEl++)
+                    {
+                        for(int recSubEl = resList.startSubElNumber; recSubEl <= resList.endSubElNumber; recSubEl++)
+                        {
+                            TestResult r = resList.GetResult(genEl, recEl, genSubEl, recSubEl);
+                            OpenXML.Paragraph p = BuildParagraph();
+                            if (r != null)
+                            {
+                                p.Append(AddRun(r.GetStringTableValue()));
+                            }else
+                            {
+                                p.Append(AddRun(" "));
+                            }
+                            tabRow.Append(BuildCell(p));
+                        }
+                    }
+                    table.Append(tabRow);
+                }
+            }
+            wordProtocol.AddTable(table, colsAmount, rowsAmount);
+
+        }
+
+        private static List<AoAz_TableValues> SplitByGeneralTables_ForAoAz(TestResult[] testResults)
+        {
+            List<AoAz_TableValues> rslt = new List<AoAz_TableValues>();
+            AoAz_TableValues tmpTableValues = new AoAz_TableValues();
             foreach(TestResult r in testResults)
             {
-                if (lastGenElNum != r.GeneratorElementNumber)
-                {
-                    if (r.ElementNumber > r.GeneratorElementNumber)
-                    {
-                        rslt.Add(tmpResults.ToArray());
-                        tmpResults.Clear();
-                    }
-                    lastGenElNum = r.GeneratorElementNumber;
-                }
-                tmpResults.Add(r);
+               // if (!tmpTableValues.IsValid(r))
+               // {
+               //     rslt.Add(tmpTableValues);
+               //     tmpTableValues = new AoAz_TableValues();
+               // }
+                tmpTableValues.AddResult(r);
             }
-            if (tmpResults.Count > 0) rslt.Add(tmpResults.ToArray());
+            Debug.WriteLine($"SplitByGeneralTables_ForAoAz: {tmpTableValues.startElNumber} {tmpTableValues.endElNumber}");
+            if (tmpTableValues.HasValues) rslt.Add(tmpTableValues);
             return rslt;
         }
 
@@ -1608,5 +1644,53 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         Typical,
         Subscript,
         Superscript
+    }
+
+    internal class AoAz_TableValues
+    {
+        Dictionary<string, Dictionary<string, TestResult>> tableVals;
+        public int startSubElNumber = 0;
+        public int endSubElNumber = int.MinValue;
+        public int endElNumber = int.MinValue;
+        public int startElNumber = 0;
+        TestResult LastAdded = null;
+        public bool HasValues = false;
+
+        public AoAz_TableValues()
+        {
+            tableVals = new Dictionary<string, Dictionary<string, TestResult>>();
+        } 
+
+        public bool IsValid(TestResult r)
+        {
+            if (LastAdded == null) return true;
+            if (LastAdded.GeneratorElementNumber >= r.GeneratorElementNumber) return true;
+            return r.ElementNumber < r.GeneratorElementNumber;
+        }
+        public void AddResult(TestResult r)
+        {
+            string genKey = $"{r.GeneratorElementNumber}-{r.GeneratorSubElementNumber}";
+            string recKey = $"{r.ElementNumber}-{r.SubElementNumber}";
+
+            //if (!IsValid(r)) return;
+            if (startSubElNumber == 0) startSubElNumber = r.SubElementNumber;
+            if (endSubElNumber < r.SubElementNumber) endSubElNumber = r.SubElementNumber;
+            if (startElNumber == 0) startElNumber = r.GeneratorElementNumber;
+            if (endElNumber < r.ElementNumber) endElNumber = r.ElementNumber;
+            if (!tableVals.ContainsKey(genKey)) tableVals.Add(genKey, new Dictionary<string, TestResult>());
+            tableVals[genKey].Add(recKey, r);
+            LastAdded = r;
+            HasValues = true;
+        }
+
+        public TestResult GetResult(int genNumber, int recNumber, int subGenNumber = 1, int subRecNumber = 1 )
+        {
+            string genKey = $"{genNumber}-{subGenNumber}";
+            string recKey = $"{recNumber}-{subRecNumber}";
+            if (!tableVals.ContainsKey(genKey)) return null;
+            if (!tableVals[genKey].ContainsKey(recKey)) return null;
+            return tableVals[genKey][recKey];
+        }
+
     }
 }
