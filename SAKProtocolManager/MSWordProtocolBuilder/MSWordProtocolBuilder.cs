@@ -71,14 +71,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 Debug.WriteLine($"add_Ao_Table: {resLists.Count}");
                 foreach (AoAz_TableValues rList in resLists)
                 {
-                    draw_Ao_Table(rList);
-
+                    draw_Ao_Table(rList, mpd);
                 }
             }
 
         }
 
-        private static void draw_Ao_Table(AoAz_TableValues resList)
+        private static void draw_Ao_Table(AoAz_TableValues resList, MeasuredParameterData mpd)
         {
             int curGenEl = 0;
             int rowsAmount;
@@ -97,7 +96,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                             OpenXML.Paragraph p = BuildParagraph();
                             if (r != null)
                             {
-                                p.Append(AddRun(r.GetStringTableValue()));
+                                p.Append(AddRun(ResultText(r)));
                             }else
                             {
                                 p.Append(AddRun(" "));
@@ -109,7 +108,6 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 }
             }
             wordProtocol.AddTable(table, colsAmount, rowsAmount);
-
         }
 
         private static List<AoAz_TableValues> SplitByGeneralTables_ForAoAz(TestResult[] testResults)
@@ -1669,7 +1667,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         }
         public void AddResult(TestResult r)
         {
-            string genKey = $"{r.GeneratorElementNumber}-{r.GeneratorSubElementNumber}";
+            string genKey = $"{r.GeneratorElementNumber}-{r.GeneratorSubElementNumber}"; 
             string recKey = $"{r.ElementNumber}-{r.SubElementNumber}";
 
             //if (!IsValid(r)) return;

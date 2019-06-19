@@ -218,15 +218,15 @@ namespace SAKProtocolManager.DBEntities
             if (this.deviationMeasure == null)
             {
                 string val = String.Empty;
-                switch (this.Name)
+                switch (this.Id)
                 {
-                    case "Ao":
-                    case "Az":
-                    case "al":
+                    case Ao:
+                    case Az:
+                    case al:
                         val = "дБ";
                         break;
-                    case "Rиз2":
-                    case "Rиз4":
+                    case Risol2:
+                    case Risol4:
                         val = "c.";
                         break;
                     default:
@@ -249,40 +249,36 @@ namespace SAKProtocolManager.DBEntities
 
         public decimal BringToLength(decimal value, decimal curLength, decimal brLength)
         {
-            int round = 2;
-            switch (this.Name)
+            switch (this.Id)
             {
-                case "Rж":
-                case "Cр":
-                case "Co":
-                case "Ea":
-                case "K1":
-                case "K2":
-                case "K3":
-                case "K9":
-                case "K10":
-                case "K11":
-                case "K12":
-                case "K2,K3":
-                case "K9-12":
+                case Rleads:
+                case Cp:
+                case Co:
+                case Ea:
+                case K1:
+                case K2:
+                case K3:
+                case K9:
+                case K10:
+                case K11:
+                case K12:
+                case K23:
+                case K9_12:
                     value *= brLength / curLength;
-                    round = value > 99 ? 1 : 2;
-                    return Math.Round(value, round);
-                case "Rиз1":
-                case "Rиз3":
+                    break;
+                case Risol1:
+                case Risol3:
                     value *= curLength / brLength;
-                    round = value > 99 ? 1 : 2;
-                    return Math.Round(value, round);
-                case "al":
+                    break;
+                case al:
                     value *= brLength / curLength;
-                    return Math.Round(value, 1);
-                case "Ao":
-                case "Az":
+                    break;
+                case Ao:
+                case Az:
                     value += 10 * (decimal)Math.Log10(((double)curLength / (double)brLength));
-                    return Math.Round(value, 1);
-                default:
-                    return value;
+                    break;
             }
+            return value;
         }
 
         public bool IsRizol

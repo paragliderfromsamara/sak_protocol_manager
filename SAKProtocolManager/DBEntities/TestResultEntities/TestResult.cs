@@ -19,7 +19,46 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         public string[] Statuses= new string[] { };
         protected string testId = "0";
         public decimal RawValue = 0;
-        public decimal BringingValue = 0;
+        private decimal bringingValue = 0;
+        public decimal BringingValue
+        {
+            get
+            {
+                return bringingValue;
+            }set
+            {
+                int round = 2;
+                switch (this.ParameterType.Id)
+                {
+                    case MeasureParameterType.Rleads:
+                    case MeasureParameterType.Cp:
+                    case MeasureParameterType.Co:
+                    case MeasureParameterType.Ea:
+                    case MeasureParameterType.K1:
+                    case MeasureParameterType.K2:
+                    case MeasureParameterType.K3:
+                    case MeasureParameterType.K9:
+                    case MeasureParameterType.K10:
+                    case MeasureParameterType.K11:
+                    case MeasureParameterType.K12:
+                    case MeasureParameterType.K23:
+                    case MeasureParameterType.K9_12:
+                    case MeasureParameterType.Risol1:
+                    case MeasureParameterType.Risol3:
+                        round = value > 99 ? 1 : 2;
+                        bringingValue = Math.Round(value, round);
+                        break;
+                    case MeasureParameterType.al:
+                    case MeasureParameterType.Ao:
+                    case MeasureParameterType.Az:
+                        bringingValue = Math.Round(value, 1);
+                        break;
+                    default:
+                        bringingValue = value;
+                        break;
+                }
+            }
+        }
         public int ElementNumber = 0;
         public int SubElementNumber = 1;
         public int GeneratorElementNumber = 0;
