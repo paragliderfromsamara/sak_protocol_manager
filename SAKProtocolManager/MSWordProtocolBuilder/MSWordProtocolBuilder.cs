@@ -50,15 +50,16 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             addPrimaryParametersTable(structure);
             addRizolByGroupTable(structure);
             add_al_Table(structure);
-            add_Ao_Table(structure);
+            add_AoAz_Table(structure, MeasureParameterType.Ao);
+            add_AoAz_Table(structure, MeasureParameterType.Az);
         }
 
-        private static void add_Ao_Table(CableStructure structure)
+        private static void add_AoAz_Table(CableStructure structure, string type_id)
         {
             MeasureParameterType type = null;
             foreach(MeasureParameterType t in structure.MeasuredParameters)
             {
-                if (t.Id == MeasureParameterType.Ao)
+                if (t.Id == type_id)
                 {
                     type = t;
                     break;
@@ -68,7 +69,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             foreach (MeasuredParameterData mpd in type.ParameterDataList)
             {
                 List<AoAz_TableValues> resLists = SplitByGeneralTables_ForAoAz(mpd.TestResults);
-                Debug.WriteLine($"add_Ao_Table: {resLists.Count}");
+                Debug.WriteLine($"add_AoAz_Table: {resLists.Count}");
                 foreach (AoAz_TableValues rList in resLists)
                 {
                     draw_Ao_Table(rList, mpd);
@@ -82,30 +83,63 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             int curGenEl = 0;
             int rowsAmount;
             int colsAmount = rowsAmount = (resList.endElNumber - resList.startElNumber+1) * resList.endSubElNumber;
+            rowsAmount += 5;
             OpenXML.Table table = BuildTable();
+            OpenXML.TableRow[] headerRows = Build_AoAz_TableHeader(mpd, resList);
+            table.Append(headerRows);
             for(int genEl = resList.startElNumber; genEl<=resList.endElNumber; genEl++)
             {
-                for(int genSubEl = resList.startSubElNumber; genSubEl <= resList.endSubElNumber; genSubEl++)
+                OpenXML.TableRow[] elRows = new OpenXML.TableRow[resList.endSubElNumber-resList.startElNumber+1];
+                for (int i = 0; i < elRows.Length; i++)
                 {
-                    OpenXML.TableRow tabRow = BuildRow();
+                    OpenXML.TableCellProperties vertMerge = new OpenXML.TableCellProperties();
+                    vertMerge.Append(new OpenXML.VerticalMerge()
+                    {
+                        Val = i == 0 ? OpenXML.MergedCellValues.Restart : OpenXML.MergedCellValues.Continue
+                    });
+                    elRows[i] = BuildRow();
+                    OpenXML.TableCell cell_1_n = BuildCell();
+                    OpenXML.TableCell cell_2_n = BuildCell();
+                    if (i == 0) FillCellText(cell_1_n, genEl.ToString());
+                    if (elRows.Length > 1)
+                    {
+                        FillCellText(cell_2_n, (resList.startSubElNumber+i).ToString());
+                    }
+                    else
+                    {
+                        HorizontalMergeCells(new OpenXML.TableCell[] { cell_1_n, cell_2_n });
+                    }
+                    elRows[i].Append(cell_1_n, cell_2_n);
+                }
+                //OpenXML.TableRow row1 = BuildRow();
+                //OpenXML.TableRow row2 = BuildRow();
+                //OpenXML.TableCell cell_1_1 = BuildCell(genEl.ToString());
+                //OpenXML.TableCell cell_1_2 = BuildCell();
+                for (int genSubEl = resList.startSubElNumber; genSubEl <= resList.endSubElNumber; genSubEl++)
+                {
+                    OpenXML.TableRow tabRow = elRows[genSubEl-1];
                     for (int recEl = resList.startElNumber; recEl <= resList.endElNumber; recEl++)
                     {
                         for(int recSubEl = resList.startSubElNumber; recSubEl <= resList.endSubElNumber; recSubEl++)
                         {
                             TestResult r = resList.GetResult(genEl, recEl, genSubEl, recSubEl);
-                            OpenXML.Paragraph p = BuildParagraph();
+                            OpenXML.TableCell resCell = BuildCell();
                             if (r != null)
                             {
-                                p.Append(AddRun(ResultText(r)));
-                            }else
-                            {
-                                p.Append(AddRun(" "));
+                                FillCellText(resCell, ResultText(r));
                             }
-                            tabRow.Append(BuildCell(p));
+                            else
+                            {
+                                if (genEl==recEl && genSubEl == recSubEl)
+                                {
+                                    FillCellByColor(resCell, "b2b2b2");
+                                }
+                            }
+                            tabRow.Append(resCell);
                         }
                     }
-                    table.Append(tabRow);
                 }
+                table.Append(elRows);
             }
             wordProtocol.AddTable(table, colsAmount, rowsAmount);
         }
@@ -387,6 +421,18 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return new OpenXML.TableRow[] { row_1, row_2 };
         }
 
+        private static OpenXML.Paragraph[] BuildFreqsParagraph_AoAz(MeasuredParameterData mpd)
+        {
+            OpenXML.Paragraph minFreqParagraph, maxFreqParagraph;
+            minFreqParagraph = BuildParagraph(new OpenXML.Run[] { AddRun("f"), AddRun("1", MSWordStringTypes.Subscript), AddRun($"={mpd.MinFrequency}кГц") });
+            if (mpd.MaxFrequency > 0)
+            {
+                maxFreqParagraph = BuildParagraph(new OpenXML.Run[] { AddRun("f"), AddRun("2", MSWordStringTypes.Subscript), AddRun($"={mpd.MaxFrequency}кГц") });
+                return new OpenXML.Paragraph[] { minFreqParagraph, maxFreqParagraph };
+            }
+            else return new OpenXML.Paragraph[] { minFreqParagraph };
+        }
+
         private static OpenXML.Paragraph[] BuildFreqParagraphs(MeasuredParameterData mpd)
         {
             OpenXML.Paragraph minFreqParagraph, maxFreqParagraph;
@@ -557,7 +603,76 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
 
         }
+        private static OpenXML.TableRow[] Build_AoAz_TableHeader(MeasuredParameterData data, AoAz_TableValues vals)
+        {
+            int leadsNumber = data.ParameterType.Structure.BendingTypeLeadsNumber;
+            List<OpenXML.TableRow> RowsForHeader = new List<OpenXML.TableRow>();
 
+            OpenXML.Paragraph[] freqParagraphs = BuildFreqParagraphs(data);
+            OpenXML.TableRow row_1 = BuildRow();
+            OpenXML.TableRow row_2 = BuildRow();
+            OpenXML.TableRow row_3 = BuildRow();
+            OpenXML.TableCell cell_1_1 = BuildCell($"{ "№/№" } {BindingTypeText(leadsNumber)}");
+            OpenXML.TableCell cell_1_2 = BuildCell();
+            OpenXML.TableCell cell_1_3 = BuildCell();
+            OpenXML.TableCell cell_2_1 = BuildCell();
+            OpenXML.TableCell cell_2_2 = BuildCell();
+            OpenXML.TableCell cell_2_3 = BuildCell();
+
+            OpenXML.TableCell[] dataCells_Row1 = BuildCells(vals.ElementsCount * leadsNumber / 2, true);
+            OpenXML.TableCell[] dataCells_Row2 = BuildCells(vals.ElementsCount * leadsNumber / 2);
+            OpenXML.TableCell[] dataCells_Row3 = BuildCells(vals.ElementsCount * leadsNumber / 2);
+            HorizontalMergeCells(new OpenXML.TableCell[] { cell_1_1, cell_2_1 });
+            HorizontalMergeCells(new OpenXML.TableCell[] { cell_1_2, cell_2_2 });
+            VerticalMergeCells(new OpenXML.TableCell[] { cell_1_1, cell_1_2 });
+
+            OpenXML.Run[] pNameRun = ParameterNameText(data.ParameterType, data.ResultMeasure()).ToArray();
+            //OpenXML.Paragraph pNameParagraph = BuildParagraph(pNameRun);
+            FillCellText(dataCells_Row1[0], pNameRun);// dataCells_Row1[0].Append(pNameParagraph);
+            dataCells_Row1[0].Append(freqParagraphs);
+            for (int elNum = vals.startElNumber, i=0; elNum<=vals.endElNumber; elNum++, i++)
+            {
+                if (leadsNumber>2)
+                {
+                    HorizontalMergeCells(new OpenXML.TableCell[] { dataCells_Row2[i * 2], dataCells_Row2[i * 2+1] });
+                    FillCellText(dataCells_Row2[i * 2], elNum.ToString());
+                    for(int subElNum = vals.startSubElNumber; subElNum<=vals.endSubElNumber; subElNum++)
+                    {
+                        FillCellText(dataCells_Row2[i * 2 + subElNum-1], subElNum.ToString());
+                    }
+                }
+                else
+                {
+                    VerticalMergeCells(new OpenXML.TableCell[] { dataCells_Row2[i], dataCells_Row3[i] });
+                    FillCellText(dataCells_Row2[i], elNum.ToString());
+                }
+            }
+            if (leadsNumber > 2)
+            {
+                SetCellBordersStyle(cell_1_2, BuildBordersStyle(2,0,2,2));
+                SetCellBordersStyle(cell_1_3, BuildBordersStyle(0, 2, 2, 2));
+                FillCellText(cell_2_3, "пара");
+            }
+            else
+            {
+                HorizontalMergeCells(new OpenXML.TableCell[] { cell_1_3, cell_2_3});
+                VerticalMergeCells(new OpenXML.TableCell[] { cell_1_1, cell_1_2, cell_1_3 });
+            }
+
+
+            row_1.Append(cell_1_1, cell_2_1);
+            row_2.Append(cell_1_2, cell_2_2);
+            row_3.Append(cell_1_3, cell_2_3);
+
+            row_1.Append(dataCells_Row1);
+            row_2.Append(dataCells_Row2);
+            row_3.Append(dataCells_Row3);
+
+            RowsForHeader.Add(row_1);
+            RowsForHeader.Add(row_2);
+            if (leadsNumber > 2) RowsForHeader.Add(row_3);
+            return RowsForHeader.ToArray();
+        }
         private static OpenXML.TableRow[] BuildPrimaryParamsTableHeader_WithOpenXML(MeasureParameterType[] pTypes, CableStructure structure)
         {
             OpenXML.TableRow row_1 = BuildRow();
@@ -737,6 +852,19 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return borderStyle;
         }
 
+        private static void HorizontalMergeCells(OpenXML.TableCell[] cells)
+        {
+            for(int i=0; i<cells.Length; i++)
+            {
+                OpenXML.TableCellProperties props = new OpenXML.TableCellProperties();
+                props.Append(new OpenXML.HorizontalMerge()
+                {
+                    Val = i == 0 ? OpenXML.MergedCellValues.Restart : OpenXML.MergedCellValues.Continue
+                });
+                cells[i].AppendChild<OpenXML.TableCellProperties>(props);
+            }
+        }
+
         private static OpenXML.TableCell[] BuildCells(int count, bool isMerged = false)
         {
             List<OpenXML.TableCell> cells = new List<DocumentFormat.OpenXml.Wordprocessing.TableCell>();
@@ -751,6 +879,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                         Val = i == 0 ? OpenXML.MergedCellValues.Restart : OpenXML.MergedCellValues.Continue
                     });
                     cell.AppendChild<OpenXML.TableCellProperties>(props);
+                   
                 }
                 cells.Add(cell);
             }
@@ -920,7 +1049,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     break;
                 case MeasureParameterType.Az:
                     runList.Add(AddRun("A"));
-                    runList.Add(AddRun("z", MSWordStringTypes.Subscript));
+                    runList.Add(AddRun("з", MSWordStringTypes.Subscript));
                     break;
                 case MeasureParameterType.al:
                     runList.Add(AddRun("α"));
@@ -1653,7 +1782,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         public int startElNumber = 0;
         TestResult LastAdded = null;
         public bool HasValues = false;
-
+        public int ElementsCount
+        {
+            get
+            {
+                return endElNumber - startElNumber + 1;
+            }
+        }
         public AoAz_TableValues()
         {
             tableVals = new Dictionary<string, Dictionary<string, TestResult>>();
