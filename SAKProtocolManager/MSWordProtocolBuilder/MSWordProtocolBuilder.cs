@@ -68,26 +68,99 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             if (type == null) return;
             foreach (MeasuredParameterData mpd in type.ParameterDataList)
             {
+                if (mpd.TestResults.Length == 0) continue;
                 List<AoAz_TableValues> resLists = SplitByGeneralTables_ForAoAz(mpd.TestResults);
-                Debug.WriteLine($"add_AoAz_Table: {resLists.Count}");
+                
                 foreach (AoAz_TableValues rList in resLists)
                 {
-                    draw_Ao_Table(rList, mpd);
+                    int pairsAmount = rList.ElementsCount * rList.endSubElNumber;
+                    int tablesOnWide = 1, colsPerTable = pairsAmount;
+                    //while (colsPerTable > MaxColsPerPage ) colsPerTable /= ++tablesOnWide;
+                    //colsPerTable = rList.ElementsCount * rList.endSubElNumber * tablesOnWide;
+                    
+                    if (MaxColsPerPage < pairsAmount)
+                    {
+                        colsPerTable = MaxColsPerPage;
+                        tablesOnWide = pairsAmount / colsPerTable;
+                        if (pairsAmount % colsPerTable > 0) tablesOnWide++;
+                    }
+                    
+                    Debug.WriteLine($"add_AoAz_Table: onWide = {tablesOnWide} colsPerTable = {colsPerTable}");
+                    
+                    for(int tableNum=0; tableNum < tablesOnWide; tableNum++)
+                    {
+                        int startGenEl = rList.startElNumber, endGenEl;
+                        int startRecEl = rList.startElNumber+((colsPerTable)*tableNum);
+                        int endRecEl = (startRecEl + colsPerTable-1 > rList.endElNumber) ? rList.endElNumber : startRecEl + colsPerTable-1;
+                        int colsAmount = (endRecEl - startRecEl+1)*structure.BendingTypeLeadsNumber/2;
+                        int rowsAll = rList.ElementsCount + 6;
+                        Debug.WriteLine($"add_AoAz_Table: table = {tableNum} rowsAll = {rowsAll} colsAmount = {colsAmount}, startRec = {startRecEl}, endRec = {endRecEl}");
+                        int[] tableRows = CalcMaxRowsCount(colsAmount, rowsAll, 5);
+                        for(int rIdx = 0; rIdx < tableRows.Length; rIdx++)
+                        {
+                            int rowsAmount = tableRows[rIdx];
+                            int curTableRowsAmount = rowsAmount;
+                            endGenEl = (startGenEl + curTableRowsAmount - 1 > rList.endElNumber) ? rList.endElNumber : startGenEl + curTableRowsAmount - 1;
+                            OpenXML.Table table = draw_AoAz_Table(rList, mpd, startGenEl, endGenEl, startRecEl, endRecEl);
+                            if (tableNum == tablesOnWide-1 && rIdx == tableRows.Length-1)
+                            {
+                                OpenXML.TableRow rowMin = BuildRow();
+                                OpenXML.TableRow rowMax = BuildRow();
+                                OpenXML.TableRow rowAver = BuildRow();
+
+                                OpenXML.TableCell[] minTitleCells = BuildCells(2, true);
+                                OpenXML.TableCell[] minValCells = BuildCells(colsAmount, true);
+                                OpenXML.TableCell[] maxTitleCells = BuildCells(2, true);
+                                OpenXML.TableCell[] maxValCells = BuildCells(colsAmount, true);
+                                OpenXML.TableCell[] averTitleCells = BuildCells(2, true);
+                                OpenXML.TableCell[] averValCells = BuildCells(colsAmount, true);
+
+                                FillCellText(minTitleCells[0], "min");
+                                FillCellText(minValCells[0], ResultValueText(mpd.MinVal));
+
+                                FillCellText(averTitleCells[0], "средн.");
+                                FillCellText(averValCells[0], ResultValueText(mpd.AverageVal));
+
+                                FillCellText(maxTitleCells[0], "max");
+                                FillCellText(maxValCells[0], ResultValueText(mpd.MaxVal));
+
+                                rowMin.Append(minTitleCells);
+                                rowMin.Append(minValCells);
+                                rowMax.Append(maxTitleCells);
+                                rowMax.Append(maxValCells);
+                                rowAver.Append(averTitleCells);
+                                rowAver.Append(averValCells);
+
+                                
+
+                                curTableRowsAmount += 5;
+                                table.Append(rowMin, rowAver, rowMax);
+
+                            }
+                            wordProtocol.AddTable(table, colsAmount, curTableRowsAmount+2);
+                            startGenEl += rowsAmount;
+                            
+                        }
+
+
+                    }
+    
+
                 }
             }
 
         }
 
-        private static void draw_Ao_Table(AoAz_TableValues resList, MeasuredParameterData mpd)
+        private static OpenXML.Table draw_AoAz_Table(AoAz_TableValues resList, MeasuredParameterData mpd, int startGenEl, int endGenEl, int startRecEl, int endRecEl)
         {
             int curGenEl = 0;
-            int rowsAmount;
-            int colsAmount = rowsAmount = (resList.endElNumber - resList.startElNumber+1) * resList.endSubElNumber;
+            int rowsAmount = endGenEl - startGenEl+1;
+            int colsAmount = endRecEl - startRecEl+1;
             rowsAmount += 5;
             OpenXML.Table table = BuildTable();
-            OpenXML.TableRow[] headerRows = Build_AoAz_TableHeader(mpd, resList);
+            OpenXML.TableRow[] headerRows = Build_AoAz_TableHeader(mpd, resList, startRecEl, endRecEl);
             table.Append(headerRows);
-            for(int genEl = resList.startElNumber; genEl<=resList.endElNumber; genEl++)
+            for(int genEl = startGenEl; genEl<=endGenEl; genEl++)
             {
                 OpenXML.TableRow[] elRows = new OpenXML.TableRow[resList.endSubElNumber-resList.startElNumber+1];
                 for (int i = 0; i < elRows.Length; i++)
@@ -118,7 +191,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 for (int genSubEl = resList.startSubElNumber; genSubEl <= resList.endSubElNumber; genSubEl++)
                 {
                     OpenXML.TableRow tabRow = elRows[genSubEl-1];
-                    for (int recEl = resList.startElNumber; recEl <= resList.endElNumber; recEl++)
+                    for (int recEl = startRecEl; recEl <= endRecEl; recEl++)
                     {
                         for(int recSubEl = resList.startSubElNumber; recSubEl <= resList.endSubElNumber; recSubEl++)
                         {
@@ -141,20 +214,25 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 }
                 table.Append(elRows);
             }
-            wordProtocol.AddTable(table, colsAmount, rowsAmount);
+            return table;
+
         }
 
         private static List<AoAz_TableValues> SplitByGeneralTables_ForAoAz(TestResult[] testResults)
         {
             List<AoAz_TableValues> rslt = new List<AoAz_TableValues>();
             AoAz_TableValues tmpTableValues = new AoAz_TableValues();
+            int maxElNumber = testResults[testResults.Length - 1].GeneratorElementNumber;
             foreach(TestResult r in testResults)
             {
-               // if (!tmpTableValues.IsValid(r))
-               // {
-               //     rslt.Add(tmpTableValues);
-               //     tmpTableValues = new AoAz_TableValues();
-               // }
+                if (tmpTableValues.LastAdded != null)
+                {
+                    if (tmpTableValues.LastAdded.GeneratorElementNumber != r.GeneratorElementNumber && tmpTableValues.LastAdded.ElementNumber < maxElNumber - 1)
+                    {
+                        rslt.Add(tmpTableValues);
+                        tmpTableValues = new AoAz_TableValues();
+                    }
+                }
                 tmpTableValues.AddResult(r);
             }
             Debug.WriteLine($"SplitByGeneralTables_ForAoAz: {tmpTableValues.startElNumber} {tmpTableValues.endElNumber}");
@@ -377,6 +455,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
+
         private static OpenXML.TableRow[] Build_al_TableHeader_WithOpenXML(List<MeasuredParameterData> curTableData, CableStructure structure)
         {
 
@@ -423,14 +502,15 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
         private static OpenXML.Paragraph[] BuildFreqsParagraph_AoAz(MeasuredParameterData mpd)
         {
-            OpenXML.Paragraph minFreqParagraph, maxFreqParagraph;
-            minFreqParagraph = BuildParagraph(new OpenXML.Run[] { AddRun("f"), AddRun("1", MSWordStringTypes.Subscript), AddRun($"={mpd.MinFrequency}кГц") });
+            OpenXML.Paragraph freqParagraph;
+            freqParagraph = BuildParagraph(new OpenXML.Run[] { AddRun("f")});
+            if (mpd.MaxFrequency > 0) freqParagraph.Append(AddRun("min", MSWordStringTypes.Subscript));
+            freqParagraph.Append(AddRun($"={mpd.MinFrequency}кГц"));
             if (mpd.MaxFrequency > 0)
             {
-                maxFreqParagraph = BuildParagraph(new OpenXML.Run[] { AddRun("f"), AddRun("2", MSWordStringTypes.Subscript), AddRun($"={mpd.MaxFrequency}кГц") });
-                return new OpenXML.Paragraph[] { minFreqParagraph, maxFreqParagraph };
+                freqParagraph.Append(AddRun(", f"), AddRun("max", MSWordStringTypes.Subscript), AddRun($"={mpd.MaxFrequency}кГц"));
             }
-            else return new OpenXML.Paragraph[] { minFreqParagraph };
+            return new OpenXML.Paragraph[] { freqParagraph };
         }
 
         private static OpenXML.Paragraph[] BuildFreqParagraphs(MeasuredParameterData mpd)
@@ -603,12 +683,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
 
         }
-        private static OpenXML.TableRow[] Build_AoAz_TableHeader(MeasuredParameterData data, AoAz_TableValues vals)
+        private static OpenXML.TableRow[] Build_AoAz_TableHeader(MeasuredParameterData data, AoAz_TableValues vals, int startRec, int endRec)
         {
             int leadsNumber = data.ParameterType.Structure.BendingTypeLeadsNumber;
+            int elsCount = endRec-startRec+1;
             List<OpenXML.TableRow> RowsForHeader = new List<OpenXML.TableRow>();
 
-            OpenXML.Paragraph[] freqParagraphs = BuildFreqParagraphs(data);
+            OpenXML.Paragraph[] freqParagraphs = BuildFreqsParagraph_AoAz(data);
             OpenXML.TableRow row_1 = BuildRow();
             OpenXML.TableRow row_2 = BuildRow();
             OpenXML.TableRow row_3 = BuildRow();
@@ -619,9 +700,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             OpenXML.TableCell cell_2_2 = BuildCell();
             OpenXML.TableCell cell_2_3 = BuildCell();
 
-            OpenXML.TableCell[] dataCells_Row1 = BuildCells(vals.ElementsCount * leadsNumber / 2, true);
-            OpenXML.TableCell[] dataCells_Row2 = BuildCells(vals.ElementsCount * leadsNumber / 2);
-            OpenXML.TableCell[] dataCells_Row3 = BuildCells(vals.ElementsCount * leadsNumber / 2);
+            OpenXML.TableCell[] dataCells_Row1 = BuildCells(elsCount * leadsNumber / 2, true);
+            OpenXML.TableCell[] dataCells_Row2 = BuildCells(elsCount * leadsNumber / 2);
+            OpenXML.TableCell[] dataCells_Row3 = BuildCells(elsCount * leadsNumber / 2);
             HorizontalMergeCells(new OpenXML.TableCell[] { cell_1_1, cell_2_1 });
             HorizontalMergeCells(new OpenXML.TableCell[] { cell_1_2, cell_2_2 });
             VerticalMergeCells(new OpenXML.TableCell[] { cell_1_1, cell_1_2 });
@@ -630,13 +711,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             //OpenXML.Paragraph pNameParagraph = BuildParagraph(pNameRun);
             FillCellText(dataCells_Row1[0], pNameRun);// dataCells_Row1[0].Append(pNameParagraph);
             dataCells_Row1[0].Append(freqParagraphs);
-            for (int elNum = vals.startElNumber, i=0; elNum<=vals.endElNumber; elNum++, i++)
+            for (int elNum = startRec, i=0; elNum<=endRec; elNum++, i++)
             {
                 if (leadsNumber>2)
                 {
                     HorizontalMergeCells(new OpenXML.TableCell[] { dataCells_Row2[i * 2], dataCells_Row2[i * 2+1] });
                     FillCellText(dataCells_Row2[i * 2], elNum.ToString());
-                    for(int subElNum = vals.startSubElNumber; subElNum<=vals.endSubElNumber; subElNum++)
+                    for(int subElNum = 1; subElNum<= leadsNumber  ; subElNum++)
                     {
                         FillCellText(dataCells_Row2[i * 2 + subElNum-1], subElNum.ToString());
                     }
@@ -1307,6 +1388,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return oShape;
         }
 
+
+
         public SubTable[] EstimateTablePosition(int colsCount, int rowsCount, int MinRowsPerTable = 5)
         {
             float tableWidth = colsCount * CellWidth;
@@ -1523,7 +1606,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private float GetLine(float[] arr, int begin, int width)
         {
             float ret = 0f;
-            for (int pos = begin; pos < (begin + width); pos++) if (arr[pos] > ret) ret = arr[pos];
+            int limit = (begin + width > PageWidth) ? (int)PageWidth : begin + width;
+            for (int pos = begin; pos < limit; pos++) if (arr[pos] > ret) ret = arr[pos];
             return ret;
         }
         private void SetLine(float[] arr, int begin, int width, float height)
@@ -1780,7 +1864,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         public int endSubElNumber = int.MinValue;
         public int endElNumber = int.MinValue;
         public int startElNumber = 0;
-        TestResult LastAdded = null;
+        public TestResult LastAdded = null;
         public bool HasValues = false;
         public int ElementsCount
         {
