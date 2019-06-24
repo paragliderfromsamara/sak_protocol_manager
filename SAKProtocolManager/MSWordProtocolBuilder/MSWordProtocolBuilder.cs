@@ -23,21 +23,31 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         static CableTest CableTest;
         static MSWordProtocol wordProtocol;
         private const int MaxColsPerPage = 20;
-        public static void BuildProtocolForTest(CableTest test)
+        private static MSWordProtoco_StatusForm statusForm = new MSWordProtoco_StatusForm();
+        public static void BuildProtocolForTest(CableTest test, Label statLabel, ProgressBar progrBar)
         {
             int tryingTime = 3;
             CableTest = test;
             try
             {
+                statLabel.Text = "";
+                progrBar.Step = 0;
+                //statusForm.Show();
+                
                 wordProtocol = new MSWordProtocol();
                 wordProtocol.Init();
                 wordProtocol.AddHeader();
                 foreach (CableStructure s in CableTest.TestedCable.Structures)
                 {
+                    statLabel.Text = $"{s.Name}";
+                    progrBar.Step = 50 ;
                     PrintStructure(s);
                 }
                 wordProtocol.AddFooter();
                 wordProtocol.Finalise();
+                //statusForm.Hide();
+                statLabel.Text = "Завершено";
+                progrBar.Step = 100;
             }
             catch(System.Runtime.InteropServices.COMException ex)
             {

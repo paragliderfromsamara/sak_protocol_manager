@@ -160,6 +160,12 @@
     <Compile Include="MeasureResultReader.Designer.cs">
       <DependentUpon>MeasureResultReader.cs</DependentUpon>
     </Compile>
+    <Compile Include="MSWordProtocolBuilder\MSWordProtoco%3bStatusForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MSWordProtocolBuilder\MSWordProtoco%3bStatusForm.Designer.cs">
+      <DependentUpon>MSWordProtoco%3bStatusForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="MSWordProtocolBuilder\MSWordProtocolBuilder.cs" />
     <Compile Include="MSWordProtocolBuilder\OpenXMLTableCreator.cs" />
     <Compile Include="MSWordProtocolBuilder\WordProtocolSettings.Designer.cs">
@@ -200,6 +206,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MeasureResultReader.resx">
       <DependentUpon>MeasureResultReader.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MSWordProtocolBuilder\MSWordProtoco%3bStatusForm.resx">
+      <DependentUpon>MSWordProtoco%3bStatusForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

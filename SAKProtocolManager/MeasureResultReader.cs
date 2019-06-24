@@ -330,7 +330,11 @@ namespace SAKProtocolManager
             //protocol.CutCreatedTableFromTmpFile();
             //OpenXMLTableCreator.GetTableFromFile();
             //OpenXMLTableCreator.WDAddTable("test.docx", new string[,] { { "4", "5", "6" } });
-            MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest);
+            lengthUpdProgressBarField.Visible = true;
+            MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest, lengthUpdProgressBarLbl, LengthUpdProgressBar);
+            lengthEditor.Visible = true;
+            lengthUpdProgressBarField.Visible = false;
+
         }
     }
 }
