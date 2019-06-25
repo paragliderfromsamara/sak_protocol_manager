@@ -330,11 +330,136 @@ namespace SAKProtocolManager
             //protocol.CutCreatedTableFromTmpFile();
             //OpenXMLTableCreator.GetTableFromFile();
             //OpenXMLTableCreator.WDAddTable("test.docx", new string[,] { { "4", "5", "6" } });
+            StatusPanel statPanel = new StatusPanel(procNameLbl, lengthUpdProgressBarLbl, LengthUpdProgressBar);
             lengthUpdProgressBarField.Visible = true;
-            MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest, lengthUpdProgressBarLbl, LengthUpdProgressBar);
+            MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest, statPanel);
             lengthEditor.Visible = true;
             lengthUpdProgressBarField.Visible = false;
 
+        }
+    }
+
+    public class StatusPanel
+    {
+        Label labelTitle;
+        Label labelStatus;
+        ProgressBar progrBar;
+
+        public void SetBarRange(int min, int max, int step = 3)
+        {
+            progrBar.Minimum = min;
+            progrBar.Maximum = max;
+            progrBar.Step = step;
+            progrBar.Refresh();
+        }
+
+
+        public string Title
+        {
+            get
+            {
+                return labelTitle.Text;
+            }
+            set
+            {
+                labelTitle.Text = value;
+            }
+        }
+
+        public string Status
+        {
+            get
+            {
+                return labelStatus.Text;
+            }
+            set
+            {
+                labelStatus.Text = value;
+            }
+        }
+
+        public int BarPosition
+        {
+            get
+            {
+                return progrBar.Value;
+            }
+            set
+            {
+                progrBar.Value = value;
+                progrBar.Refresh();
+                progrBar.Update();
+                System.Threading.Thread.Sleep(progrBar.Value == progrBar.Maximum ? 3000 : 300);
+            }
+        }
+
+        public StatusPanel(Label lTitle, Label lStatus, ProgressBar bar)
+        {
+            labelTitle = lTitle;
+
+
+            labelStatus = lStatus;
+
+
+            progrBar = bar;
+
+            Reset();
+
+
+        }
+
+        public void AddToBarPosition()
+        {
+            progrBar.PerformStep();
+        }
+
+        public void AddToBarPosition(string status, int val)
+        {
+            AddToBarPosition(Title, status, val);
+        }
+
+        public void AddToBarPosition(string title, string status, int val)
+        {
+            if ((BarPosition + val) > progrBar.Maximum)
+            {
+                val = progrBar.Maximum;
+            }
+            else
+            {
+                val += BarPosition;
+            }
+            SetBarPosition(title, status, val);
+
+        }
+
+        public void AddToBarPosition(int val)
+        {
+            AddToBarPosition(Title, Status, val);
+
+        }
+
+        public void SetBarPosition(string title, string status, int barPos)
+        {
+            Title = title;
+            Status = status;
+            BarPosition = barPos;
+        }
+
+        public void SetBarPosition(string status, int barPos)
+        {
+            SetBarPosition(Title, status, barPos);
+        }
+
+        public void SetBarPosition(int barPos)
+        {
+            SetBarPosition(Title, Status, barPos);
+        }
+
+        public void Reset()
+        {
+            BarPosition = 0;
+            Status = "";
+            Title = "";
         }
     }
 }

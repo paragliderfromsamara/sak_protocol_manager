@@ -23,31 +23,38 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         static CableTest CableTest;
         static MSWordProtocol wordProtocol;
         private const int MaxColsPerPage = 20;
-        private static MSWordProtoco_StatusForm statusForm = new MSWordProtoco_StatusForm();
-        public static void BuildProtocolForTest(CableTest test, Label statLabel, ProgressBar progrBar)
+        private static StatusPanel statusPanel;
+        public static void BuildProtocolForTest(CableTest test, StatusPanel panel)
         {
             int tryingTime = 3;
             CableTest = test;
+            statusPanel = panel;
             try
             {
-                statLabel.Text = "";
-                progrBar.Step = 0;
                 //statusForm.Show();
-                
+                statusPanel.Reset();
+                statusPanel.SetBarRange(1, 100);
+                statusPanel.SetBarPosition("Создание документа MS Word", "Инициализация", 5);
                 wordProtocol = new MSWordProtocol();
                 wordProtocol.Init();
+                statusPanel.AddToBarPosition();
+                statusPanel.AddToBarPosition("Добавление шапки документа", 5);
                 wordProtocol.AddHeader();
+                statusPanel.AddToBarPosition();
+
                 foreach (CableStructure s in CableTest.TestedCable.Structures)
                 {
-                    statLabel.Text = $"{s.Name}";
-                    progrBar.Step = 50 ;
+                    statusPanel.AddToBarPosition($"Структура {s.Name}", "", 5);
                     PrintStructure(s);
                 }
+                statusPanel.AddToBarPosition("Добавление завершения документа", 5);
                 wordProtocol.AddFooter();
+                statusPanel.SetBarPosition("Расстановка таблиц", 99);
+                Thread.Sleep(250);
                 wordProtocol.Finalise();
+                statusPanel.SetBarPosition("Расстановка таблиц", 100);
                 //statusForm.Hide();
-                statLabel.Text = "Завершено";
-                progrBar.Step = 100;
+
             }
             catch(System.Runtime.InteropServices.COMException ex)
             {
@@ -57,6 +64,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
         public static void PrintStructure(CableStructure structure)
         {
+
             addPrimaryParametersTable(structure);
             addRizolByGroupTable(structure);
             add_al_Table(structure);
@@ -76,6 +84,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 }
             }
             if (type == null) return;
+            statusPanel.AddToBarPosition($"Таблица {type.Name}", 0);
             foreach (MeasuredParameterData mpd in type.ParameterDataList)
             {
                 if (mpd.TestResults.Length == 0) continue;
@@ -148,17 +157,12 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
                             }
                             wordProtocol.AddTable(table, colsAmount, curTableRowsAmount+2);
+                            statusPanel.AddToBarPosition();
                             startGenEl += rowsAmount;
-                            
                         }
-
-
                     }
-    
-
                 }
             }
-
         }
 
         private static OpenXML.Table draw_AoAz_Table(AoAz_TableValues resList, MeasuredParameterData mpd, int startGenEl, int endGenEl, int startRecEl, int endRecEl)
@@ -264,6 +268,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 break;
             }
             if (type == null) return;
+            statusPanel.AddToBarPosition($"Таблица {type.Name}", 0);
             mpd = type.ParameterDataList[0];
             Debug.WriteLine(mpd.ParameterType.Name);
             bool MoreThanOneGroups = mpd.TestResults[0].ElementNumber > 0;
@@ -336,6 +341,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
            // wordProtocol.AddTable(table, colsAmount, mpd.ParameterType.TestResults.Length + 2);
             wordProtocol.AddElementsAsXML(elementsToPage, wordProtocol.CellHeight*(mpd.ParameterType.TestResults.Length + 4), wordProtocol.CellWidth * colsAmount);
+            statusPanel.AddToBarPosition();
         }
 
         private static void add_al_Table(CableStructure structure)
@@ -359,7 +365,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 }
             }
             if (alType == null || printedData.Count==0) return;
-
+            statusPanel.AddToBarPosition($"Таблица {alType.Name}", 0);
             foreach (string key in printedData.Keys)
             {
                 MeasuredParameterData mpd = printedData[key];
@@ -462,6 +468,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
                 }
                 wordProtocol.AddTable(table, colsAmount, tablesRowsCount[idx]+2);
+                statusPanel.AddToBarPosition();
             }
         }
 
@@ -540,25 +547,32 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         {
             int maxCols = MaxColsPerPage;
             int colsCount = 1; //Первая колонка номер элемента
+            bool progrBarIsInited = false;
             List<MeasureParameterType> typesForTable = new List<MeasureParameterType>();
 
-            for(int i = 0; i< structure.MeasuredParameters.Length; i++)
+            for (int i = 0; i < structure.MeasuredParameters.Length; i++)
             {
                 MeasureParameterType mpt = structure.MeasuredParameters[i];
                 bool needToBuildTable = false;
                 if (mpt.IsPrimaryParameter)
                 {
+                    if (!progrBarIsInited)
+                    {
+                        statusPanel.SetBarPosition("Таблица перв. параметров", 10);
+                        progrBarIsInited = true;
+                    }
                     int colsForParameter = ColumsCountForParameter(mpt, structure);
                     if ((colsCount + colsForParameter) > maxCols)
                     {
                         needToBuildTable = true;
-                    } else
+                    }
+                    else
                     {
                         typesForTable.Add(mpt);
                         colsCount += ColumsCountForParameter(mpt, structure);
                     }
                 }
-                if (needToBuildTable || ((i+1) == structure.MeasuredParameters.Length && typesForTable.Count > 0))
+                if (needToBuildTable || ((i + 1) == structure.MeasuredParameters.Length && typesForTable.Count > 0))
                 {
                     BuildPrimaryParametersTable_WithOpenXML(typesForTable.ToArray(), structure, colsCount);
 
@@ -569,7 +583,6 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
 
         }
-
 
         private static void BuildPrimaryParametersTable_WithOpenXML(MeasureParameterType[] pTypes, CableStructure structure, int colsAmount)
         {
@@ -686,7 +699,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
                 }
                 wordProtocol.AddElementsAsXML(elementsToPage.ToArray(), wordProtocol.CellHeight * (tablesRowsCount[idx]+3), wordProtocol.CellWidth*colsAmount);
-
+                statusPanel.AddToBarPosition();
 
                 //  wordProtocol.AddParagraph("Каждый охотник желает знать где сидит фазан", 18f);
             }
