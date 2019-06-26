@@ -186,11 +186,12 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     });
                     elRows[i] = BuildRow();
                     OpenXML.TableCell cell_1_n = BuildCell();
+                    cell_1_n.Append(vertMerge);
                     OpenXML.TableCell cell_2_n = BuildCell();
                     if (i == 0) FillCellText(cell_1_n, genEl.ToString());
                     if (elRows.Length > 1)
                     {
-                        FillCellText(cell_2_n, (resList.startSubElNumber+i).ToString());
+                        FillCellText(cell_2_n, $"{resList.startSubElNumber + 2*i}-{resList.startSubElNumber + 2*i+1}");// (resList.startSubElNumber+i).ToString());
                     }
                     else
                     {
@@ -740,15 +741,17 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 {
                     HorizontalMergeCells(new OpenXML.TableCell[] { dataCells_Row2[i * 2], dataCells_Row2[i * 2+1] });
                     FillCellText(dataCells_Row2[i * 2], elNum.ToString());
-                    for(int subElNum = 1; subElNum<= leadsNumber  ; subElNum++)
+                    for(int subElNum = 1; subElNum<= leadsNumber/2; subElNum++)
                     {
-                        FillCellText(dataCells_Row2[i * 2 + subElNum-1], subElNum.ToString());
+                        Debug.WriteLine($"subElNum = {subElNum}; i = {i} ");
+                        int j = Math.Abs(1-subElNum);
+                        FillCellText(dataCells_Row3[i * 2 + subElNum - 1], $"{j*2+1}-{j * 2+2}");//(subElNum.ToString());
                     }
                 }
                 else
                 {
                     VerticalMergeCells(new OpenXML.TableCell[] { dataCells_Row2[i], dataCells_Row3[i] });
-                    FillCellText(dataCells_Row2[i], elNum.ToString());
+                    FillCellText(dataCells_Row2[i], elNum.ToString()); 
                 }
             }
             if (leadsNumber > 2)
@@ -1925,7 +1928,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             string recKey = $"{r.ElementNumber}-{r.SubElementNumber}";
 
             //if (!IsValid(r)) return;
-            if (startSubElNumber == 0) startSubElNumber = r.SubElementNumber;
+            if (startSubElNumber == 0) startSubElNumber = r.GeneratorSubElementNumber;
             if (endSubElNumber < r.SubElementNumber) endSubElNumber = r.SubElementNumber;
             if (startElNumber == 0) startElNumber = r.GeneratorElementNumber;
             if (endElNumber < r.ElementNumber) endElNumber = r.ElementNumber;
