@@ -1425,7 +1425,86 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return oShape;
         }
 
+        public SubTable[] EstimateTablePosition_For_AoAz(int colsCount, int rowsCount)
+        {
+            float tableWidth = colsCount * CellWidth;
+            if (tableWidth > PageWidth) tableWidth = PageWidth;
+            int tablesOnPageRow = (int)(PageWidth / tableWidth);
+            int MaxRowsPerTable = 65;
+            //if (MinRowsPerTable > rowsCount) MinRowsPerTable = rowsCount;
+            ShapeCoord lastCoord = LastShapeCoords == null ? new ShapeCoord() { x = 0, y = 0, width = 0, height = 0, page = 0 } :  ;
+            float[] pageLine = (float[])PageLine.Clone();
+            List<SubTable> subTables = new List<SubTable>();
+            int curPage = lastCoord.page;
 
+            float xCoord = (int)lastCoord.x + (int)lastCoord.width;
+            if (xCoord + tableWidth > PageWidth || lastCoord.height < MinRowsPerTable * CellHeight) xCoord = 0f;
+            float line = GetLine(pageLine, (int)lastCoord.x, (int)tableWidth);
+            if (line + MinRowsPerTable * CellHeight > PageHeight)
+            {
+                for (int ps = 0; ps < pageLine.Length; ps++) pageLine[ps] = 0f;
+                xCoord = 0f;
+                curPage++;
+            }
+
+            while (rowsCount > 0)
+            { 
+
+                int rowsOnCurrentPosition; //Количество строк в данной строке документа
+                int colsOnCurrentPosition;
+                int tablesToAddCount = 0;
+                if (xCoord == 0)
+                {
+                    rowsOnCurrentPosition = (int)((PageHeight - line) / CellHeight);
+                    if (rowsOnCurrentPosition > MaxRowsPerTable) rowsOnCurrentPosition = MaxRowsPerTable;
+                    colsOnCurrentPosition = (int)((PageWidth) / CellWidth);
+                    if (rowsOnCurrentPosition * tablesOnPageRow > rowsCount)
+                    {
+                        tablesToAddCount = tablesOnPageRow;
+                        for (int tCnt = 1; tCnt <= tablesOnPageRow; tCnt++)
+                        {
+                            if (rowsCount / tCnt > MinRowsPerTable)
+                            {
+                                tablesToAddCount = tCnt;
+                            }
+                        }
+                        rowsOnCurrentPosition = rowsCount / tablesToAddCount;
+                    }
+                    else
+                    {
+                        tablesToAddCount = tablesOnPageRow;
+                    }
+
+                }
+                else
+                {
+                    //Это выполняется только если таблица вставляется в строку с другим блоком и только для первой таблицы в коллекции
+                    rowsOnCurrentPosition = (int)(lastCoord.height / CellHeight);
+                    colsOnCurrentPosition = (int)((PageWidth - xCoord) / CellWidth);
+                    if (rowsOnCurrentPosition >= rowsCount)
+                    {
+                        rowsOnCurrentPosition = rowsCount;
+                        tablesToAddCount = 1;
+                    }
+                    else
+                    {
+                        tablesToAddCount = colsOnCurrentPosition / colsCount;
+                    }
+                }
+                for (int tIdx = 0; tIdx < tablesToAddCount; tIdx++)
+                {
+                    int rowsToAddCount = rowsCount - rowsOnCurrentPosition < 0 ? rowsCount : rowsOnCurrentPosition;
+                    if (tIdx == tablesToAddCount - 1 && (rowsCount - rowsToAddCount <= MinRowsPerTable)) rowsToAddCount = rowsCount;
+
+                    float tableHeight = rowsToAddCount * CellHeight;
+                    ShapeCoord curTableCoord = GetNextShapeCoord(tableWidth, tableHeight, lastCoord, pageLine);
+                    subTables.Add(new SubTable() { TableShapePlanedCoord = curTableCoord, ColumnsCount = colsCount, RowsCount = rowsToAddCount });
+                    rowsCount -= rowsToAddCount;
+                    lastCoord = curTableCoord;
+                }
+            }
+            return subTables.ToArray();
+        }
 
         public SubTable[] EstimateTablePosition(int colsCount, int rowsCount, int MinRowsPerTable = 5)
         {
