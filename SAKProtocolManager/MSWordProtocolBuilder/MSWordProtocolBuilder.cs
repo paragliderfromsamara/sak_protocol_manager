@@ -213,7 +213,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                             OpenXML.TableCell resCell = BuildCell();
                             if (r != null)
                             {
-                                FillCellText(resCell, ResultText(r));
+                                resCell.GetFirstChild<OpenXML.Paragraph>().Append(ResultText(r));
                             }
                             else
                             {
@@ -418,7 +418,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                             {
                                 TestResult res = results[rIdx];
                                 OpenXML.TableCellBorders resBordStyle = BuildBordersStyle(0, (uint)((i < tablesRowsCount[idx] - 1) ? 0 : 2));
-                                OpenXML.TableCell resCell = BuildCell(ResultText(res));
+                                OpenXML.TableCell resCell = BuildCell(BuildParagraph(ResultText(res)));
                                 if (i % 2 == 1) FillCellByColor(resCell, "ededed");
                                 SetCellBordersStyle(resCell, resBordStyle);
                                 row.Append(resCell);
@@ -619,7 +619,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                             {
                                 TestResult res = results[rIdx];
                                 OpenXML.TableCellBorders resBordStyle = BuildBordersStyle(0, (uint)((i < tablesRowsCount[idx] - 1) ? 0 : 2));
-                                OpenXML.TableCell resCell = BuildCell(ResultText(res));
+                                OpenXML.TableCell resCell = BuildCell(BuildParagraph(ResultText(res)));
                                 if (i % 2 == 1) FillCellByColor(resCell, "ededed");
                                 SetCellBordersStyle(resCell, resBordStyle);
                                 row.Append(resCell);
@@ -825,6 +825,10 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return new OpenXML.TableRow[] { row_1, row_2 };
         }
 
+        private static OpenXML.Paragraph BuildParagraph(OpenXML.Run run)
+        {
+            return BuildParagraph(new OpenXML.Run[] { run });
+        }
 
         private static OpenXML.Paragraph BuildParagraph(OpenXML.Run[] textRuns)
         {
@@ -846,11 +850,18 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
 
 
-        private static OpenXML.Run AddRun(string text, MSWordStringTypes strType = MSWordStringTypes.Typical)
+        private static OpenXML.Run AddRun(string text, MSWordStringTypes strType = MSWordStringTypes.Typical, bool IsBold = false, bool IsItalic = false)
         {
             OpenXML.Run run = new OpenXML.Run();
-            var props = new OpenXML.RunProperties(new OpenXML.RunFonts() { Ascii = "Times New Roman" }, new OpenXML.FontSize() { Val = "18" });
-
+            var props = new OpenXML.RunProperties(); 
+            if (strType != MSWordStringTypes.Typical)
+            {
+                props.Append(new OpenXML.RunFonts() { Ascii = "Times New Roman" }, new OpenXML.FontSize() { Val = "18" });
+            }else
+            {
+                if (IsBold) props.Append(new OpenXML.Bold());
+                if (IsItalic) props.Append(new OpenXML.Italic());
+            }
             switch (strType)
             {
                 case MSWordStringTypes.Subscript:
@@ -860,7 +871,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     props.Append(new OpenXML.VerticalTextAlignment() { Val = OpenXML.VerticalPositionValues.Superscript });
                     break;
             }
-            if (strType != MSWordStringTypes.Typical) run.Append(props);
+            run.Append(props);
             run.Append(new OpenXML.Text(text));
             return run;
         }
@@ -1058,14 +1069,14 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return template.ToArray();
         }
 
-        private static string ResultText(TestResult res)
+        private static OpenXML.Run ResultText(TestResult res)
         {
             if (res.Affected)
             {
-                return res.Status;
+                return AddRun(res.Status, MSWordStringTypes.Typical, true, true);
             }else
             {
-                return res.GetStringTableValue();
+                return AddRun(res.GetStringTableValue(), MSWordStringTypes.Typical, !res.CheckIsItNorma());
                 //return ResultValueText(res.BringingValue);
             }
         }
@@ -1879,6 +1890,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         Subscript,
         Superscript
     }
+
 
     internal class AoAz_TableValues
     {
