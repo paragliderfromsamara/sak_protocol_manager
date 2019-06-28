@@ -13,6 +13,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         public static string[] PrimaryParametersList = new string[] { "Rж", "dR", "Cр", "dCр", "Co", "Ea", "Rиз1", "Rиз2", "K1", "K2", "K3", "K9", "K10", "K11", "K12", "K2,K3", "K9-12" };
         public MeasureParameterType ParameterType = null;
         public MeasuredParameterData ParameterData = null;
+        public FrequencyRange FreqRange = null;
         public int subElsNumber = 1;
         public decimal[] Values = new decimal[] { };
         public decimal[] RawValues = new decimal[] {};
@@ -20,6 +21,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         protected string testId = "0";
         public decimal RawValue = 0;
         private decimal bringingValue = 0;
+
         public decimal BringingValue
         {
             get
@@ -186,7 +188,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         protected override void fillParametersFromRow(DataRow row)
         {
             float val = ServiceFunctions.convertToFloat(row["value"]);
-            string fRangeId = row["freq_range_id"].ToString();
+            string fRangeId = row["frequency_range_id"].ToString();
             this.ElementNumber = ServiceFunctions.convertToInt16(row["element_number"]);
             this.SubElementNumber = ServiceFunctions.convertToInt16(row["sub_element_number"]);
             this.GeneratorElementNumber = ServiceFunctions.convertToInt16(row["gen_element_number"]);
@@ -197,6 +199,10 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
             {
                 this.BringingValue = this.ParameterData.BringMeasuredValue(this.RawValue);
                 if (!IsAffected()) CheckIsItNorma();
+            }
+            if (freqRangeId != "1")
+            {
+                FreqRange = new FrequencyRange(row);
             }
                     
         }
@@ -235,15 +241,17 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
 
         protected override void setDefaultParameters()
         {
-
-                //string freqQuery = freqRangeId == "1" ? "" : String.Format(" AND resultism.FreqDiap = {0}", freqRangeId);
-                string selQuery = "resultism.StruktElNum AS element_number," +
+            //string freqQuery = freqRangeId == "1" ? "" : String.Format(" AND resultism.FreqDiap = {0}", freqRangeId);
+            string selQuery = "resultism.StruktElNum AS element_number," +
                               "resultism.IsmerNum AS sub_element_number," +
                               "resultism.StruktElNum_gen AS gen_element_number," +
                               "resultism.ParaNum_gen AS gen_sub_element_number," + 
                               "resultism.Resultat AS value, " +
-                              "resultism.FreqDiap AS freq_range_id" ;
-                this.getAllQuery = String.Format("SELECT {0} FROM resultism WHERE resultism.IspInd = {1} AND resultism.ParamInd = {2} AND resultism.StruktInd = {3}", selQuery, testId, ParameterType.Id, ParameterType.Structure.Id);
+                              "resultism.FreqDiap AS frequency_range_id, " +
+                              "freq_diap.FreqMin AS frequency_range_min_freq, " +
+                              "freq_diap.FreqMax AS frequency_range_max_freq, " +
+                              "freq_diap.FreqStep AS frequency_range_freq_step ";
+                this.getAllQuery = String.Format("SELECT {0} FROM resultism LEFT JOIN freq_diap ON freq_diap.FreqDiapInd = resultism.freqdiap WHERE resultism.IspInd = {1} AND resultism.ParamInd = {2} AND resultism.StruktInd = {3}", selQuery, testId, ParameterType.Id, ParameterType.Structure.Id);
             this.colsList = new string[]
             {
                 "element_number",
@@ -251,7 +259,10 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
                 "gen_element_number",
                 "gen_sub_element_number",
                 "value",
-                "freq_range_id"
+                "frequency_range_id",
+                "frequency_range_min_freq",
+                "frequency_range_max_freq",
+                "frequency_range_freq_step"
             };
         }
 
@@ -317,6 +328,14 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
             }
         }
 
+
+        public static void UpdateFreqRange(MeasuredParameterData mpd, string changedFreqRangeId)
+        {
+            string setString = $"resultism.FreqDiap = {mpd.FrequencyRangeId}";// $"UPDATE resultism SET resultism.FreqDiap = {mpd.FrequencyRangeId} WHERE IspInd = {mpd.ParameterType.Structure.Cable.Test.Id} AND ParamId = {mpd.ParameterType.Id} AND StruktInd = {mpd.ParameterType.Structure.Id} AND resultism.FreqDiap = {changedFreqRangeId}";
+            string whereString = $"resultism.IspInd = {mpd.ParameterType.Structure.Cable.Test.Id} AND resultism.ParamInd = {mpd.ParameterType.Id} AND resultism.StruktInd = {mpd.ParameterType.Structure.Id} AND resultism.FreqDiap = {changedFreqRangeId}";
+            string updQuery = BuildUpdQuery("resultism", setString, whereString);
+            SendQuery(updQuery);
+        }
 
         public string BuildUpdLengthQuery(decimal curLength, decimal newLength)
         {

@@ -42,15 +42,15 @@ namespace SAKProtocolManager.DBEntities
         /// <summary>
         /// Минимальная частота
         /// </summary>
-        public uint MinFrequency = 0;
+        public decimal MinFrequency = 0;
         /// <summary>
         /// Максимальная частота
         /// </summary>
-        public uint MaxFrequency = 0;
+        public decimal MaxFrequency = 0;
         /// <summary>
         /// Шаг частоты
         /// </summary>
-        public uint FrequencuStep = 0;
+        public decimal FrequencuStep = 0;
         /// <summary>
         /// Допустимый процент брака
         /// </summary>
@@ -238,9 +238,9 @@ namespace SAKProtocolManager.DBEntities
             if (!String.IsNullOrEmpty(maxVal)) this.MaxValue = ServiceFunctions.convertToDecimal(maxVal);
             this.NormalPercent = ServiceFunctions.convertToDecimal(row["measured_parameter_percent"]);
 
-            this.MinFrequency = ServiceFunctions.convertToUInt(row["measure_parameter_min_frequency"]);
-            this.MaxFrequency = ServiceFunctions.convertToUInt(row["measure_parameter_max_frequency"]);
-            this.FrequencuStep = ServiceFunctions.convertToUInt(row["measure_parameter_frequency_step"]);
+            this.MinFrequency = ServiceFunctions.convertToDecimal(row["measure_parameter_min_frequency"]);
+            this.MaxFrequency = ServiceFunctions.convertToDecimal(row["measure_parameter_max_frequency"]);
+            this.FrequencuStep = ServiceFunctions.convertToDecimal(row["measure_parameter_frequency_step"]);
 
             this.BringingLength = ServiceFunctions.convertToDecimal(row["measured_parameter_bringing_length"]);
             this.BringingLengthName = row["bringing_length_type_name"].ToString();

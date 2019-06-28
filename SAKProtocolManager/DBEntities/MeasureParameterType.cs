@@ -105,12 +105,12 @@ namespace SAKProtocolManager.DBEntities
 
         private void assaignTestResultsToParameterData()
         {
-         
             foreach(MeasuredParameterData pData in ParameterDataList)
             {
                 List<TestResult> trListForPData = new List<TestResult>();
                 List<TestResult> NotNormaTrListForPData = new List<TestResult>();
                 List<decimal> vals = new List<decimal>();
+                repeat_assignment:
                 foreach (TestResult tr in TestResults)
                 {
                     TestResult cTr = tr.CloneIncludingParameterType();
@@ -119,6 +119,14 @@ namespace SAKProtocolManager.DBEntities
                         trListForPData.Add(cTr);
                         if (!cTr.Affected) vals.Add(cTr.BringingValue);
                         if (cTr.DeviationPercent > 0) NotNormaTrListForPData.Add(cTr);
+                    }
+                }
+                if (IsFreqParameter && trListForPData.Count == 0)
+                {
+                    if (CheckFailedFreqAssignment(pData))
+                    {
+                        GetTestResult();
+                        goto repeat_assignment;
                     }
                 }
                 pData.TestResults = trListForPData.ToArray();
@@ -133,11 +141,32 @@ namespace SAKProtocolManager.DBEntities
                         pData.AverageVal = Math.Round(vals.Sum() / (decimal)vals.Count(), 1);
                     }
                 }
-
-
-
-
             }
+        }
+
+        /// <summary>
+        /// Исправляет ошибку привязки к диапазону частоты
+        /// </summary>
+        /// <returns></returns>
+        private bool CheckFailedFreqAssignment(MeasuredParameterData mpd)
+        {
+            foreach(TestResult tr in TestResults)
+            {
+                if (tr.FreqRange.MinFreq == mpd.MinFrequency && tr.freqRangeId != mpd.FrequencyRangeId)
+                {
+                    bool isOnUsing = false;
+                    foreach(MeasuredParameterData pd in ParameterDataList)
+                    {
+                        if (isOnUsing = tr.freqRangeId == pd.FrequencyRangeId) break;
+                    }
+                    if (!isOnUsing)
+                    {
+                        TestResult.UpdateFreqRange(mpd, tr.freqRangeId);
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         private void getStructureParameterData()
@@ -247,6 +276,14 @@ namespace SAKProtocolManager.DBEntities
             this.IsTested = TestResults.Length > 0;
         }
 
+        public bool IsFreqParameter
+        {
+            get
+            {
+                return (Id == Ao || Id == Az || Id == al);
+            }
+        }
+            
         public decimal BringToLength(decimal value, decimal curLength, decimal brLength)
         {
             switch (this.Id)

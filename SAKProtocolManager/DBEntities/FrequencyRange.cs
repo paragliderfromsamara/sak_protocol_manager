@@ -10,7 +10,7 @@ namespace SAKProtocolManager.DBEntities
     public class FrequencyRange : DBBase
     {
 
-        public string MaxFreq, MinFreq;
+        public decimal MaxFreq, MinFreq, FreqStep;
 
         public FrequencyRange()
         {
@@ -32,15 +32,16 @@ namespace SAKProtocolManager.DBEntities
         protected override void fillParametersFromRow(DataRow row)
         {
             this.Id = row["frequency_range_id"].ToString();
-            this.MaxFreq = row["frequency_range_max_freq"].ToString();
-            this.MinFreq = row["frequency_range_min_freq"].ToString();
+            this.MaxFreq = ServiceFunctions.convertToDecimal(row["frequency_range_max_freq"].ToString());
+            this.MinFreq = ServiceFunctions.convertToDecimal(row["frequency_range_min_freq"].ToString());
+            this.FreqStep = ServiceFunctions.convertToDecimal(row["frequency_range_freq_step"].ToString());
         }
         protected override void setDefaultParameters()
         {
-            string selectQuery = "freq_diap.FreqDiapInd AS frequency_range_id, freq_diap.FreqMin AS frequency_range_min_freq, freq_diap.FreqMax AS frequency_range_max_freq";
+            string selectQuery = "freq_diap.FreqDiapInd AS frequency_range_id, freq_diap.FreqMin AS frequency_range_min_freq, freq_diap.FreqMax AS frequency_range_max_freq, freq_diap.FreqStep AS frequency_range_step_freq";
             this.getAllQuery = String.Format("SELECT {0} FROM freq_diap", selectQuery);
             this.getByIdQuery = String.Format("SELECT {0} WHERE freq_diap.FreqDiapInd = {1}  LIMIT 1", selectQuery, Id);
-            this.colsList = new string[] { "frequency_range_id", "frequency_range_min_freq", "frequency_range_max_freq" };
+            this.colsList = new string[] { "frequency_range_id", "frequency_range_min_freq", "frequency_range_max_freq", "frequency_range_step_freq" };
         }
         
        /// <summary>
