@@ -330,6 +330,12 @@ namespace SAKProtocolManager
             //protocol.CutCreatedTableFromTmpFile();
             //OpenXMLTableCreator.GetTableFromFile();
             //OpenXMLTableCreator.WDAddTable("test.docx", new string[,] { { "4", "5", "6" } });
+            bool needCreateProtocol = true;
+            if (MSWordProtocolBuilder.DoesProtocolExist(CableTest))
+            {
+                DialogResult r = MessageBox.Show("Протокол в формате MSWord уже сформирован.\n")
+               
+            }
             StatusPanel statPanel = new StatusPanel(procNameLbl, lengthUpdProgressBarLbl, LengthUpdProgressBar);
             lengthUpdProgressBarField.Visible = true;
             MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest, statPanel);

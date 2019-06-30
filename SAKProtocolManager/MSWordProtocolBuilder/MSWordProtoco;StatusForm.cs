@@ -7,26 +7,29 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SAKProtocolManager.DBEntities;
+using SAKProtocolManager.DBEntities.TestResultEntities;
 
 namespace SAKProtocolManager.MSWordProtocolBuilder
 {
     public partial class MSWordProtoco_StatusForm : Form
     {
-        public MSWordProtoco_StatusForm()
+        CableTest test;
+        public MSWordProtoco_StatusForm(CableTest testForProtocol)
         {
             InitializeComponent();
+            test = testForProtocol;
+            MSWordProtocolBuilder.ProtocolExist();
         }
 
-        public void SetStatus(string stat_text)
+        private void button1_Click(object sender, EventArgs e)
         {
-            statusLbl.Text = stat_text;
-            progressBar1.PerformStep();
+
         }
 
-        public void Reset()
+        private void button2_Click(object sender, EventArgs e)
         {
-            statusLbl.Text = "";
-            progressBar1.Value = 0;
+
         }
     }
 }

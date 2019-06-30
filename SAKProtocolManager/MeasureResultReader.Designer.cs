@@ -416,7 +416,7 @@
             // 
             this.MSWordImport.Location = new System.Drawing.Point(722, 15);
             this.MSWordImport.Name = "MSWordImport";
-            this.MSWordImport.Size = new System.Drawing.Size(97, 47);
+            this.MSWordImport.Size = new System.Drawing.Size(97, 48);
             this.MSWordImport.TabIndex = 17;
             this.MSWordImport.Text = "MSWord";
             this.MSWordImport.UseVisualStyleBackColor = true;
