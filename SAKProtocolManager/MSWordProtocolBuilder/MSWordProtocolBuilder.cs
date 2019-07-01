@@ -70,6 +70,90 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             add_al_Table(structure);
             add_AoAz_Table(structure, MeasureParameterType.Ao);
             add_AoAz_Table(structure, MeasureParameterType.Az);
+            add_Statistic_Table(structure);
+        }
+
+        private static void add_Statistic_Table(CableStructure structure)
+        {
+            OpenXML.Table table = BuildTable();
+            table.Append(BuildStatTable_HeaderRow());
+            int rowsAmount = 2;
+            foreach (MeasureParameterType t in structure.MeasuredParameters)
+            {
+                if (t.ParameterDataList.Length > 0)
+                {
+                    foreach(MeasuredParameterData pData in t.ParameterDataList)
+                    {
+                        if (pData.ParameterType.Id == MeasureParameterType.Risol3 || pData.ParameterType.Id == MeasureParameterType.Risol4) continue;
+                        if (pData.TestResults.Length > 0)
+                        {
+                            OpenXML.TableRow row = BuildRow();
+                            OpenXML.TableCell pNameCell = BuildCell(BuildParagraph(ParameterNameText(pData.ParameterType).ToArray()));
+                            if (pData.ParameterType.IsFreqParameter)
+                            {
+                                if (pData.ParameterType.Id == MeasureParameterType.al)
+                                {
+                                    pNameCell.Append(BuildFreqParagraphs(pData));
+                                }
+                                else
+                                {
+                                    pNameCell.Append(BuildFreqsParagraph_AoAz(pData));
+                                }
+                            }
+                            OpenXML.TableCell maxValCell = BuildCell(pData.MaxValue < decimal.MaxValue ? pData.MaxValue.ToString() : "");
+                            OpenXML.TableCell minValCell = BuildCell(pData.MinValue > decimal.MinValue ? pData.MinValue.ToString() : "");
+                            OpenXML.TableCell measureCell = BuildCell(pData.ResultMeasure());
+                            OpenXML.TableCell normaPercent = BuildCell(pData.NormalPercent.ToString());
+                            OpenXML.TableCell measuredPercent = BuildCell();
+
+                            row.Append(pNameCell, minValCell, maxValCell, measureCell, normaPercent, measuredPercent);
+                            table.Append(row);
+                            rowsAmount++;
+                        }
+                    }
+                }
+            }
+            wordProtocol.AddTable(table, 19, rowsAmount+1);
+        }
+
+        private static OpenXML.TableRow[] BuildStatTable_HeaderRow()
+        {
+            OpenXML.TableRow row_1 = BuildRow();
+            OpenXML.TableRow row_2 = BuildRow();
+
+            OpenXML.TableCell cell_1_1 = BuildCell("Параметр");
+            OpenXML.TableCell cell_1_2 = BuildCell();
+            VerticalMergeCells(new OpenXML.TableCell[] { cell_1_1, cell_1_2 });
+            row_1.Append(cell_1_1);
+            row_2.Append(cell_1_2);
+
+            OpenXML.TableCell cell_2_1_1 = BuildCell("Норма");
+            OpenXML.TableCell cell_2_2_1 = BuildCell();
+            OpenXML.TableCell cell_2_1_2 = BuildCell("min");
+            OpenXML.TableCell cell_2_2_2 = BuildCell("max");
+            HorizontalMergeCells(new OpenXML.TableCell[] { cell_2_1_1, cell_2_2_1 });
+            row_1.Append(cell_2_1_1, cell_2_2_1);
+            row_2.Append(cell_2_1_2, cell_2_2_2);
+
+            OpenXML.TableCell cell_3_1 = BuildCell("Единица измерения");
+            OpenXML.TableCell cell_3_2 = BuildCell();
+            VerticalMergeCells(new OpenXML.TableCell[] { cell_3_1, cell_3_2 });
+            row_1.Append(cell_3_1);
+            row_2.Append(cell_3_2);
+
+            OpenXML.TableCell cell_4_1 = BuildCell("Задано, %");
+            OpenXML.TableCell cell_4_2 = BuildCell();
+            VerticalMergeCells(new OpenXML.TableCell[] { cell_4_1, cell_4_2 });
+            row_1.Append(cell_4_1);
+            row_2.Append(cell_4_2);
+
+            OpenXML.TableCell cell_5_1 = BuildCell("Измерено, %");
+            OpenXML.TableCell cell_5_2 = BuildCell();
+            VerticalMergeCells(new OpenXML.TableCell[] { cell_5_1, cell_5_2 });
+            row_1.Append(cell_5_1);
+            row_2.Append(cell_5_2);
+
+            return new OpenXML.TableRow[] { row_1, row_2 };
         }
 
         private static void add_AoAz_Table(CableStructure structure, string type_id)
