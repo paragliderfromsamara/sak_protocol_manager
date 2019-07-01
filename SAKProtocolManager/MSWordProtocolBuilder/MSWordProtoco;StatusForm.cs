@@ -19,7 +19,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         {
             InitializeComponent();
             test = testForProtocol;
-            MSWordProtocolBuilder.ProtocolExist();
+            //MSWordProtocolBuilder.ProtocolExist();
         }
 
         private void button1_Click(object sender, EventArgs e)

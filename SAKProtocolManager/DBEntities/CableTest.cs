@@ -25,7 +25,8 @@ namespace SAKProtocolManager.DBEntities
         public uint PIzb = 0;
         public uint PObol = 0;
         public DateTime TestDate = DateTime.Now;
-        public bool IsExists; 
+        public bool IsExists;
+        public string OrderNumber = string.Empty;
        
 
         public CableTest()

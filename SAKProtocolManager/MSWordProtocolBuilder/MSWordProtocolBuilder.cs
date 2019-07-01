@@ -39,7 +39,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 wordProtocol.Init();
                 statusPanel.AddToBarPosition();
                 statusPanel.AddToBarPosition("Добавление шапки документа", 5);
-                wordProtocol.AddHeader();
+                wordProtocol.AddHeader(test);
                 statusPanel.AddToBarPosition();
 
                 foreach (CableStructure s in CableTest.TestedCable.Structures)
@@ -48,7 +48,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     PrintStructure(s);
                 }
                 statusPanel.AddToBarPosition("Добавление завершения документа", 5);
-                wordProtocol.AddFooter();
+                wordProtocol.AddFooter(test);
                 statusPanel.SetBarPosition("Расстановка таблиц", 99);
                 Thread.Sleep(250);
                 wordProtocol.Finalise();
@@ -304,7 +304,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 OpenXML.TableCell numCell = BuildCell($"{r.SubElementNumber}");
                 SetCellBordersStyle(numCell, BuildBordersStyle(0, bottomDorderWidth));
 
-                OpenXML.TableCell resCell = BuildCell($"{ResultText(r)}");
+                OpenXML.TableCell resCell = BuildCell(BuildParagraph(ResultText(r)));
                 SetCellBordersStyle(resCell, BuildBordersStyle(0, bottomDorderWidth));
 
                 if (i++ % 2 == 1)
@@ -912,6 +912,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             cellParagraph.Append(cellTextRun);
             return BuildCell(cellParagraph);
         }
+
 
         private static void VerticalMergeCells(OpenXML.TableCell[] cells)
         {
@@ -1720,7 +1721,49 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             for (int pos = begin; pos < (begin + width); pos++) arr[pos] = val;
         }
 
-        internal void AddHeader()
+        private void replaceRegular(ref Word.Shape sh, CableTest test)
+        {
+            int quant = sh.TextFrame.TextRange.Paragraphs.Count;
+            for (int i = 1; i <= quant; i++)
+            {
+                WdParagraphAlignment wpa = sh.TextFrame.TextRange.Paragraphs[i].Alignment;
+                string text = sh.TextFrame.TextRange.Paragraphs[i].Range.Text;
+                if (text.Length < 5) continue;
+                text = text.Replace("#маркакабеля", test.TestedCable.Name);
+                text = text.Replace("#температура", $"{test.Temperature} °С");
+                text = text.Replace("#датаиспытания", test.TestDate.ToString("dd.MM.yyyy"));
+                text = text.Replace("#номербарабана", test.Baraban.Number);
+                text = text.Replace("#типбарабана", test.Baraban.Name);
+                text = text.Replace("#брутто", $"{test.BruttoWeight} кг");
+                text = text.Replace("#длинакабеля", $"{test.TestedLength} м");
+                text = text.Replace("#номерзаказа", $"{test.OrderNumber}");
+                //text = text.Replace("TestStatistic", tres.ValidElementsAmount.ToString());
+                //string st = " пар ";
+                //if (tres.Plan.Structure == 4) st = " четв. ";
+                /*
+                text = text.Replace("#колвоэлементов", st + tres.Plan.StructQuantity.ToString());
+                if (text.Contains("TestStat"))
+                {
+                    text = text.Replace("TestStat", $"Фактическое число{st}- { tres.Plan.StructQuantity.ToString()}. Годных - {tres.ValidElementsAmount.ToString()}.");
+                }
+                if (tres.CableLen == 0) text = text.Replace("Lenght", "Без приведения к длине");
+                else text = text.Replace("Length", tres.CableLen.ToString());
+                text = text.Replace("Serial", tres.Serial);
+                if (text.Contains("Goden"))
+                {
+                    bool goden = false;
+                    for (int jdx = 0; jdx <= (int)MesParam.outside; jdx++) if (tres.CommonRes[jdx]) goden = true;
+                    if (goden) text = text.Replace("Goden", "не");
+                    else text = text.Replace("Goden", "");
+                }
+                text = text.Replace("GOST", tres.Plan.GostTU);
+                */
+                sh.TextFrame.TextRange.Paragraphs[i].Range.Text = text;
+                sh.TextFrame.TextRange.Paragraphs[i].Alignment = wpa;
+            }
+        }
+
+        internal void AddHeader(CableTest test)
         {
             object filePath = ProtocolHeaderFile;
             object oSave = false;
@@ -1732,7 +1775,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 oShape.Width = PageWidth - MarginRight;
                 oShape.RelativeHorizontalPosition = WdRelativeHorizontalPosition.wdRelativeHorizontalPositionMargin;
                 AddShapeToCoordsList(oShape);
-                //replaceRegular(ref oShape, tres);
+                replaceRegular(ref oShape, test);
                 //oShape.Width = PageWidth;
                 Word.ShapeRange sr = headerDoc.Shapes.Range(ref idx);
                 object rep = true;
@@ -1745,7 +1788,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             headerDoc.Close(ref oSave, ref oMissing, ref oMissing);
         }
 
-        internal void AddFooter()
+        internal void AddFooter(CableTest test)
         {
             object filePath = ProtocolFooterFile;
             object oSave = false;
@@ -1758,6 +1801,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 oShape.Width = PageWidth - MarginRight;
                 oShape.RelativeHorizontalPosition = WdRelativeHorizontalPosition.wdRelativeHorizontalPositionMargin;
                 AddShapeToCoordsList(oShape);
+                replaceRegular(ref oShape, test);
                 Word.ShapeRange sr = footerDoc.Shapes.Range(ref idx);
                 object rep = true;
                 sr.Select(ref rep);
