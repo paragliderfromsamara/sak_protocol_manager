@@ -11,7 +11,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
     {
         private string structureId = String.Empty;
         public bool IsAffected = false;
-        public ProzvonTestResult(string test_id, string structure_id, int sub_elements_number)
+        public ProzvonTestResult(string test_id, string  structure_id, int sub_elements_number)
         {
             this.testId = test_id;
             this.structureId = structure_id;
@@ -22,6 +22,23 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         {
             this.subElsNumber = subNumber;
             fillParametersFromRow(row);
+        }
+
+        public string ElementStatus
+        {
+            get
+            {
+                decimal stsId = 0;
+                foreach(decimal sId in Values)
+                {
+                    if (sId > stsId) stsId = sId;
+                }
+                if (stsId == 0) return "годна";
+                else if (stsId == 1) return "обр.";
+                else if (stsId == 2) return "зам.";
+                else if (stsId == 3) return "проб.";
+                else return "";
+            }
         }
 
         protected override void setDefaultParameters()
@@ -51,7 +68,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
             {
                 Statuses[i] = row[String.Format("status_{0}", i + 1)].ToString();
                 Values[i] = ServiceFunctions.convertToDecimal(row[String.Format("value_{0}", i + 1)].ToString());
-                if (!IsAffected) IsAffected = Values[i] > 0;
+                IsAffected |= Values[i] > 0;
             }
         }
 

@@ -71,6 +71,20 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             add_AoAz_Table(structure, MeasureParameterType.Ao);
             add_AoAz_Table(structure, MeasureParameterType.Az);
             add_Statistic_Table(structure);
+            add_VSVI_TestResult(structure);
+        }
+
+        private static void add_VSVI_TestResult(CableStructure structure)
+        {
+
+            if (!structure.Cable.Test.HasVsvi) return;
+            List<OpenXML.Paragraph> paragraphs = new List<OpenXML.Paragraph>();
+            paragraphs.Add(BuildParagraph(AddRun("Испытательное напряжение (постоянный ток) в течение 1 мин, приложенное:")));
+            if (structure.LeadLeadTestVoltage > 0) paragraphs.Add(BuildParagraph(  AddRun($"   -Между жилами                   {structure.LeadLeadTestVoltage} В")));
+            if (structure.LeadShieldTestVoltage > 0) paragraphs.Add(BuildParagraph(AddRun($"   -Между жилами и экраном {structure.LeadShieldTestVoltage} В")));
+
+            wordProtocol.AddElementsAsXML(paragraphs.ToArray(), paragraphs.Count*20, 400);
+
         }
 
         private static void add_Statistic_Table(CableStructure structure)
@@ -103,10 +117,10 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                             OpenXML.TableCell maxValCell = BuildCell(pData.MaxValue < decimal.MaxValue ? pData.MaxValue.ToString() : "");
                             OpenXML.TableCell minValCell = BuildCell(pData.MinValue > decimal.MinValue ? pData.MinValue.ToString() : "");
                             OpenXML.TableCell measureCell = BuildCell(pData.ResultMeasure());
-                            OpenXML.TableCell normaPercent = BuildCell(pData.NormalPercent.ToString());
-                            OpenXML.TableCell measuredPercent = BuildCell();
+                            OpenXML.TableCell normaPercentCell = BuildCell(pData.NormalPercent.ToString());
+                            OpenXML.TableCell measuredPercentCell = BuildCell(BuildParagraph(AddRun(pData.MeasuredPercent.ToString(), MSWordStringTypes.Typical, pData.NormalPercent > pData.MeasuredPercent)));
 
-                            row.Append(pNameCell, minValCell, maxValCell, measureCell, normaPercent, measuredPercent);
+                            row.Append(pNameCell, minValCell, maxValCell, measureCell, normaPercentCell, measuredPercentCell);
                             table.Append(row);
                             rowsAmount++;
                         }

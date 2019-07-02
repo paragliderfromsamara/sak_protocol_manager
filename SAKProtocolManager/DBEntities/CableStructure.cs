@@ -15,8 +15,8 @@ namespace SAKProtocolManager.DBEntities
         public IsolationMaterial IsolationMaterial = null;
         public MeasureParameterType[] MeasuredParameters = new MeasureParameterType[] { };
         public MeasureParameterType[] MeasuredParameters_Full = new MeasureParameterType[] { };
-        public int[] AffectedElementNumbers = new int[] { };
-        public ProzvonTestResult[] AffectedElements = new ProzvonTestResult[] { };
+       // public int[] AffectedElementNumbers = new int[] { };
+        public Dictionary<int, ProzvonTestResult> AffectedElements = new Dictionary<int, ProzvonTestResult>();
 
         private string getByCableIdQuery;
         public Cable Cable = null;
@@ -77,25 +77,29 @@ namespace SAKProtocolManager.DBEntities
             GetDependencies();
         }
 
+        public ProzvonTestResult GetProzvonTestResult(int elNum)
+        {
+            if (AffectedElements.ContainsKey(elNum))
+            {
+                return AffectedElements[elNum];
+            }
+            else return null;
+        }
+
         private void FillAffectedElements()
         {
             ProzvonTestResult[] przvResults = GetProszvonResult();
-            List<int> affectedNumbs = new List<int>();
-            List<ProzvonTestResult> affectedEls = new List<ProzvonTestResult>(); 
+            AffectedElements.Clear();
             if (przvResults.Length > 0)
             {
                 foreach (ProzvonTestResult pr in przvResults)
                 {
                     if (pr.IsAffected)
                     {
-                        affectedNumbs.Add(pr.ElementNumber);
-                        affectedEls.Add(pr);
+                        AffectedElements.Add(pr.ElementNumber, pr);
                     }
                 }
-               
             }
-            AffectedElementNumbers = affectedNumbs.ToArray();
-            AffectedElements = affectedEls.ToArray();
         }
 
         /// <summary>
@@ -107,6 +111,14 @@ namespace SAKProtocolManager.DBEntities
             ProzvonTestResult tr = new ProzvonTestResult(this.Cable.Test.Id, this.Id, this.BendingTypeLeadsNumber);
             ProzvonTestResult[] trs = tr.GetMeasuredResults();
             return trs;
+        }
+
+        public bool HightVoltageWasTested
+        {
+            get
+            {
+                return LeadShieldTestVoltage > 499 || LeadLeadTestVoltage > 499;
+            }
         }
         protected override void setDefaultParameters()
         {

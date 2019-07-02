@@ -53,7 +53,7 @@ namespace SAKProtocolManager.DBEntities
         protected override void setDefaultParameters()
         {
 
-            string selectQuery = "ispytan.Operator AS cable_test_operator_id, ispytan.BarabanInd AS baraban_id,  ispytan.IspInd AS cable_test_id, ispytan.CabNum AS cable_id, ispytan.IspData AS cable_test_tested_at, ispytan.CabelLengt AS cable_test_cable_length, ispytan.Brutto AS cable_test_brutto, ispytan.Netto AS cable_test_netto, ispytan.Temperatur AS cable_test_temperature";
+            string selectQuery = "ispytan.Operator AS cable_test_operator_id, ispytan.BarabanInd AS baraban_id,  ispytan.IspInd AS cable_test_id, ispytan.CabNum AS cable_id, ispytan.IspData AS cable_test_tested_at, ispytan.CabelLengt AS cable_test_cable_length, ispytan.Brutto AS cable_test_brutto, ispytan.Netto AS cable_test_netto, ispytan.Temperatur AS cable_test_temperature, ispytan.Vsvi AS cable_test_vsvi";
             this.getAllQuery = String.Format("SELECT {0} FROM ispytan", selectQuery);
             this.getByIdQuery = String.Format("SELECT {0} FROM ispytan WHERE ispytan.IspInd = {1}", selectQuery, this.Id);
             this.colsList = new string[] {
@@ -85,7 +85,8 @@ namespace SAKProtocolManager.DBEntities
             this.BruttoWeight = ServiceFunctions.convertToDecimal(row["cable_test_brutto"]);
             this.PIzb = ServiceFunctions.convertToUInt(row["cable_test_p_izb"].ToString());
             this.PObol = ServiceFunctions.convertToUInt(row["cable_test_p_obol"]);
-            this.HasVsvi = row["cable_test_vsvi"].ToString() == "1" ? true : false;
+            bool.TryParse(row["cable_test_vsvi"].ToString(), out this.HasVsvi);
+            //System.Windows.Forms.MessageBox.Show(row["cable_test_vsvi"].ToString());
             this.TestDate = DateTime.Parse(row["cable_test_tested_at"].ToString());
         }
 

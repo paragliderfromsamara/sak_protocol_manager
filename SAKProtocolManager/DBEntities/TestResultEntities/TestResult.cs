@@ -72,7 +72,6 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         public int StatusId = 0;
 
         public string Status = String.Empty;
-        
         public string freqRangeId = "1";
 
         public TestResult CloneIncludingParameterType()
@@ -133,13 +132,23 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
 
         private bool IsAffected()
         {
-            if (ParameterType.Name == "Rиз3" || ParameterType.Name == "Rиз4") return false;
-            int[] affEls = this.ParameterType == null ? new int[] { } : this.ParameterType.Structure.AffectedElementNumbers;
-            if (affEls.Length == 0) return false;
-            bool flag = false;
-            flag |= affEls.Contains(this.ElementNumber);
-            if (ParameterType.Name == "Ao" || ParameterType.Name == "Az") flag |= affEls.Contains(this.GeneratorElementNumber); 
-            return this.Affected = flag;
+            if (this.ParameterType == null) return false;
+            if (ParameterType.Name == "Rиз3" || ParameterType.Name == "Rиз4" || this.ParameterType.Structure.AffectedElements.Count == 0) return false;
+            ProzvonTestResult recElProzvonTestResult = ParameterType.Structure.GetProzvonTestResult(ElementNumber);
+            ProzvonTestResult genElProzvonTestResult = null;
+            if (ParameterType.Name == "Ao" || ParameterType.Name == "Az") genElProzvonTestResult = ParameterType.Structure.GetProzvonTestResult(GeneratorElementNumber);
+            if (recElProzvonTestResult != null)
+            {
+                this.Status = recElProzvonTestResult.ElementStatus;
+            }
+            if (genElProzvonTestResult != null)
+            {
+                this.Status = genElProzvonTestResult.ElementStatus;
+            }
+
+           // ParameterType.ib
+          //  flag |= this.ParameterType.Structure.AffectedElements.Keys.Contains(this.ElementNumber);
+            return this.Affected = genElProzvonTestResult != null || recElProzvonTestResult != null;
         }
 
 
@@ -161,7 +170,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
 
         public string GetStringTableValue()
         {
-            if (IsAffected()) return "Брак";
+            if (IsAffected()) return Status;
             else
             {
                 int pow = 0;

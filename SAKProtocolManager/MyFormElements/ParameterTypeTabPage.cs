@@ -328,7 +328,7 @@ namespace SAKProtocolManager.MyFormElements
         {
             DataGridView dgv = new DataGridView();
             dgv.Columns.Add("element_number", String.Format("{0} №", structure.BendingTypeName));
-            if (structure.AffectedElements.Length > 0)
+            if (structure.AffectedElements.Count > 0)
             {
                 for (int i = 0; i < structure.AffectedElements[0].Values.Length; i++)
                 {
@@ -336,9 +336,9 @@ namespace SAKProtocolManager.MyFormElements
                     dgv.Columns.Add(title, LeadTitles[i]);
                     dgv.Columns[title].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 }
-                dgv.Rows.Add(structure.AffectedElements.Length);
+                dgv.Rows.Add(structure.AffectedElements.Count);
                 int idx = 0;
-                foreach (ProzvonTestResult tr in structure.AffectedElements)
+                foreach (ProzvonTestResult tr in structure.AffectedElements.Values)
                 {
                     dgv.Rows[idx].Cells["element_number"].Value = tr.ElementNumber;
                     for (int i = 0; i < tr.Statuses.Length; i++)

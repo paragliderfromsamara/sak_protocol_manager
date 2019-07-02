@@ -110,6 +110,7 @@ namespace SAKProtocolManager.DBEntities
                 List<TestResult> trListForPData = new List<TestResult>();
                 List<TestResult> NotNormaTrListForPData = new List<TestResult>();
                 List<decimal> vals = new List<decimal>();
+                List<int> AffectedElements = new List<int>();
                 repeat_assignment:
                 foreach (TestResult tr in TestResults)
                 {
@@ -117,7 +118,10 @@ namespace SAKProtocolManager.DBEntities
                     if (cTr.SetParameterData(pData))
                     {
                         trListForPData.Add(cTr);
-                        if (!cTr.Affected) vals.Add(cTr.BringingValue);
+                        if (!cTr.Affected)
+                        {
+                            vals.Add(cTr.BringingValue);
+                        }
                         if (cTr.DeviationPercent > 0) NotNormaTrListForPData.Add(cTr);
                     }
                 }
