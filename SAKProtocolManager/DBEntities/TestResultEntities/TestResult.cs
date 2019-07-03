@@ -166,8 +166,6 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
         }
         
 
-
-
         public string GetStringTableValue()
         {
             if (IsAffected()) return Status;

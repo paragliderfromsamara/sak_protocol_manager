@@ -23,16 +23,17 @@ namespace SAKProtocolManager.DBEntities
         /// </summary>
         internal bool IsTested = true; 
 
+        /*
         public int OutOfNormaCount()
         {
             int counter = 0;
             if (ParameterDataList.Length > 0)
             {
-                foreach (MeasuredParameterData pd in ParameterDataList) counter += pd.NotNormalResults.Length;
+                foreach (MeasuredParameterData pd in ParameterDataList) counter += pd.NotNormalResults.Count;
             }
             return counter;
         }
-
+        */
         public MeasureParameterType()
         {
             setDefaultParameters();
@@ -110,7 +111,7 @@ namespace SAKProtocolManager.DBEntities
                 List<TestResult> trListForPData = new List<TestResult>();
                 List<TestResult> NotNormaTrListForPData = new List<TestResult>();
                 List<decimal> vals = new List<decimal>();
-                List<int> AffectedElements = new List<int>();
+                pData.ClearNotNormaResult();
                 repeat_assignment:
                 foreach (TestResult tr in TestResults)
                 {
@@ -122,7 +123,10 @@ namespace SAKProtocolManager.DBEntities
                         {
                             vals.Add(cTr.BringingValue);
                         }
-                        if (cTr.DeviationPercent > 0) NotNormaTrListForPData.Add(cTr);
+                        if (cTr.DeviationPercent > 0)
+                        {
+                            pData.AddNotNormaResult(cTr);
+                        }
                     }
                 }
                 if (IsFreqParameter && trListForPData.Count == 0)
@@ -134,7 +138,6 @@ namespace SAKProtocolManager.DBEntities
                     }
                 }
                 pData.TestResults = trListForPData.ToArray();
-                pData.NotNormalResults = NotNormaTrListForPData.ToArray();
                 if (pData.TestResults.Length > 0)
                 {
                     pData.MeasuredPercent = Math.Round(100 * (((decimal)pData.TestResults.Length-(decimal)NotNormaTrListForPData.Count()) / (decimal)pData.TestResults.Length), 0);

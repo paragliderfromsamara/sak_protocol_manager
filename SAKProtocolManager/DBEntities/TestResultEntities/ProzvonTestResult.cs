@@ -24,15 +24,24 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
             fillParametersFromRow(row);
         }
 
-        public string ElementStatus
+        public int ElementStatusId
         {
             get
             {
                 decimal stsId = 0;
-                foreach(decimal sId in Values)
+                foreach (decimal sId in Values)
                 {
                     if (sId > stsId) stsId = sId;
                 }
+                return (int)stsId;
+            }
+        }
+
+        public string ElementStatus
+        {
+            get
+            {
+                decimal stsId = ElementStatusId;
                 if (stsId == 0) return "годна";
                 else if (stsId == 1) return "обр.";
                 else if (stsId == 2) return "зам.";

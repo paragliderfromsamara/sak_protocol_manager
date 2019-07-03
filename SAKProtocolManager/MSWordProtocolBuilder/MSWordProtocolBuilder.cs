@@ -72,6 +72,24 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             add_AoAz_Table(structure, MeasureParameterType.Az);
             add_Statistic_Table(structure);
             add_VSVI_TestResult(structure);
+            add_StructElements_Conclusion(structure);
+        }
+
+        /// <summary>
+        /// Отрисовка вывода о годности элементов
+        /// </summary>
+        /// <param name="structure"></param>
+        private static void add_StructElements_Conclusion(CableStructure structure)
+        {
+            List<OpenXML.Paragraph> paragraphs = new List<OpenXML.Paragraph>();
+            paragraphs.Add(BuildParagraph(AddRun($"Номинальное количество {structure.BendingTypeName_RodPadej_Multiple}: {structure.RealNumberInCable}")));
+            paragraphs.Add(BuildParagraph(AddRun($"Фактическое количество {structure.BendingTypeName_RodPadej_Multiple}: {structure.NumberInCable}")));
+            paragraphs.Add(BuildParagraph(AddRun($"годных {structure.BendingTypeName_RodPadej_Multiple}: {structure.NormalElementsCount}")));
+            OpenXML.Paragraph descriptionParagraph = BuildParagraph();
+            descriptionParagraph.Append(AddRun("Значения измеренных параметров вышедшие за установленные нормы выделены", MSWordStringTypes.Typical, false, true));
+            descriptionParagraph.Append(AddRun(" жирным ", MSWordStringTypes.Typical, true, true), AddRun($"шрифтом.", MSWordStringTypes.Typical, false, true));
+            paragraphs.Add(descriptionParagraph);
+            wordProtocol.AddElementsAsXML(paragraphs.ToArray(), 4 * 13, 400);
         }
 
         private static void add_VSVI_TestResult(CableStructure structure)
@@ -82,8 +100,30 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             paragraphs.Add(BuildParagraph(AddRun("Испытательное напряжение (постоянный ток) в течение 1 мин, приложенное:")));
             if (structure.LeadLeadTestVoltage > 0) paragraphs.Add(BuildParagraph(  AddRun($"   -Между жилами                   {structure.LeadLeadTestVoltage} В")));
             if (structure.LeadShieldTestVoltage > 0) paragraphs.Add(BuildParagraph(AddRun($"   -Между жилами и экраном {structure.LeadShieldTestVoltage} В")));
+            OpenXML.Paragraph vsviResultParagraph = BuildParagraph();
+            if (structure.BrokenPairs.Length > 0)
+            {
+                if (structure.BrokenPairs.Length > 1)
+                {
+                    vsviResultParagraph.Append(AddRun($"Пробитые {structure.BendingTypeName_Multiple} №№: "));
+                }
+                else
+                {
+                    vsviResultParagraph.Append(AddRun($"Пробитая {structure.BendingTypeName} №"));
+                }
 
-            wordProtocol.AddElementsAsXML(paragraphs.ToArray(), paragraphs.Count*20, 400);
+                for (int i = 0; i < structure.BrokenPairs.Length; i++)
+                {
+                    if (i > 0) vsviResultParagraph.Append(AddRun(", ")); // s += ", ";
+                    vsviResultParagraph.Append(AddRun(structure.BrokenPairs[i].ToString(), MSWordStringTypes.Typical, true));
+                }
+                vsviResultParagraph.Append(AddRun(";"));
+            }else
+            {
+                vsviResultParagraph.Append(AddRun("Выдержал."));
+            }
+            paragraphs.Add(vsviResultParagraph);
+            wordProtocol.AddElementsAsXML(paragraphs.ToArray(), paragraphs.Count*13, 400);
 
         }
 
@@ -973,7 +1013,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     break;
             }
             run.Append(props);
-            run.Append(new OpenXML.Text(text));
+            run.Append(new OpenXML.Text { Text = text, Space = SpaceProcessingModeValues.Preserve });// (text, SpaceProcessingModeValues=));
             return run;
         }
 

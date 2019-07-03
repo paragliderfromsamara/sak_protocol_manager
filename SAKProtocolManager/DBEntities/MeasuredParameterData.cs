@@ -10,7 +10,21 @@ namespace SAKProtocolManager.DBEntities
 {
     public class MeasuredParameterData : DBBase
     {
-        public TestResult[] NotNormalResults = new TestResult[] { };
+        public Dictionary<int, List<TestResult>> NotNormalResults = new Dictionary<int, List<TestResult>>();// new TestResult[] { };
+        public void AddNotNormaResult(TestResult r)
+        {
+            if (!NotNormalResults.ContainsKey(r.ElementNumber))
+            {
+                NotNormalResults.Add(r.ElementNumber, new List<TestResult>());
+            }
+            NotNormalResults[r.ElementNumber].Add(r);
+        }
+
+
+        public void ClearNotNormaResult()
+        {
+            NotNormalResults.Clear();
+        }
         /// <summary>
         /// Соответствует FreqDiapInd в таблице freq_diap
         /// </summary>
@@ -102,7 +116,7 @@ namespace SAKProtocolManager.DBEntities
         } 
 
 
-
+        /*
         public void CalculateMinMaxAverage()
         {
             decimal max, min, average;
@@ -124,7 +138,7 @@ namespace SAKProtocolManager.DBEntities
             this.MinVal = min;
             this.AverageVal = average;
         }
-
+        */
         public string GetFreqRangeTitle()
         {
             string r = String.Empty;
@@ -312,6 +326,7 @@ namespace SAKProtocolManager.DBEntities
 
         }
 
+        /*
         /// <summary>
         /// Вытаскиваем список коррекций из ненормальных результатов в массив сортированный по убыванию и состоящий из уникальных элементов
         /// </summary>
@@ -319,18 +334,21 @@ namespace SAKProtocolManager.DBEntities
         public decimal[] GetCorrectionLimitsList()
         {
             List<decimal> notNormalList = new List<decimal>();
-            if (this.NotNormalResults.Length > 0)
+            if (this.NotNormalResults.Count > 0)
             {
-                foreach (TestResult tr in this.NotNormalResults)
+                foreach (List<TestResult> trList in this.NotNormalResults.Values)
                 {
-                    if (!notNormalList.Contains(tr.DeviationPercent)) notNormalList.Add(tr.DeviationPercent);
+                    foreach(TestResult tr in trList)
+                    {
+                        if (!notNormalList.Contains(tr.DeviationPercent)) notNormalList.Add(tr.DeviationPercent);
+                    }
                 }
             }
             notNormalList.Sort();
             return notNormalList.ToArray();
         }
 
-
+        */
 
     }
 }

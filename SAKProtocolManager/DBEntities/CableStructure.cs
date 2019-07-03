@@ -18,6 +18,7 @@ namespace SAKProtocolManager.DBEntities
        // public int[] AffectedElementNumbers = new int[] { };
         public Dictionary<int, ProzvonTestResult> AffectedElements = new Dictionary<int, ProzvonTestResult>();
 
+
         private string getByCableIdQuery;
         public Cable Cable = null;
         public string LeadMaterialId = String.Empty;
@@ -36,27 +37,73 @@ namespace SAKProtocolManager.DBEntities
         public string dRBringingFormulaId = String.Empty;
         public string dRFormulaId = String.Empty;
         public string dRFormulaMeasure = String.Empty;
-        
+     
+
+        public int CalculateAffectedElements()
+        {
+            int count = 0;
+            List<int> elementIds = AffectedElements.Keys.ToList();
+            foreach(MeasureParameterType t in MeasuredParameters)
+            {
+                foreach(MeasuredParameterData d in t.ParameterDataList)
+                {
+                    elementIds.AddRange(d.NotNormalResults.Keys);
+                }
+            }
+            return elementIds.Distinct<int>().Count();
+        }
+
+        public int NormalElementsCount
+        {
+            get
+            {
+                return RealNumberInCable - CalculateAffectedElements();
+            }
+        }
+
         /// <summary>
         /// Возвращает название элемента структуры в родительском падеже
         /// </summary>
         /// <returns></returns>
-        public string BendingTypeNameRodPadej()
+        public string BendingTypeName_RodPadej_Multiple
         {
-            switch(BendingTypeLeadsNumber)
+            get
             {
-                case 1:
-                    return "жил";
-                case 2:
-                    return "пар";
-                case 3:
-                    return "троек";
-                case 4:
-                    return "четвёрок";
-                default:
-                    return "элементов";
+                switch (BendingTypeLeadsNumber)
+                {
+                    case 1:
+                        return "жил";
+                    case 2:
+                        return "пар";
+                    case 3:
+                        return "троек";
+                    case 4:
+                        return "четвёрок";
+                    default:
+                        return "элементов";
+                }
             }
         }
+        public string BendingTypeName_Multiple
+        {
+            get
+            {
+                switch (BendingTypeLeadsNumber)
+                {
+                    case 1:
+                        return "жилы";
+                    case 2:
+                        return "пары";
+                    case 3:
+                        return "тройки";
+                    case 4:
+                        return "четвёрки";
+                    default:
+                        return "элементы";
+                }
+            }
+        }
+
 
 
 
@@ -120,6 +167,28 @@ namespace SAKProtocolManager.DBEntities
                 return LeadShieldTestVoltage > 499 || LeadLeadTestVoltage > 499;
             }
         }
+
+        private int[] brokenPairs;
+        public int[] BrokenPairs
+        {
+            get
+            {
+                if (brokenPairs == null)
+                {
+                    List<int> pairs = new List<int>();
+                    if (AffectedElements.Count>0)
+                    {
+                        foreach(ProzvonTestResult r in AffectedElements.Values)
+                        {
+                            if (r.ElementStatusId == 3) pairs.Add(r.ElementNumber);
+                        }
+                    }
+                    brokenPairs = pairs.ToArray();
+                }
+                return brokenPairs;
+            }
+        }
+
         protected override void setDefaultParameters()
         {
             string selectQuery =

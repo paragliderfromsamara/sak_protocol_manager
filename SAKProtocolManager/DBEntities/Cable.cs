@@ -107,6 +107,7 @@ namespace SAKProtocolManager.DBEntities
             this.Structures = st.GetCableStructures();
         }
 
+        /*
         /// <summary>
         /// Выводим структуры у которых есть выход за норму
         /// </summary>
@@ -132,5 +133,6 @@ namespace SAKProtocolManager.DBEntities
             }
             return failedStructs.ToArray();
         }
+        */
     }
 }
