@@ -87,7 +87,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             paragraphs.Add(BuildParagraph(AddRun($"годных {structure.BendingTypeName_RodPadej_Multiple}: {structure.NormalElementsCount}")));
             OpenXML.Paragraph descriptionParagraph = BuildParagraph();
             descriptionParagraph.Append(AddRun("Значения измеренных параметров вышедшие за установленные нормы выделены", MSWordStringTypes.Typical, false, true));
-            descriptionParagraph.Append(AddRun(" жирным ", MSWordStringTypes.Typical, true, true), AddRun($"шрифтом.", MSWordStringTypes.Typical, false, true));
+            descriptionParagraph.Append(AddRun(" жирным ", MSWordStringTypes.Typical, true, true), AddRun("шрифтом.", MSWordStringTypes.Typical, false, true));
             paragraphs.Add(descriptionParagraph);
             wordProtocol.AddElementsAsXML(paragraphs.ToArray(), 4 * 13, 400);
         }

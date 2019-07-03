@@ -158,6 +158,14 @@ namespace SAKProtocolManager.DBEntities
             norma += String.Format(" {0}%", NormalPercent);
             return norma;
         }
+
+        internal decimal NotNormalResultsCount()
+        {
+            decimal count = 0;
+            foreach (List<TestResult> rList in NotNormalResults.Values) count += rList.Count;
+            return count;
+        }
+
         protected override void setDefaultParameters()
         {
             string selQuery = "param_data.Min AS measured_parameter_min_value," +

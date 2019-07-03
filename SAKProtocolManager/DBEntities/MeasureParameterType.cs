@@ -109,7 +109,6 @@ namespace SAKProtocolManager.DBEntities
             foreach(MeasuredParameterData pData in ParameterDataList)
             {
                 List<TestResult> trListForPData = new List<TestResult>();
-                List<TestResult> NotNormaTrListForPData = new List<TestResult>();
                 List<decimal> vals = new List<decimal>();
                 pData.ClearNotNormaResult();
                 repeat_assignment:
@@ -140,7 +139,7 @@ namespace SAKProtocolManager.DBEntities
                 pData.TestResults = trListForPData.ToArray();
                 if (pData.TestResults.Length > 0)
                 {
-                    pData.MeasuredPercent = Math.Round(100 * (((decimal)pData.TestResults.Length-(decimal)NotNormaTrListForPData.Count()) / (decimal)pData.TestResults.Length), 0);
+                    pData.MeasuredPercent = Math.Round(100 * (((decimal)pData.TestResults.Length-(decimal)pData.NotNormalResultsCount()) / (decimal)pData.TestResults.Length), 0);
                     if (vals.Count > 0)
                     {
                         pData.MaxVal = vals.Max();

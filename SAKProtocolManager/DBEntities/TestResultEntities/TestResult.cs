@@ -242,7 +242,7 @@ namespace SAKProtocolManager.DBEntities.TestResultEntities
                     prc = (decimal) 100 * (val - ParameterData.MaxValue) / ParameterData.MaxValue;
                 }
             }
-            this.DeviationPercent = Math.Round(prc, 1);
+            this.DeviationPercent = Math.Round(prc, 3);
             return this.DeviationPercent == 0;
         }
 
