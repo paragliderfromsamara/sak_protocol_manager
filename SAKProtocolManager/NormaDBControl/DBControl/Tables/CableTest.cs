@@ -464,8 +464,8 @@ namespace NormaMeasure.DBControl.Tables
         public bool HasOperator => OperatorId > 0;
         public bool HasBaraban => ReleasedBaraban != null;
 
+        public string TestDateString => TestDate.ToString("dd.MM.yyyy в hh:mm");
 
-   
         public MeasuredParameterType[] measuredParameterTypes;
         public uint[] measuredParameterTypes_IDs;
 

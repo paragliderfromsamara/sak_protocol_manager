@@ -93,16 +93,11 @@ namespace SAKProtocolManager
         {
             try
             {
-
-                TestCount = tests.CountEntities();
+                //TestCount = tests.CountEntities();
                 ClearList.Enabled = SearchButton.Enabled = false;
                 //statusPanel.Text = "База данных испытаний пуста";
                 fillTestList();
                 ClearList.Enabled = SearchButton.Enabled = true;
-                if (TestCount > 0)
-                {
-
-                }
                 /*
                 DBControl mySql = new DBControl(DBQueries.Default.DBName);
                 ClearList.Enabled = SearchButton.Enabled = false;
@@ -264,22 +259,36 @@ namespace SAKProtocolManager
             }
             catch (NullReferenceException) { }
         }
+
+        private Tables.CableTest GetTestById(string testId)
+        {
+            uint tId = 0;
+            uint.TryParse(testId, out tId);
+            Tables.CableTest test = null;
+            DataRow[] r = tests.Select($"{Tables.CableTest.CableTestId_ColumnName} = {tId}");
+            if (r.Length > 0) test = (Tables.CableTest)r[0];
+            else
+            {
+                DBEntityTable t = Tables.CableTest.find_by_id_for_test_list(tId);
+                if (t.Rows.Count > 0) test = (Tables.CableTest)t.Rows[0];
+            }
+            return test;
+        }
+
         private void OpenTest(string testId)
         {
             try
             {
-                throw new NotImplementedException();
-                /*
+                Tables.CableTest test = GetTestById(testId);
                 topMenu.Enabled = TestListtPanel.Enabled = false;
                 this.Cursor = Cursors.WaitCursor;
-                CableTest test = new CableTest(testId);
-                if (test.IsExists)
+                if (test != null)
                 {
                     MeasureResultReader form = new MeasureResultReader(test, this);
                     form.FormClosed += new FormClosedEventHandler(this.MeasureResultReaderClosed);
                     form.Show();
                     this.readerForm = form;
-                    FillOpenedTestHistory(TestHistoryItem.PushToHistory(test.Id, test.TestedCable.Name));
+                    FillOpenedTestHistory(TestHistoryItem.PushToHistory(test.TestId.ToString(), test.CableName));
                 }
                 else
                 {
@@ -288,7 +297,6 @@ namespace SAKProtocolManager
                 }
 
                 this.Cursor = Cursors.Default;
-                */
             }
             catch (NullReferenceException) { }
         }

@@ -15,6 +15,8 @@ using SAKProtocolManager.MyFormElements;
 using SAKProtocolManager.DBEntities.TestResultEntities;
 using SAKProtocolManager.PDFProtocolEntities;
 using SAKProtocolManager.MSWordProtocolBuilder;
+using NormaMeasure.DBControl;
+using Tables = NormaMeasure.DBControl.Tables;
 
 namespace SAKProtocolManager
 {
@@ -22,17 +24,28 @@ namespace SAKProtocolManager
     {
         private int selectedStructureIdx = -1;
         private int selectedParameterTypeIdx = -1;
-        private CableTest CableTest;
+        private CableTest CableTestOld;
+        private Tables.CableTest CableTest;
       
         public MainForm MainForm;
 
-        public MeasureResultReader(CableTest test, MainForm mForm)
+        public MeasureResultReader(Tables.CableTest test, MainForm mForm)
         {
             this.MainForm = mForm;
             this.CableTest = test;
             InitializeComponent();
             lengthUpdProgressBarField.Visible = false;
-            this.Text = String.Format("#{2} Испытание кабеля {0} от {1}", CableTest.TestedCable.Name, ServiceFunctions.MyDateTime(CableTest.TestDate), CableTest.Id);
+            this.Text = String.Format("#{2} Испытание кабеля {0} от {1}", CableTest.CableName, CableTest.TestDateString, CableTest.TestId);
+
+        }
+
+        public MeasureResultReader(CableTest test, MainForm mForm)
+        {
+            this.MainForm = mForm;
+            this.CableTestOld = test;
+            InitializeComponent();
+            lengthUpdProgressBarField.Visible = false;
+            this.Text = String.Format("#{2} Испытание кабеля {0} от {1}", CableTestOld.TestedCable.Name, ServiceFunctions.MyDateTime(CableTestOld.TestDate), CableTestOld.Id);
             fillTestData();
             //cableTypeLbl.Text = TestResult.GetBigRound(0, CableTest.TestedCable.Structures[0].MeasuredParameters[0].TestResults).Length.ToString();//CableId.ToString();//CableId.ToString();//this.TestId.ToString();
         }
@@ -41,13 +54,13 @@ namespace SAKProtocolManager
         {
             ///CableStructure[] FailedStructures = this.CableTest.TestedCable.GetFailedStructures();
             cableStructuresList.Items.Clear();
-            int sLength = this.CableTest.TestedCable.Structures.Length;
+            int sLength = this.CableTestOld.TestedCable.Structures.Length;
             bool val = sLength > 0;
             if (val)
             {
                 for(int i = 0; i< sLength; i++)
                 {
-                    cableStructuresList.Items.Insert(i, this.CableTest.TestedCable.Structures[i].Name);
+                    cableStructuresList.Items.Insert(i, this.CableTestOld.TestedCable.Structures[i].Name);
                 }
                 cableStructuresList.SelectedIndex = 0;
                 StructuresLbl.Text = "Структура кабеля";
@@ -71,13 +84,13 @@ namespace SAKProtocolManager
 
         private void fillTestData()
         {
-            cableTypeLbl.Text = String.Format("Марка кабеля: {0}", CableTest.TestedCable.Name);
-            barabanLbl.Text = String.Format("Барабан: {0} № {1}", CableTest.Baraban.Name, CableTest.Baraban.Number);
-            operatorLbl.Text = String.Format("Оператор: {0} {1}.{2}.", CableTest.Operator.LastName, CableTest.Operator.FirstName[0], CableTest.Operator.ThirdName[0]);
-            testedAtLbl.Text = String.Format("Испытан {0}", ServiceFunctions.MyDateTime(CableTest.TestDate));
-            TemperatureLbl.Text = String.Format("Температура: {0}°С", CableTest.Temperature);
-            testedLengthInput.Value = CableTest.TestedLength;
-            BruttoWeightTextField.Value = CableTest.BruttoWeight;
+            cableTypeLbl.Text = String.Format("Марка кабеля: {0}", CableTestOld.TestedCable.Name);
+            barabanLbl.Text = String.Format("Барабан: {0} № {1}", CableTestOld.Baraban.Name, CableTestOld.Baraban.Number);
+            operatorLbl.Text = String.Format("Оператор: {0} {1}.{2}.", CableTestOld.Operator.LastName, CableTestOld.Operator.FirstName[0], CableTestOld.Operator.ThirdName[0]);
+            testedAtLbl.Text = String.Format("Испытан {0}", ServiceFunctions.MyDateTime(CableTestOld.TestDate));
+            TemperatureLbl.Text = String.Format("Температура: {0}°С", CableTestOld.Temperature);
+            testedLengthInput.Value = CableTestOld.TestedLength;
+            BruttoWeightTextField.Value = CableTestOld.BruttoWeight;
             if (!fillStructuresComboBox())
             {
                 
@@ -104,7 +117,7 @@ namespace SAKProtocolManager
         private MeasureParameterType[] ParameterTypesForTabs(int structure_index)
         {
             List<MeasureParameterType> pTypes = new List<MeasureParameterType>();
-            foreach (MeasureParameterType mp in CableTest.TestedCable.Structures[structure_index].MeasuredParameters)
+            foreach (MeasureParameterType mp in CableTestOld.TestedCable.Structures[structure_index].MeasuredParameters)
             {
                 if (mp.Name != "Prozvon") pTypes.Add(mp);
             }
@@ -126,7 +139,7 @@ namespace SAKProtocolManager
 
         private void fillParameterTypesComboBox(int structIdx)
         {
-            MeasureParameterType[] pTypes = CableTest.TestedCable.Structures[structIdx].MeasuredParameters;
+            MeasureParameterType[] pTypes = CableTestOld.TestedCable.Structures[structIdx].MeasuredParameters;
             parameterTypeCB.Items.Clear();
             for(int i=0; i<pTypes.Length; i++)
             {
@@ -145,11 +158,11 @@ namespace SAKProtocolManager
             DialogResult NeedGenerate = DialogResult.Yes;
             if(CheckCableLengthIsUpdated())
             {
-                NeedGenerate = MessageBox.Show(String.Format("Протокол не был пересчитан на длину кабеля {0} м. Сформированный протокол будет соответствовать длине {1} м., которая указана в Базе Данных на текущий момент \n\nВы согласны?", testedLengthInput.Value, CableTest.TestedLength), "Вопрос.", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                NeedGenerate = MessageBox.Show(String.Format("Протокол не был пересчитан на длину кабеля {0} м. Сформированный протокол будет соответствовать длине {1} м., которая указана в Базе Данных на текущий момент \n\nВы согласны?", testedLengthInput.Value, CableTestOld.TestedLength), "Вопрос.", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             }
             if (NeedGenerate == DialogResult.Yes)
             {
-                PDFProtocol.MakeOldStylePDFProtocol(this.CableTest.Id);
+                PDFProtocol.MakeOldStylePDFProtocol(this.CableTestOld.Id);
             }
         }
 
@@ -178,16 +191,16 @@ namespace SAKProtocolManager
         private void UpdateLength()
         {
             decimal newLength = this.testedLengthInput.Value;
-            decimal curLength = CableTest.TestedLength;
-            long status = CableTest.UpdateTestedLength(newLength);
+            decimal curLength = CableTestOld.TestedLength;
+            long status = CableTestOld.UpdateTestedLength(newLength);
             if (status == 0)
             {
-                LengthUpdProgressBar.Maximum = CableTest.TestResultsCount();
+                LengthUpdProgressBar.Maximum = CableTestOld.TestResultsCount();
                 LengthUpdProgressBar.Value = 0;
                 LengthUpdProgressBar.Step = 50;
                 lengthUpdProgressBarLbl.Text = String.Format("Пересчитано {0} из {1}", LengthUpdProgressBar.Value, LengthUpdProgressBar.Maximum);
                 lengthUpdProgressBarField.Refresh();
-                foreach (CableStructure structure in CableTest.TestedCable.Structures)
+                foreach (CableStructure structure in CableTestOld.TestedCable.Structures)
                 {
                     foreach (MeasureParameterType pType in structure.MeasuredParameters)
                     {
@@ -252,7 +265,7 @@ namespace SAKProtocolManager
 
         private bool CheckCableLengthIsUpdated()
         {
-            return updateCableLength.Enabled = CableTest.TestedLength != testedLengthInput.Value;
+            return updateCableLength.Enabled = CableTestOld.TestedLength != testedLengthInput.Value;
         }
 
         private void testedLengthInput_KeyUp(object sender, KeyEventArgs e)
@@ -273,11 +286,11 @@ namespace SAKProtocolManager
         {
             try
             {
-                MeasureParameterType pType = CableTest.TestedCable.Structures[selectedStructureIdx].MeasuredParameters[selectedParameterTypeIdx];
+                MeasureParameterType pType = CableTestOld.TestedCable.Structures[selectedStructureIdx].MeasuredParameters[selectedParameterTypeIdx];
                 int sIndex = tabControlTestResult.TabPages.Count > 0 ? tabControlTestResult.SelectedIndex : 0;
                 tabControlTestResult.TabPages.Clear();
 
-                CableStructure curStructure = this.CableTest.TestedCable.Structures[cableStructuresList.SelectedIndex];
+                CableStructure curStructure = this.CableTestOld.TestedCable.Structures[cableStructuresList.SelectedIndex];
                 MeasureParameterType[] mParams = ParameterTypesForTabs(cableStructuresList.SelectedIndex);
                 List<TabPage> pages = new List<TabPage>();
                 //if (curStructure.AffectedElementNumbers.Length>1)test.Text = curStructure.AffectedElementNumbers[1].ToString();
@@ -308,13 +321,13 @@ namespace SAKProtocolManager
         private void BruttoWeightTextField_ValueChanged(object sender, EventArgs e)
         {
             NumericUpDown ud = sender as NumericUpDown;
-            EditSaveBruttoButton.Enabled = ud.Value != CableTest.BruttoWeight;
+            EditSaveBruttoButton.Enabled = ud.Value != CableTestOld.BruttoWeight;
         }
 
         private void EditSaveBruttoButton_Click(object sender, EventArgs e)
         {
             decimal w = BruttoWeightTextField.Value;
-            long sts = CableTest.UpdateBruttoWeight(w);
+            long sts = CableTestOld.UpdateBruttoWeight(w);
             throw new NotImplementedException();
             /*
             if (sts == 0)
@@ -345,7 +358,7 @@ namespace SAKProtocolManager
             */
             StatusPanel statPanel = new StatusPanel(procNameLbl, lengthUpdProgressBarLbl, LengthUpdProgressBar);
             lengthUpdProgressBarField.Visible = true;
-            MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest, statPanel);
+            MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTestOld, statPanel);
             lengthEditor.Visible = true;
             lengthUpdProgressBarField.Visible = false;
 
