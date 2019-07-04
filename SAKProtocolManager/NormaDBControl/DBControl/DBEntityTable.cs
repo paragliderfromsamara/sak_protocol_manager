@@ -21,6 +21,17 @@ namespace NormaMeasure.DBControl
             InitDBControl();
         }
 
+        public long CountEntities(string conditions = null)
+        {
+            string query = SelectQuery.Replace("*", "COUNT(*)");
+            if (conditions != null) query += $" {conditions}";
+            OpenDB();
+            long count = GetScalarValueFromDB(query);
+            CloseDB();
+            return count;
+        }
+
+
         public DBEntityTable(Type entityType, DBEntityTableMode initMode) : base()
         {
             entity_type = entityType;
@@ -103,6 +114,8 @@ namespace NormaMeasure.DBControl
             }
             return flag;
         }
+
+
 
 
         internal bool CreateRowsToDB(DataRow[] rows, bool ignorePrimaryKeys)

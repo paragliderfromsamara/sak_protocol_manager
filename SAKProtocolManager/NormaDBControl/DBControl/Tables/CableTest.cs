@@ -17,6 +17,37 @@ namespace NormaMeasure.DBControl.Tables
         {
         }
 
+        private static string selectQueryForTestList
+        {
+            get
+            {
+                DBEntityTable ct = new DBEntityTable(typeof(CableTest));
+                DBEntityTable tc = new DBEntityTable(typeof(TestedCable));
+                DBEntityTable b = new DBEntityTable(typeof(ReleasedBaraban));
+                string selectQuery = ct.SelectQuery.Replace("*", $"*, CONCAT({tc.TableName}.{TestedCable.CableName_ColumnName}, ' ', {tc.TableName}.{TestedCable.StructName_ColumnName}) AS cable_name, {b.TableName}.{ReleasedBaraban.BarabanSerialNumber_ColumnName} AS baraban_name");
+
+                selectQuery = $"{selectQuery} LEFT OUTER JOIN {tc.TableName} USING({tc.PrimaryKey[0].ColumnName}) LEFT OUTER JOIN {b.TableName} USING({b.PrimaryKey[0].ColumnName})";
+                return selectQuery;
+            }
+        }
+
+        public static DBEntityTable find_by_id_for_test_list(uint test_id)
+        {
+            string q = $"{selectQueryForTestList} WHERE {CableTest.CableTestId_ColumnName} = {test_id} limit 1";
+            return find_by_query(q, typeof(CableTest));
+        }
+
+        public static DBEntityTable find_all_for_test_list()
+        {
+            return find_by_query(selectQueryForTestList, typeof(CableTest));
+        }
+
+        public static DBEntityTable find_by_date_for_test_list(string date_from, string date_to)
+        {
+            string q = $"{selectQueryForTestList} WHERE {CableTest.TestDate_ColumnName} >= '{date_from}' AND {CableTest.TestDate_ColumnName} <= '{date_to}'";
+            return find_by_query(q, typeof(CableTest));
+        }
+
         public static CableTest GetLastOrCreateNew()
         {
             DBEntityTable t = find_stoped_tests();
@@ -306,29 +337,29 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        [DBColumn(VSVILeadLead_ColumnName, ColumnDomain.Boolean, Order = 17, OldDBColumnName = "Vsvi", DefaultValue = 0, Nullable = true)]
+        [DBColumn(VSVI_ColumnName, ColumnDomain.Boolean, Order = 17, OldDBColumnName = "Vsvi", DefaultValue = 0, Nullable = true)]
         public bool VSVILeadLeadResult
         {
             get
             {
-                return tryParseBoolean(VSVILeadLead_ColumnName, false);
+                return tryParseBoolean(VSVI_ColumnName, false);
             }
             set
             {
-                this[VSVILeadLead_ColumnName] = value;
+                this[VSVI_ColumnName] = value;
             }
         }
 
-        [DBColumn(VSVILeadShield_ColumnName, ColumnDomain.Boolean, Order = 18, OldDBColumnName = "Vsvi_Obol", DefaultValue = 0, Nullable = true)]
+        [DBColumn(VSVISkin_ColumnName, ColumnDomain.Boolean, Order = 18, OldDBColumnName = "Vsvi_Obol", DefaultValue = 0, Nullable = true)]
         public bool VSVILeadShieldResult
         {
             get
             {
-                return tryParseBoolean(VSVILeadShield_ColumnName, false);
+                return tryParseBoolean(VSVISkin_ColumnName, false);
             }
             set
             {
-                this[VSVILeadShield_ColumnName] = value;
+                this[VSVISkin_ColumnName] = value;
             }
         }
 
@@ -358,6 +389,45 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
+        [DBColumn(TestDate_ColumnName, ColumnDomain.DateTime, Order = 21, OldDBColumnName = "IspData", Nullable = true)]
+        public DateTime TestDate
+        {
+            get
+            {
+                return tryParceDateTime(TestDate_ColumnName);
+            }
+            set
+            {
+                this[TestDate_ColumnName] = value;
+            }
+        }
+
+        [DBColumn("cable_name", ColumnDomain.Tinytext, Order = 22, Nullable = true, IsVirtual = true)]
+        public string CableName
+        {
+            get
+            {
+                return this["cable_name"].ToString();
+            }
+            set
+            {
+                this["cable_name"] = value;
+            }
+        }
+
+        [DBColumn("baraban_name", ColumnDomain.Tinytext, Order = 23, Nullable = true, IsVirtual = true)]
+        public string BarabanName
+        {
+            get
+            {
+                return this["baraban_name"].ToString();
+            }
+            set
+            {
+                this["baraban_name"] = value;
+            }
+        }
+
         public uint TestedCableId
         {
             get
@@ -375,15 +445,16 @@ namespace NormaMeasure.DBControl.Tables
 
 
         public const string CableTestId_ColumnName = "IspInd";
-        public const string TestedCableId_ColumnName = "cable_id";
-        public const string SourceCableId_ColumnName = "source_cable_id";
-        public const string OperatorId_ColumnName = "operator_id";
+        public const string TestedCableId_ColumnName = "CabNum";
+       // public const string SourceCableId_ColumnName = "source_cable_id";
+        public const string OperatorId_ColumnName = "operator";
         public const string Temperature_ColumnName = "Temperetur";
         public const string CableLength_ColumnName = "CabelLengt";
-        public const string VSVILeadLead_ColumnName = "vsvi_lead_lead";
-        public const string VSVILeadShield_ColumnName = "vsvi_lead_shield";
-        public const string NettoWeight_ColumnName = "netto_weight";
-        public const string BruttoWeight_ColumnName = "brutto_weight";
+        public const string VSVI_ColumnName = "vsvi";
+        public const string VSVISkin_ColumnName = "vsvi_obol";
+        public const string NettoWeight_ColumnName = "netto";
+        public const string BruttoWeight_ColumnName = "brutto";
+        public const string TestDate_ColumnName = "IspData";
 
 
         #endregion

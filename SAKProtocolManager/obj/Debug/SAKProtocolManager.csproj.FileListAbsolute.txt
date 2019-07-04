@@ -43,3 +43,5 @@ L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manage
 L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\DocumentFormat.OpenXml.xml
 L:\Мои документы\Работа\SakProtocolManager\sak_protocol_manager\SAKProtocolManager\bin\Debug\log4net.xml
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Debug\SAKProtocolManager.MSWordProtocolBuilder.MSWordProtoco_StatusForm.resources
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\NormaDBControl.dll
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Debug\NormaDBControl.pdb

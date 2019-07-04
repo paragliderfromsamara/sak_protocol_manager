@@ -7,12 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using SAKProtocolManager.DBEntities;
+//using SAKProtocolManager.DBEntities;
 using MySql.Data.MySqlClient;
 using System.Threading;
 using System.IO;
 using System.Globalization;
 using System.Diagnostics;
+using NormaMeasure.DBControl;
+using Tables = NormaMeasure.DBControl.Tables;
 
 namespace SAKProtocolManager
 {
@@ -22,13 +24,14 @@ namespace SAKProtocolManager
         private int CurrentHeight = 0;
         private long TestCount = 0;
         private MeasureResultReader readerForm = null;
-        public MeasureParameterType[] MeasureParameterTypes = new MeasureParameterType[] { }; //Типы измеряемых параметров
-        public MeasureParameterType MPT;
-        public FrequencyRange[] FreqRanges = new FrequencyRange[] { }; //Диапазоны частот
-        public BendingType[] BendingTypes = new BendingType[] { }; //Типы повива
-        public DRFormula[] DRFormuls = new DRFormula[] { };   //Формулы вычисления омической ассиметрии
-        public DRAdductionFormula[] DRAdductionFormuls = new DRAdductionFormula[] { };  //Формулы приведения оммической ассиметрии
-        
+        private DBEntityTable tests = new DBEntityTable(typeof(Tables.CableTest));
+        //public MeasureParameterType[] MeasureParameterTypes = new MeasureParameterType[] { }; //Типы измеряемых параметров
+        //public MeasureParameterType MPT;
+        // public FrequencyRange[] FreqRanges = new FrequencyRange[] { }; //Диапазоны частот
+        //public BendingType[] BendingTypes = new BendingType[] { }; //Типы повива
+        //public DRFormula[] DRFormuls = new DRFormula[] { };   //Формулы вычисления омической ассиметрии
+        //public DRAdductionFormula[] DRAdductionFormuls = new DRAdductionFormula[] { };  //Формулы приведения оммической ассиметрии
+
 
         public MainForm()
         {
@@ -39,7 +42,7 @@ namespace SAKProtocolManager
             setSearchType();
             progressBarPanel.Visible = false;
             initTestsList();
-            SetDBConstants();
+            //SetDBConstants();
             this.Text =Application.ProductName + " v." + Application.ProductVersion;
             if (!isActive) this.Text += String.Format(" (ознакомительный период до {0})", Properties.Settings.Default.FreePeriodEndDate.ToShortDateString());
             CurrentWidth = this.Width;
@@ -63,11 +66,11 @@ namespace SAKProtocolManager
         }
         private void SetDBConstants()
         {
-            MeasureParameterType mpt = new MeasureParameterType();
-            FrequencyRange fr = new FrequencyRange();
-            BendingType bt = new BendingType();
-            DRFormula drf = new DRFormula();
-            DRAdductionFormula draf = new DRAdductionFormula();
+            //MeasureParameterType mpt = new MeasureParameterType();
+            //FrequencyRange fr = new FrequencyRange();
+            //BendingType bt = new BendingType();
+            //DRFormula drf = new DRFormula();
+            //DRAdductionFormula draf = new DRAdductionFormula();
             //Cable cable = new Cable("22");
             //this.Text = cable.Name;
             //this.MeasureParameterTypes = mpt.GetAll();
@@ -80,10 +83,27 @@ namespace SAKProtocolManager
            // this.DRFormuls = DRFormula.GetAll();
           //  this.DRAdductionFormuls = DRAdductionFormula.GetAll();
         }
+
+        private void intiTestsList()
+        {
+
+        }
+
         private void initTestsList()
         {
             try
             {
+
+                TestCount = tests.CountEntities();
+                ClearList.Enabled = SearchButton.Enabled = false;
+                //statusPanel.Text = "База данных испытаний пуста";
+                fillTestList();
+                ClearList.Enabled = SearchButton.Enabled = true;
+                if (TestCount > 0)
+                {
+
+                }
+                /*
                 DBControl mySql = new DBControl(DBQueries.Default.DBName);
                 ClearList.Enabled = SearchButton.Enabled = false;
                 string comDateRange = DBQueries.Default.MinMaxDateQuery;
@@ -111,7 +131,9 @@ namespace SAKProtocolManager
                     dateTimeTo.MaxDate = dateTimeTo.Value = DateTime.Parse(dateToMax);
                     fillTestList();
                 }
-            }catch(MySqlException ex)
+                */
+            }
+            catch(MySqlException ex)
             {
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 TestHistoryItemsToolStrip.Enabled = searchPanel.Enabled = false;
@@ -126,6 +148,46 @@ namespace SAKProtocolManager
         {
             try
             {
+                string defaultText = SearchButton.Text;
+                //com += " limit 10000";
+                ClearList.Visible = false;
+                SearchButton.Enabled = false;
+                SearchButton.Text = "ИДЁТ ПОИСК...";
+                this.Refresh();
+                this.Cursor = Cursors.WaitCursor;
+
+
+                //string sType = Properties.Settings.Default.SearchType;
+                //return (sType == "byTestId") ? String.Format(DBQueries.Default.SelectTestById, testIdField.Value) : String.Format(DBQueries.Default.SelectTestsList, dbDateFormat(dateTimeFrom.Value), dbDateFormat(dateTimeTo.Value));
+                if (Properties.Settings.Default.SearchType == "byTestId")
+                {
+                    tests = Tables.CableTest.find_by_id_for_test_list((uint)testIdField.Value);
+                }else
+                {
+                    tests = Tables.CableTest.find_by_date_for_test_list(dbDateFormat(dateTimeFrom.Value), dbDateFormat(dateTimeTo.Value));
+                }
+
+
+                testsListView.DataSource = tests;
+                testsListView.Refresh();
+                ClearList.Visible = true;
+                SearchButton.Text = defaultText;
+                this.Cursor = Cursors.Arrow;
+                SearchButton.Enabled = true;
+                this.Refresh();
+                ClearList.Enabled = tests.Rows.Count > 0;
+                if (TestCount == 0)
+                {
+                    selectedCountLbl.Text = "База данных испытаний пуста";
+                }
+                else
+                {
+                    if (tests.Rows.Count == 0) selectedCountLbl.Text = String.Format("Показано 0 испытаний из {0}", TestCount);
+                    else if (tests.Rows.Count == 1) selectedCountLbl.Text = String.Format("Показано 1 испытание из {0}", TestCount);
+                    else if (tests.Rows.Count > 1 && tests.Rows.Count < 5) selectedCountLbl.Text = String.Format("Показано {0} испытания из {1}", tests.Rows.Count, TestCount);
+                    else selectedCountLbl.Text = String.Format("Показано {0} испытаний из {1}", tests.Rows.Count, TestCount);
+                }
+                /*
                 string com = buildQueryBySearchType();
                 DBControl mySql = new DBControl(DBQueries.Default.DBName);
                 int rowsCount;
@@ -162,7 +224,9 @@ namespace SAKProtocolManager
                     else selectedCountLbl.Text = String.Format("Показано {0} испытаний из {1}", rowsCount, TestCount);
 
                 }
-            }catch(MySqlException ex)
+                */
+            }
+            catch(MySqlException ex)
             {
                 MessageBox.Show(ex.Message, "Ошибка связи с базой данных", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 TestHistoryItemsToolStrip.Enabled = searchPanel.Enabled = false;
@@ -172,6 +236,7 @@ namespace SAKProtocolManager
 
         private string dbDateFormat(DateTime dt)
         {
+            //return dt.ToString("dd-MM-yyyy hh:mm:ss");
             return String.Format("{0}-{1}-{2} {3}:{4}:{5}", dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second);
         }
         private void button1_Click(object sender, EventArgs e)
@@ -203,6 +268,8 @@ namespace SAKProtocolManager
         {
             try
             {
+                throw new NotImplementedException();
+                /*
                 topMenu.Enabled = TestListtPanel.Enabled = false;
                 this.Cursor = Cursors.WaitCursor;
                 CableTest test = new CableTest(testId);
@@ -221,6 +288,7 @@ namespace SAKProtocolManager
                 }
 
                 this.Cursor = Cursors.Default;
+                */
             }
             catch (NullReferenceException) { }
         }
@@ -268,6 +336,8 @@ namespace SAKProtocolManager
                     string strIds = String.Empty;
                     foreach (string id in ids)
                     {
+                        throw new NotImplementedException();
+                        /*
                         if (i > 0) strIds += ",";
                         strIds += id;
                         if (i == 100 || j == (ids.Count - 1))
@@ -279,6 +349,7 @@ namespace SAKProtocolManager
                             strIds = String.Empty;
                             i = -1;
                         }
+                        */
                         i++;
                         j++;
                     }
@@ -312,6 +383,7 @@ namespace SAKProtocolManager
 
         }
 
+        /*
         public void UpdateSelectedTest(CableTest test)
         {
             //MessageBox.Show(String.Format("{0} {1} {2} {3}", test.Id, test.BruttoWeight, test.TestedLength, testsListView.SelectedRows[0].Cells["id"]));
@@ -333,15 +405,16 @@ namespace SAKProtocolManager
             }
             
         }
-
+        */
 
         private void удалитьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DialogResult dr = MessageBox.Show("Вы уверены, что хотите удалить выбранное испытание навсегда?", "Подтверждение операции", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (dr == DialogResult.Yes)
             {
+                throw new NotImplementedException();
                 string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
-                CableTest.DeleteTest(test_id);
+               // CableTest.DeleteTest(test_id);
                 TestHistoryItem.RemoveFromHistory(test_id);
                 testsListView.Rows.Remove(testsListView.SelectedRows[0]);
                 if (testsListView.SelectedRows.Count > 0) testsListView.SelectedRows[0].Selected = false;

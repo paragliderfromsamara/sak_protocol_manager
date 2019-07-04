@@ -176,6 +176,7 @@ namespace NormaMeasure.DBControl.Tables
             return afterId > prevId;
         }
 
+
         private bool createWithoutPrimaryKey()
         {
             long prevCount;
@@ -398,7 +399,12 @@ namespace NormaMeasure.DBControl.Tables
             //return col.DataType == typeof(string) ? $"'{this[col.ColumnName].ToString()}'" : this[col.ColumnName].ToString();
         }
         
-
+        protected DateTime tryParceDateTime(string column_name)
+        {
+            DateTime time = DateTime.Now;
+            DateTime.TryParse(this[column_name].ToString(), out time);
+            return time;
+        }
 
         protected uint tryParseUInt(string column_name)
         {

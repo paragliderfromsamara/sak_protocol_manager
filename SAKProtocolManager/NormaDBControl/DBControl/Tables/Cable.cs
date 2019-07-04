@@ -409,7 +409,7 @@ namespace NormaMeasure.DBControl.Tables
 
 
         public const string CableId_ColumnName = "CabNum";
-        public const string CableName_ColumnName = "name";
+        public const string CableName_ColumnName = "CabName";
         public const string StructName_ColumnName = "CabNameStruct";
         public const string Notes_ColumnName = "TextPrim";
         public const string CodeOKP_ColumnName = "KodOKP";

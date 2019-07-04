@@ -156,8 +156,10 @@ namespace SAKProtocolManager
         private void updateCableLength_Click(object sender, EventArgs e)
         {
             DialogResult dr = MessageBox.Show(String.Format("Вы уверены, что хотите пересчитать результаты испытания под длину кабеля {0} м.", testedLengthInput.Value), "Вопрос", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            throw new NotImplementedException();
             if (dr == DialogResult.Yes)
             {
+
                 this.Cursor = Cursors.WaitCursor;
                 this.Enabled = false;
                 lengthEditor.Visible = false;
@@ -167,7 +169,7 @@ namespace SAKProtocolManager
                 lengthUpdProgressBarField.Visible = false;
                 this.Enabled = true;
                 this.Cursor = Cursors.Default;
-                this.MainForm.UpdateSelectedTest(CableTest);
+                //this.MainForm.UpdateSelectedTest(CableTest);
                 drawParameterTypeTabs();
                 MessageBox.Show(String.Format("Результат успешно пересчитан на длину кабеля {0} м.", testedLengthInput.Value), "Длина успешно пересчитана", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
             }
@@ -313,6 +315,8 @@ namespace SAKProtocolManager
         {
             decimal w = BruttoWeightTextField.Value;
             long sts = CableTest.UpdateBruttoWeight(w);
+            throw new NotImplementedException();
+            /*
             if (sts == 0)
             {
                 this.Cursor = Cursors.WaitCursor;
@@ -321,6 +325,7 @@ namespace SAKProtocolManager
                 EditSaveBruttoButton.Enabled = false;
                 this.Cursor = Cursors.Default;
             }
+            */
         }
 
         private void MSWordImport_Click(object sender, EventArgs e)
