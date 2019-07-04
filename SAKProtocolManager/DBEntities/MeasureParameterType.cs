@@ -139,7 +139,7 @@ namespace SAKProtocolManager.DBEntities
                 pData.TestResults = trListForPData.ToArray();
                 if (pData.TestResults.Length > 0)
                 {
-                    pData.MeasuredPercent = Math.Round(100 * (((decimal)pData.TestResults.Length-(decimal)pData.NotNormalResultsCount()) / (decimal)pData.TestResults.Length), 0);
+                    pData.MeasuredPercent = Math.Round(100 * (((decimal)pData.TestResults.Length-(decimal)pData.NotNormalResultsCount()) / (decimal)pData.TestResults.Length), 4);
                     if (vals.Count > 0)
                     {
                         pData.MaxVal = vals.Max();

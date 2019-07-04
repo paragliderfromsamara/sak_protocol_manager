@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAKProtocolManager", "SAKProtocolManager\SAKProtocolManager.csproj", "{91DCE849-17A8-4A93-BDDF-4C69456DBA51}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NormaDBControl", "SAKProtocolManager\NormaDBControl\DBControl\NormaDBControl.csproj", "{6828DD40-1488-46D6-8F70-DB5EF38C463F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{91DCE849-17A8-4A93-BDDF-4C69456DBA51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91DCE849-17A8-4A93-BDDF-4C69456DBA51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91DCE849-17A8-4A93-BDDF-4C69456DBA51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6828DD40-1488-46D6-8F70-DB5EF38C463F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6828DD40-1488-46D6-8F70-DB5EF38C463F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6828DD40-1488-46D6-8F70-DB5EF38C463F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6828DD40-1488-46D6-8F70-DB5EF38C463F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

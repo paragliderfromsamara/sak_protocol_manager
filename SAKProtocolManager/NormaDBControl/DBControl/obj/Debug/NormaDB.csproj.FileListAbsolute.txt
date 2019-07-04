@@ -1,0 +1,7 @@
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\bin\Debug\DBControl.dll
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\bin\Debug\DBControl.pdb
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\bin\Debug\MySql.Data.dll
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\bin\Debug\MySql.Data.xml
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Debug\NormaDB.csprojResolveAssemblyReference.cache
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Debug\DBControl.dll
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Debug\DBControl.pdb

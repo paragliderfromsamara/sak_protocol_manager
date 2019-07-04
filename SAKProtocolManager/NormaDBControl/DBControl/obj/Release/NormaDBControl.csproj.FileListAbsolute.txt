@@ -1,0 +1,14 @@
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\bin\Release\NormaDBControl.dll
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\bin\Release\NormaDBControl.pdb
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\bin\Release\MySql.Data.dll
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\bin\Release\NormaMeasureUtils.dll
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\bin\Release\NormaMeasureUtils.pdb
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\bin\Release\MySql.Data.xml
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Release\NormaDBControl.csprojResolveAssemblyReference.cache
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Release\NormaMeasure.DBControl.SAC.Forms.BarabanTypesControlForm.resources
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Release\NormaMeasure.DBControl.SAC.Forms.CableForm.resources
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Release\NormaMeasure.DBControl.SAC.Forms.CablesListForm.resources
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Release\NormaMeasure.DBControl.SAC.Forms.UsersForm.resources
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Release\NormaDBControl.csproj.GenerateResource.Cache
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Release\NormaDBControl.dll
+D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Release\NormaDBControl.pdb
