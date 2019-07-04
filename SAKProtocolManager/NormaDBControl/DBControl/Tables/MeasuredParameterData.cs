@@ -78,8 +78,8 @@ namespace NormaMeasure.DBControl.Tables
             DBEntityTable pt = new DBEntityTable(typeof(MeasuredParameterType));
             DBEntityTable lbt = new DBEntityTable(typeof(LengthBringingType));
             DBEntityTable cs = new DBEntityTable(typeof(TestedCableStructure));
-            string selectQuery = mdt.SelectQuery.Replace("*", $"*, {pt.TableName}.{MeasuredParameterType.ParameterMeasure_ColumnName} AS result_measure");
-            selectQuery = $"{selectQuery} LEFT OUTER JOIN {frt.TableName} USING({frt.PrimaryKey[0].ColumnName}) LEFT OUTER JOIN {pt.TableName} USING({pt.PrimaryKey[0].ColumnName}) LEFT OUTER JOIN {lbt.TableName} USING ({lbt.PrimaryKey[0].ColumnName}) WHERE {cs.PrimaryKey[0].ColumnName} = {structure_id}";
+            string selectQuery = mdt.SelectQuery.Replace("*", $"*, {pt.TableName}.{MeasuredParameterType.ParameterMeasure_ColumnName} AS result_measure, {lbt.TableName}.Ed_izm AS length_bringing_measure");
+            selectQuery = $"{selectQuery} LEFT OUTER JOIN {frt.TableName} ON param_data.FreqDiap = freq_diap.FreqDiapInd LEFT OUTER JOIN {pt.TableName} USING({pt.PrimaryKey[0].ColumnName}) LEFT OUTER JOIN {lbt.TableName} USING ({lbt.PrimaryKey[0].ColumnName}) WHERE {cs.PrimaryKey[0].ColumnName} = {structure_id}";
             return find_by_query(selectQuery, typeof(MeasuredParameterData));
         }
 
@@ -144,20 +144,20 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        [DBColumn(FrequencyRange.FreqRangeId_ColumnName, ColumnDomain.UInt, Order = 13, OldDBColumnName = "FreqDiapInd", DefaultValue = 1, ReferenceTo = "freq_diap(FreqDiapInd)")]
+        [DBColumn("FreqDiap", ColumnDomain.UInt, Order = 13, OldDBColumnName = "FreqDiapInd", DefaultValue = 1, Nullable = true, ReferenceTo = "freq_diap(FreqDiapInd)")]
         public uint FrequencyRangeId
         {
             get
             {
-                return tryParseUInt(FrequencyRange.FreqRangeId_ColumnName);
+                return tryParseUInt("FreqDiap");
             }
             set
             {
-                this[FrequencyRange.FreqRangeId_ColumnName] = value;
+                this["FreqDiap"] = value;
             }
         }
 
-        [DBColumn(LengthBringingType.BringingId_ColumnName, ColumnDomain.UInt, Order = 14, DefaultValue = 0, ReferenceTo = "lpriv_tip(LprivInd)")]
+        [DBColumn(LengthBringingType.BringingId_ColumnName, ColumnDomain.UInt, Order = 14, Nullable = true, DefaultValue = 0, ReferenceTo = "lpriv_tip(LprivInd)")]
         public uint LngthBringingTypeId
         {
             get
@@ -170,7 +170,7 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        [DBColumn(LengthBringing_ColumnName, ColumnDomain.Float, Order = 15, DefaultValue = LengthBringingDefault)]
+        [DBColumn(LengthBringing_ColumnName, ColumnDomain.Float, Order = 15, Nullable = true, DefaultValue = LengthBringingDefault)]
         public float LengthBringing
         {
             get
@@ -183,7 +183,7 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        [DBColumn(MinValue_ColumnName, ColumnDomain.Float, Order = 16, DefaultValue = MinValueDefault)]
+        [DBColumn(MinValue_ColumnName, ColumnDomain.Float, Order = 16, Nullable = true, DefaultValue = MinValueDefault)]
         public float MinValue
         {
             get
@@ -196,7 +196,7 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        [DBColumn(MaxValue_ColumnName, ColumnDomain.Float, Order = 17, DefaultValue = MaxValueDefault)]
+        [DBColumn(MaxValue_ColumnName, ColumnDomain.Float, Order = 17, Nullable = true, DefaultValue = MaxValueDefault)]
         public float MaxValue
         {
             get
@@ -209,7 +209,7 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        [DBColumn(Percent_ColumnName, ColumnDomain.Float, Order = 18, DefaultValue = PercentDefault)]
+        [DBColumn(Percent_ColumnName, ColumnDomain.Float, Order = 18, Nullable = true, DefaultValue = PercentDefault)]
         public uint Percent
         {
             get
@@ -224,7 +224,7 @@ namespace NormaMeasure.DBControl.Tables
 
         #region Колонки типа измеряемого параметра (ParameterType)
 
-        [DBColumn(MeasuredParameterType.ParameterName_ColumnName, ColumnDomain.Tinytext, Order = 19, IsVirtual = true)]
+        [DBColumn(MeasuredParameterType.ParameterName_ColumnName, ColumnDomain.Tinytext, Nullable = true, Order = 19, IsVirtual = true)]
         public string ParameterName
         {
             get
@@ -237,7 +237,7 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        [DBColumn(MeasuredParameterType.ParameterMeasure_ColumnName, ColumnDomain.Tinytext, Order = 20, IsVirtual = true)]
+        [DBColumn(MeasuredParameterType.ParameterMeasure_ColumnName, ColumnDomain.Tinytext, Nullable = true, Order = 20, IsVirtual = true)]
         public string ParameterMeasure
         {
             get
@@ -312,16 +312,16 @@ namespace NormaMeasure.DBControl.Tables
         #region Тип приведения результата 
 
 
-        [DBColumn(LengthBringingType.BringingMeasure_ColumnName, ColumnDomain.Tinytext, Order = 25, Nullable = true, IsVirtual = true)]
+        [DBColumn("length_bringing_measure", ColumnDomain.Tinytext, Order = 25, Nullable = true, IsVirtual = true)]
         public string MeasureLengthTitle
         {
             get
             {
-                return this[LengthBringingType.BringingMeasure_ColumnName].ToString();
+                return this["length_bringing_measure"].ToString();
             }
             set
             {
-                this[LengthBringingType.BringingMeasure_ColumnName] = value;
+                this["length_bringing_measure"] = value;
             }
         }
 

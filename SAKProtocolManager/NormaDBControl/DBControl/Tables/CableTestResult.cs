@@ -14,6 +14,15 @@ namespace NormaMeasure.DBControl.Tables
         {
         }
 
+        public static DBEntityTable find_by_structure_id_and_parameter_type_id(uint structure_id, uint parameter_type_id)
+        {
+            DBEntityTable t = new DBEntityTable(typeof(CableTestResult));
+            string q = t.SelectQuery;
+            q = $"{q} WHERE {CableStructure.StructureId_ColumnName} = {structure_id} AND {MeasuredParameterType.ParameterTypeId_ColumnName} = {parameter_type_id}";
+            t.FillByQuery(q);
+            return t;
+        }
+
         public static void delete_all_from_cable_test(uint cable_test_id)
         {
             delete_by_criteria($"{CableTest.CableTestId_ColumnName} = {cable_test_id}", typeof(CableTestResult));

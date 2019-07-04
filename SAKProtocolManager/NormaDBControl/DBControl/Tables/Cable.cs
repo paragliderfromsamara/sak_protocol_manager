@@ -9,7 +9,7 @@ using NormaMeasure.DBControl;
 
 namespace NormaMeasure.DBControl.Tables
 {
-    [DBTable("bd_cable", "cables", OldDBName = "bd_cable", OldTableName = "cables")]
+    [DBTable("cables", "bd_isp", OldDBName = "bd_cable", OldTableName = "cables")]
     public class Cable : BaseEntity
     {
 
@@ -529,6 +529,8 @@ namespace NormaMeasure.DBControl.Tables
         {
         }
 
+        public CableTest Test;
+
         protected override void ValidateActions()
         {
             
@@ -543,7 +545,7 @@ namespace NormaMeasure.DBControl.Tables
 
         public static new TestedCable find_by_cable_id(uint id)
         {
-            DBEntityTable t = find_by_primary_key(id, typeof(Cable));//new DBEntityTable(typeof(Cable));
+            DBEntityTable t = find_by_primary_key(id, typeof(TestedCable));//new DBEntityTable(typeof(Cable));
             if (t.Rows.Count > 0) return (TestedCable)t.Rows[0];
             else
             {
@@ -603,16 +605,16 @@ namespace NormaMeasure.DBControl.Tables
         }
 
 
-        [DBColumn(CableTest.CableTestId_ColumnName, ColumnDomain.UInt, Order = 24, ReferenceTo = "ispytan(" + CableTest.CableTestId_ColumnName+ ") ON DELETE CASCADE")]
+       // [DBColumn(CableTest.CableTestId_ColumnName, ColumnDomain.UInt, Order = 24, ReferenceTo = "ispytan(" + CableTest.CableTestId_ColumnName+ ") ON DELETE CASCADE")]
         public uint TestId
         {
             get
             {
-                return tryParseUInt(CableTest.CableTestId_ColumnName);
+                return testId;
             }
             set
             {
-                this[CableTest.CableTestId_ColumnName] = value;
+                testId = value;
             }
         }
 
@@ -621,7 +623,7 @@ namespace NormaMeasure.DBControl.Tables
             return TestedCableStructure.get_by_cable(this);
         }
 
-
+        protected uint testId;
 
         protected CableTest cable_test;
     }

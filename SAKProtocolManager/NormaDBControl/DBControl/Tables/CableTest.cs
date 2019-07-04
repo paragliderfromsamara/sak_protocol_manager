@@ -179,7 +179,8 @@ namespace NormaMeasure.DBControl.Tables
             {
                 if (testedCable == null)
                 {
-                    testedCable = TestedCable.find_by_test_id(TestId);
+                    testedCable = TestedCable.find_by_cable_id(SourceCableId);
+                    if (testedCable != null) testedCable.Test = this;
                 }
                 return testedCable;
             }
@@ -197,6 +198,7 @@ namespace NormaMeasure.DBControl.Tables
                 if (sourceCable == null)
                 {
                     sourceCable = Cable.find_by_cable_id(SourceCableId);
+                    
                 }
                 return sourceCable;
             }
@@ -472,6 +474,35 @@ namespace NormaMeasure.DBControl.Tables
         private Cable sourceCable;
         private TestedCable testedCable;
         private ReleasedBaraban releasedBaraban;
+
+        public DBEntityTable TestResults
+        {
+            get
+            {
+                if(testResults == null)
+                {
+                    testResults = CableTestResult.find_by_criteria($"IspInd = {TestId}", typeof(CableTestResult));
+                }
+                return testResults;
+            }
+
+        }
+        private DBEntityTable testResults; 
+
+        public User Operator
+        {
+            get
+            {
+                if (_operator == null && HasOperator)
+                {
+                  
+                    _operator = User.get_by_id(OperatorId);
+                }
+                return _operator;
+            }
+        }
+
+        private User _operator;
 
 
     }

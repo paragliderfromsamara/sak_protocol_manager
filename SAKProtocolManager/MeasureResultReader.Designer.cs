@@ -335,6 +335,7 @@
             // 
             this.lengthEditor.Controls.Add(this.testedLengthInput);
             this.lengthEditor.Controls.Add(this.updateCableLength);
+            this.lengthEditor.Controls.Add(this.lengthUpdProgressBarField);
             this.lengthEditor.Controls.Add(this.label2);
             this.lengthEditor.Location = new System.Drawing.Point(613, 68);
             this.lengthEditor.Name = "lengthEditor";
@@ -347,7 +348,7 @@
             this.lengthUpdProgressBarField.Controls.Add(this.lengthUpdProgressBarLbl);
             this.lengthUpdProgressBarField.Controls.Add(this.LengthUpdProgressBar);
             this.lengthUpdProgressBarField.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lengthUpdProgressBarField.Location = new System.Drawing.Point(613, 69);
+            this.lengthUpdProgressBarField.Location = new System.Drawing.Point(0, 0);
             this.lengthUpdProgressBarField.Name = "lengthUpdProgressBarField";
             this.lengthUpdProgressBarField.Size = new System.Drawing.Size(209, 81);
             this.lengthUpdProgressBarField.TabIndex = 15;
@@ -429,7 +430,6 @@
             this.ClientSize = new System.Drawing.Size(835, 615);
             this.Controls.Add(this.MSWordImport);
             this.Controls.Add(this.OutOfNormaRsltPanel);
-            this.Controls.Add(this.lengthUpdProgressBarField);
             this.Controls.Add(this.lengthEditor);
             this.Controls.Add(this.GeneratePDFProtocolButton);
             this.Controls.Add(this.TestInfoPanel);

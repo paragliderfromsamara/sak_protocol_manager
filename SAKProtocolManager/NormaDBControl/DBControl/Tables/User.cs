@@ -29,6 +29,13 @@ namespace NormaMeasure.DBControl.Tables
            // FillFullName();
         }
 
+        public static User get_by_id(uint user_id)
+        {
+            DBEntityTable t = find_by_primary_key(user_id, typeof(User)); // new DBEntityTable();
+            if (t.Rows.Count > 0) return (User)t.Rows[0];
+            else return null;
+        }
+
         protected void FillFullName()
         {
             if (this.RowState == DataRowState.Deleted) return;
@@ -212,7 +219,7 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        [DBColumn(UserRole.RoleId_ColumnName, ColumnDomain.Tinytext, Order = 15, OldDBColumnName = "Dolshnost", Nullable = false, IsPrimaryKey = false)]
+        [DBColumn(UserRole.RoleId_ColumnName, ColumnDomain.Tinytext, Order = 15, OldDBColumnName = "Dolshnost", Nullable = true, IsPrimaryKey = false)]
         public uint RoleId
         {
             get
@@ -225,7 +232,7 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        [DBColumn(Password_ColumnName, ColumnDomain.Tinytext, Order = 16, OldDBColumnName = "Pass", Nullable = true, IsPrimaryKey = false)]
+        //[DBColumn(Password_ColumnName, ColumnDomain.Blob, Order = 16, OldDBColumnName = "Pass", Nullable = true, IsPrimaryKey = false)]
         public string Password
         {
             get
@@ -237,7 +244,7 @@ namespace NormaMeasure.DBControl.Tables
                 this[Password_ColumnName] = value;
             }
         }
-
+        
         [DBColumn(IsActiveFlag_ColumnName, ColumnDomain.Boolean, Order = 17, OldDBColumnName = "Activ", DefaultValue = true, Nullable = true, IsPrimaryKey = false)]
         public bool IsActive
         {
