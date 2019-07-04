@@ -21,6 +21,11 @@ namespace NormaMeasure.DBControl
             InitDBControl();
         }
 
+        public DBEntityTable(Type entityType, DataRow[] rows) : this(entityType)
+        {
+            foreach (DataRow r in rows) this.ImportRow(r);
+        }
+
         public long CountEntities(string conditions = null)
         {
             string query = SelectQuery.Replace("*", "COUNT(*)");

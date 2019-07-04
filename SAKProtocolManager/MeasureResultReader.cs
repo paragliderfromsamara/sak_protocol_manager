@@ -17,6 +17,8 @@ using SAKProtocolManager.PDFProtocolEntities;
 using SAKProtocolManager.MSWordProtocolBuilder;
 using NormaMeasure.DBControl;
 using Tables = NormaMeasure.DBControl.Tables;
+using System.Diagnostics;
+
 
 namespace SAKProtocolManager
 {
@@ -184,7 +186,7 @@ namespace SAKProtocolManager
             {
                selectedStructureIdx = cableStructuresList.SelectedIndex;
                fillParameterTypesComboBox(selectedStructureIdx);
-               //drawParameterTypeTabs();
+               drawParameterTypeTabs();
                //DrawMeasureParametersTabs(selectedStructureIdx, "");
             }
             
@@ -351,7 +353,7 @@ namespace SAKProtocolManager
             if (selectedParameterTypeIdx != parameterTypeCB.SelectedIndex)
             {
                 selectedParameterTypeIdx = parameterTypeCB.SelectedIndex;
-                //drawParameterTypeTabs();
+                drawParameterTypeTabs();
             }
         }
 
@@ -359,6 +361,31 @@ namespace SAKProtocolManager
         {
             try
             {
+                Tables.TestedCableStructure curStructure = ((Tables.TestedCableStructure)CableTest.TestedCable.CableStructures.Rows[selectedStructureIdx]);
+                Tables.MeasuredParameterType pType = curStructure.TestedParameterTypes[selectedParameterTypeIdx];
+                int sIndex = tabControlTestResult.TabPages.Count > 0 ? tabControlTestResult.SelectedIndex : 0;
+                tabControlTestResult.TabPages.Clear();
+                List<TabPage> pages = new List<TabPage>();
+                //if (curStructure.AffectedElementNumbers.Length>1)test.Text = curStructure.AffectedElementNumbers[1].ToString();
+                //if (curStructure.AffectedElements.Length > 0) pages.Add(new ParameterTypeTabPage(curStructure, this));
+                foreach (Tables.MeasuredParameterData pData in curStructure.MeasuredParameters.Rows)
+                {
+                    Debug.WriteLine(pData.TestResults.Rows.Count.ToString());
+                    if (pData.ParameterTypeId != pType.ParameterTypeId) continue;
+                    if (pData.TestResults.Rows.Count == 0) continue;
+                    ParameterTypeTabPage ptp = new ParameterTypeTabPage(pData, this);
+                    ptp.Height = this.Height - 10;
+                    pages.Add(ptp);
+                }
+                if (pages.Count > 0)
+                {
+                    tabControlTestResult.TabPages.AddRange(pages.ToArray());
+                    tabControlTestResult.SelectedIndex = sIndex;
+                    tabControlTestResult.Refresh();
+                }
+
+                // MeasureParameterType[] mParams = ParameterTypesForTabs(cableStructuresList.SelectedIndex);
+                /*
                 MeasureParameterType pType = CableTestOld.TestedCable.Structures[selectedStructureIdx].MeasuredParameters[selectedParameterTypeIdx];
                 int sIndex = tabControlTestResult.TabPages.Count > 0 ? tabControlTestResult.SelectedIndex : 0;
                 tabControlTestResult.TabPages.Clear();
@@ -381,6 +408,7 @@ namespace SAKProtocolManager
                     tabControlTestResult.SelectedIndex = sIndex;
                     tabControlTestResult.Refresh();
                 }
+                */
             }
             catch (IndexOutOfRangeException) { OutOfNormaRsltPanel.Visible = false; this.Height = this.Height - OutOfNormaRsltPanel.Height; this.Refresh(); }
 

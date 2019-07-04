@@ -330,8 +330,6 @@ namespace SAKProtocolManager.DBEntities
             fRangeTitle = GetFreqRangeTitle();
             norma = GetNormaTitle();
             return fRangeTitle + norma;
-
-
         }
 
         /*

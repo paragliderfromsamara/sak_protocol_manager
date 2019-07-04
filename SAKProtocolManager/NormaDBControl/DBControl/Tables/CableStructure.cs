@@ -631,6 +631,10 @@ namespace NormaMeasure.DBControl.Tables
                     {
                         measuredParameters = MeasuredParameterData.get_tested_structure_measured_parameters(this.CableStructureId); 
                     }
+                    if (measuredParameters.Rows.Count > 0)
+                    {
+                        foreach (MeasuredParameterData mpd in measuredParameters.Rows) mpd.TestedStructure = this;
+                    }
                 }
                 return measuredParameters;
             }

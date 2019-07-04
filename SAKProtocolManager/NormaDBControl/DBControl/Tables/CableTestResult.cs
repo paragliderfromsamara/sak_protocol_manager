@@ -121,16 +121,16 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        [DBColumn(FrequencyRange.FreqRangeId_ColumnName, ColumnDomain.UInt, Order = 17, OldDBColumnName = "FreqDiap", Nullable = true)]
+        [DBColumn("FreqDiap", ColumnDomain.UInt, Order = 17, OldDBColumnName = "FreqDiap", Nullable = true)]
         public uint FrequencyRangeId
         {
             get
             {
-                return tryParseUInt(FrequencyRange.FreqRangeId_ColumnName);
+                return tryParseUInt("FreqDiap");
             }
             set
             {
-                this[FrequencyRange.FreqRangeId_ColumnName] = value;
+                this["FreqDiap"] = value;
             }
         }
 

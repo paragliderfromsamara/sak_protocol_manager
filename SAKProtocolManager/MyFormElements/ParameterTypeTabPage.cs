@@ -7,11 +7,16 @@ using System.Windows.Forms;
 using SAKProtocolManager.DBEntities;
 using SAKProtocolManager.DBEntities.TestResultEntities;
 
+using NormaMeasure.DBControl;
+using Tables = NormaMeasure.DBControl.Tables;
+
 namespace SAKProtocolManager.MyFormElements
 {
     partial class ParameterTypeTabPage : TabPage
     {
-        private MeasuredParameterData ParameterData;
+        private MeasuredParameterData ParameterDataOld;
+        private Tables.MeasuredParameterData ParameterData;
+
         private DataGridView ValuesTable;
         private MeasureResultReader mReader;
         private int xPos, yPos;
@@ -20,10 +25,17 @@ namespace SAKProtocolManager.MyFormElements
         private string[] LeadTitles = new string[] { "Жила 1", "Жила 2", "Жила 3", "Жила 4" };
         private Label HeadLbl;
 
+        public ParameterTypeTabPage(Tables.MeasuredParameterData paramerter_data, MeasureResultReader r)
+        {
+            this.ParameterData = paramerter_data;
+            this.mReader = r;
+            InitializeOnParameterData();
+        }
+
 
         public ParameterTypeTabPage(MeasuredParameterData paramerter_data, MeasureResultReader r)
         {
-            this.ParameterData = paramerter_data;
+            this.ParameterDataOld = paramerter_data;
             this.mReader = r;
             InitializeOnParameterData();
         }
@@ -49,14 +61,14 @@ namespace SAKProtocolManager.MyFormElements
             //DrawCorrectionLimitControl();
             //drawMeasureStatLabel();
             //yPos += 115;
-            DrawValuesTable();
-            SetValuesTableStyle();
+            //DrawValuesTable();
+            //SetValuesTableStyle();
         }
 
         private void drawMeasureStatLabel()
         {
             yPos = topOffset;
-            drawLabel("min_val", String.Format("Мин. значение: {0}{1};\n\nСреднее значение: {2}{1};\n\nМакс. значение: {3}{1};\n\nИзмерено {4}% из {5}%;", ParameterData.MinVal, ParameterData.ResultMeasure(), ParameterData.AverageVal, ParameterData.MaxVal, ParameterData.MeasuredPercent, ParameterData.NormalPercent));
+            drawLabel("min_val", String.Format("Мин. значение: {0}{1};\n\nСреднее значение: {2}{1};\n\nМакс. значение: {3}{1};\n\nИзмерено {4}% из {5}%;", ParameterDataOld.MinVal, ParameterDataOld.ResultMeasure(), ParameterDataOld.AverageVal, ParameterDataOld.MaxVal, ParameterDataOld.MeasuredPercent, ParameterDataOld.NormalPercent));
             xPos = leftOffset;
 
         }
@@ -80,7 +92,7 @@ namespace SAKProtocolManager.MyFormElements
         private DataGridView MakeTable()
         {
             
-            switch (ParameterData.ParameterType.Name)
+            switch (ParameterDataOld.ParameterType.Name)
             {
                 //case "Rж":
                 //case "dR":
@@ -154,13 +166,13 @@ namespace SAKProtocolManager.MyFormElements
             DataGridView dgv = new DataGridView();
             dgv.Columns.Add("elements_group", "Пучок №");
             dgv.Columns.Add("combination", "Комбинация №");
-            dgv.Columns.Add("value", String.Format("Результат, {0}", ParameterData.ResultMeasure()));
-            dgv.Columns.Add("min_norma", String.Format("Макс., {0}", ParameterData.ResultMeasure()));
-            dgv.Columns.Add("max_norma", String.Format("Мин., {0}", ParameterData.ResultMeasure()));
-            dgv.Columns["min_norma"].Visible = ParameterData.MinValue > Decimal.MinValue;
-            dgv.Columns["max_norma"].Visible = ParameterData.MaxValue < Decimal.MaxValue;
+            dgv.Columns.Add("value", String.Format("Результат, {0}", ParameterDataOld.ResultMeasure()));
+            dgv.Columns.Add("min_norma", String.Format("Макс., {0}", ParameterDataOld.ResultMeasure()));
+            dgv.Columns.Add("max_norma", String.Format("Мин., {0}", ParameterDataOld.ResultMeasure()));
+            dgv.Columns["min_norma"].Visible = ParameterDataOld.MinValue > Decimal.MinValue;
+            dgv.Columns["max_norma"].Visible = ParameterDataOld.MaxValue < Decimal.MaxValue;
 
-            TestResult[] results = ParameterData.TestResults;
+            TestResult[] results = ParameterDataOld.TestResults;
             if (results.Length > 0)
             {
                 dgv.Columns["elements_group"].Visible = results[0].ElementNumber > 0;
@@ -170,8 +182,8 @@ namespace SAKProtocolManager.MyFormElements
                     dgv.Rows[i].Cells["elements_group"].Value = results[i].ElementNumber;
                     dgv.Rows[i].Cells["combination"].Value = results[i].SubElementNumber;
                     dgv.Rows[i].Cells["value"].Value = results[i].GetStringTableValue();
-                    dgv.Rows[i].Cells["min_norma"].Value = ParameterData.MinValue;
-                    dgv.Rows[i].Cells["max_norma"].Value = ParameterData.MaxValue;
+                    dgv.Rows[i].Cells["min_norma"].Value = ParameterDataOld.MinValue;
+                    dgv.Rows[i].Cells["max_norma"].Value = ParameterDataOld.MaxValue;
                 }
             }
 
@@ -181,22 +193,22 @@ namespace SAKProtocolManager.MyFormElements
         private DataGridView DrawByLeadsParameterTable()
         {
             DataGridView dgv = new DataGridView();
-            bool isQuatro = ParameterData.ParameterType.Structure.BendingTypeLeadsNumber == 4;
+            bool isQuatro = ParameterDataOld.ParameterType.Structure.BendingTypeLeadsNumber == 4;
             string[] subElHideAlways = isQuatro ? new string[] { "K1", "K2", "K3", "K9", "K10", "K11", "K12" } : new string[] { "dR", "K1", "K2", "K3", "K9", "K10", "K11", "K12", "Cр", "Ea" };
-            bool isPairParam = ParameterData.ParameterType.Name == "Cр" || ParameterData.ParameterType.Name == "Ea" || ParameterData.ParameterType.Name == "dR";
-            dgv.Columns.Add("element_number", String.Format("{0} №", ParameterData.ParameterType.Structure.BendingTypeName));
+            bool isPairParam = ParameterDataOld.ParameterType.Name == "Cр" || ParameterDataOld.ParameterType.Name == "Ea" || ParameterDataOld.ParameterType.Name == "dR";
+            dgv.Columns.Add("element_number", String.Format("{0} №", ParameterDataOld.ParameterType.Structure.BendingTypeName));
             dgv.Columns.Add("lead", isQuatro && isPairParam ? "Пара" : "Жила");
-            dgv.Columns.Add("value", String.Format("Результат {0}", ParameterData.ResultMeasure()));
-            dgv.Columns.Add("min_val", String.Format("Мин. {0}", ParameterData.ResultMeasure()));
-            dgv.Columns.Add("max_val", String.Format("Макс. {0}", ParameterData.ResultMeasure()));
-            dgv.Columns["min_val"].Visible = ParameterData.MinValue != Decimal.MinValue;
-            dgv.Columns["max_val"].Visible = ParameterData.MaxValue != Decimal.MaxValue;
+            dgv.Columns.Add("value", String.Format("Результат {0}", ParameterDataOld.ResultMeasure()));
+            dgv.Columns.Add("min_val", String.Format("Мин. {0}", ParameterDataOld.ResultMeasure()));
+            dgv.Columns.Add("max_val", String.Format("Макс. {0}", ParameterDataOld.ResultMeasure()));
+            dgv.Columns["min_val"].Visible = ParameterDataOld.MinValue != Decimal.MinValue;
+            dgv.Columns["max_val"].Visible = ParameterDataOld.MaxValue != Decimal.MaxValue;
  
-            dgv.Columns["lead"].Visible = !subElHideAlways.Contains(ParameterData.ParameterType.Name);// ParameterData.ParameterType.Name != "dR" && ParameterData.ParameterType.Name != "K1";
+            dgv.Columns["lead"].Visible = !subElHideAlways.Contains(ParameterDataOld.ParameterType.Name);// ParameterData.ParameterType.Name != "dR" && ParameterData.ParameterType.Name != "K1";
             dgv.MultiSelect = false;
             dgv.Columns["max_val"].ReadOnly = dgv.Columns["min_val"].ReadOnly = dgv.Columns["element_number"].ReadOnly = dgv.Columns["lead"].ReadOnly = true;
 
-            TestResult[] results = ParameterData.TestResults;
+            TestResult[] results = ParameterDataOld.TestResults;
             if (results.Length > 0)
             {
                 foreach(TestResult result in results)
@@ -207,8 +219,8 @@ namespace SAKProtocolManager.MyFormElements
                     r.Cells[1].Value = result.SubElementTitle();
                     r.Cells[2].ReadOnly = result.Affected;
                     r.Cells[2].Value = result.GetStringTableValue();
-                    r.Cells[3].Value = ParameterData.MinValue.ToString();
-                    r.Cells[4].Value = ParameterData.MaxValue.ToString();
+                    r.Cells[3].Value = ParameterDataOld.MinValue.ToString();
+                    r.Cells[4].Value = ParameterDataOld.MaxValue.ToString();
                     r.DefaultCellStyle = GetRowStyle(result);
                     dgv.Rows.Add(r);
                 }
@@ -249,15 +261,15 @@ namespace SAKProtocolManager.MyFormElements
         private DataGridView DrawDefaultTable()
         {
             DataGridView dgv = new DataGridView();
-            dgv.Columns.Add("element_number", String.Format("{0} №", ParameterData.ParameterType.Structure.BendingTypeName));
-            dgv.Columns.Add("value", String.Format("Результат, {0}", ParameterData.ResultMeasure()));
-            dgv.Columns.Add("min_val", String.Format("Мин., {0}", ParameterData.ResultMeasure()));
-            dgv.Columns.Add("max_val", String.Format("Макс., {0}", ParameterData.ResultMeasure()));
-            dgv.Columns.Add("percent_out", String.Format("Отклонение {0}", ParameterData.ParameterType.DeviationMeasure()));
-            dgv.Columns["min_val"].Visible = ParameterData.MinValue > Decimal.MinValue;
-            dgv.Columns["max_val"].Visible = ParameterData.MaxValue < Decimal.MaxValue;
+            dgv.Columns.Add("element_number", String.Format("{0} №", ParameterDataOld.ParameterType.Structure.BendingTypeName));
+            dgv.Columns.Add("value", String.Format("Результат, {0}", ParameterDataOld.ResultMeasure()));
+            dgv.Columns.Add("min_val", String.Format("Мин., {0}", ParameterDataOld.ResultMeasure()));
+            dgv.Columns.Add("max_val", String.Format("Макс., {0}", ParameterDataOld.ResultMeasure()));
+            dgv.Columns.Add("percent_out", String.Format("Отклонение {0}", ParameterDataOld.ParameterType.DeviationMeasure()));
+            dgv.Columns["min_val"].Visible = ParameterDataOld.MinValue > Decimal.MinValue;
+            dgv.Columns["max_val"].Visible = ParameterDataOld.MaxValue < Decimal.MaxValue;
             
-            TestResult[] results = ParameterData.TestResults;
+            TestResult[] results = ParameterDataOld.TestResults;
             if (results.Length > 0)
             {
                 dgv.Rows.Add(results.Length);
@@ -265,8 +277,8 @@ namespace SAKProtocolManager.MyFormElements
                 {
                     dgv.Rows[i].Cells["element_number"].Value = results[i].ElementNumber;
                     dgv.Rows[i].Cells["value"].Value = results[i].GetStringTableValue();
-                    dgv.Rows[i].Cells["min_val"].Value = ParameterData.MinValue.ToString();
-                    dgv.Rows[i].Cells["max_val"].Value = ParameterData.MaxValue.ToString();
+                    dgv.Rows[i].Cells["min_val"].Value = ParameterDataOld.MinValue.ToString();
+                    dgv.Rows[i].Cells["max_val"].Value = ParameterDataOld.MaxValue.ToString();
                     dgv.Rows[i].Cells["percent_out"].Value = results[i].DeviationPercent;
                     dgv.Rows[i].DefaultCellStyle = GetRowStyle(results[i]);
                 }
@@ -279,14 +291,14 @@ namespace SAKProtocolManager.MyFormElements
         {
             //string recElNumTxt, genElName
             DataGridView dgv = new DataGridView();
-            bool isPair = ParameterData.ParameterType.Structure.BendingTypeLeadsNumber == 2;
-            bool isAl = ParameterData.ParameterType.Name == "al";
-            dgv.Columns.Add("receiver_number", String.Format("{0} приёмника №", ParameterData.ParameterType.Structure.BendingTypeName));    //0
+            bool isPair = ParameterDataOld.ParameterType.Structure.BendingTypeLeadsNumber == 2;
+            bool isAl = ParameterDataOld.ParameterType.Name == "al";
+            dgv.Columns.Add("receiver_number", String.Format("{0} приёмника №", ParameterDataOld.ParameterType.Structure.BendingTypeName));    //0
             dgv.Columns.Add("sub_receiver_number", "Пара приёмника");                                                                       //1
             dgv.Columns.Add("sub_transponder_number", "Пара генератора");                                                                   //2
-            dgv.Columns.Add("transponder_number", String.Format("{0} генератора №", ParameterData.ParameterType.Structure.BendingTypeName));//3
+            dgv.Columns.Add("transponder_number", String.Format("{0} генератора №", ParameterDataOld.ParameterType.Structure.BendingTypeName));//3
             dgv.Columns.Add("freq_range", "Диапазон, кГц");                                                                                 //4
-            dgv.Columns.Add("value", "результат, " + ParameterData.ParameterType.ParameterDataList[0].ResultMeasure());                     //5
+            dgv.Columns.Add("value", "результат, " + ParameterDataOld.ParameterType.ParameterDataList[0].ResultMeasure());                     //5
             dgv.Columns.Add("norma", isAl ? "Макс" : "Мин");                                                                                //6
 
             dgv.Columns["sub_receiver_number"].Visible = !isPair;
@@ -295,7 +307,7 @@ namespace SAKProtocolManager.MyFormElements
 
             foreach (DataGridViewColumn c in dgv.Columns) c.ReadOnly = c.Name != "value";
 
-            TestResult[] results = ParameterData.TestResults;
+            TestResult[] results = ParameterDataOld.TestResults;
             if (results.Length > 0)
             {
                 foreach (TestResult result in results)
@@ -308,7 +320,7 @@ namespace SAKProtocolManager.MyFormElements
                     r.Cells[3].Value = result.GeneratorElementNumber; //transponder_number
                     r.Cells[4].Value = result.ParameterData.GetFreqRangeTitle(); //freq_range
                     r.Cells[5].Value = result.GetStringTableValue(); //value
-                    r.Cells[6].Value = isAl ? ParameterData.MaxValue : ParameterData.MinValue; //norma
+                    r.Cells[6].Value = isAl ? ParameterDataOld.MaxValue : ParameterDataOld.MinValue; //norma
 
                     r.Cells[5].ReadOnly = result.Affected; //лочим редактирование плохих структур
 
