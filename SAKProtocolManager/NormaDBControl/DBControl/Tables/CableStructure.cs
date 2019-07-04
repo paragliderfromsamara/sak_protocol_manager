@@ -22,6 +22,7 @@ namespace NormaMeasure.DBControl.Tables
             return structure;
         }
 
+        /*
         public void CopyFromStructure(CableStructure structure)
         {
             this.FillColsFromEntity(structure);
@@ -41,7 +42,7 @@ namespace NormaMeasure.DBControl.Tables
             }
 
         }
-
+        */
         public override bool Destroy()
         {
             bool delFlag = true;
@@ -62,7 +63,7 @@ namespace NormaMeasure.DBControl.Tables
         private void DeleteAllMeasuredParametersData()
         {
             this.MeasuredParameters.Rows.Clear();
-            CableStructureMeasuredParameterData.DeleteUnusedFromStructure(this);
+            //CableStructureMeasuredParameterData.DeleteUnusedFromStructure(this);
         }
 
         public override bool Save()
@@ -84,6 +85,7 @@ namespace NormaMeasure.DBControl.Tables
 
         protected bool SaveMeasuredParameters()
         {
+            /*
             bool flag = true;
             foreach(CableStructureMeasuredParameterData cdmpd in MeasuredParameters.Rows)
             {
@@ -93,6 +95,8 @@ namespace NormaMeasure.DBControl.Tables
             }
             CableStructureMeasuredParameterData.DeleteUnusedFromStructure(this);
             return flag;
+            */
+            return true;
         }
 
         protected override void ValidateActions()
@@ -104,6 +108,7 @@ namespace NormaMeasure.DBControl.Tables
 
         private void CheckMeasuredParameters()
         {
+            /*
             foreach(CableStructureMeasuredParameterData mpd in MeasuredParameters.Rows)
             {
                 if(!mpd.Validate())
@@ -115,7 +120,7 @@ namespace NormaMeasure.DBControl.Tables
                     
                 }
             }
-
+            */
         }
 
         private void CheckElementsNumber()
@@ -411,11 +416,12 @@ namespace NormaMeasure.DBControl.Tables
         #endregion 
         private void refreshDRMeasureData()
         {
+            /*
             foreach(CableStructureMeasuredParameterData mpd in MeasuredParameters.Rows)
             {
                 if (mpd.ParameterTypeId == MeasuredParameterType.dR) mpd.ResultMeasure = drFormula.ResultMeasure;
             }
-            
+            */
         }
 
         public string StructureTitle
@@ -451,11 +457,11 @@ namespace NormaMeasure.DBControl.Tables
                 {
                     if (IsNewRecord())
                     {
-                        measuredParameters = CableStructureMeasuredParameterData.get_structure_measured_parameters(0);
+                        //measuredParameters = MeasuredParameterData.get_structure_measured_parameters(0);
                     }
                     else
                     {
-                        measuredParameters = CableStructureMeasuredParameterData.get_structure_measured_parameters(this);
+                       // measuredParameters = MeasuredParameterData.get_structure_measured_parameters(this);
                     }
                     measuredParameters_was = measuredParameters.Clone() as DBEntityTable;
                 }
@@ -471,12 +477,16 @@ namespace NormaMeasure.DBControl.Tables
         {
             get
             {
+               
                 List<uint> idsList = new List<uint>();
+                 /*
                 foreach(CableStructureMeasuredParameterData csmpd in MeasuredParameters.Rows)
                 {
                     idsList.Add(csmpd.MeasuredParameterDataId);
                 }
+                 */
                 return idsList.ToArray();
+
             }
         }
 
@@ -582,9 +592,10 @@ namespace NormaMeasure.DBControl.Tables
         public new void CopyFromStructure(CableStructure structure)
         {
             this.FillColsFromEntity(structure);
-            this.AddMeasuredParameterDataFromStructure(structure);
+            //this.AddMeasuredParameterDataFromStructure(structure);
         }
 
+        /*
         private void AddMeasuredParameterDataFromStructure(CableStructure structure)
         {
             this.MeasuredParameters.Clear();
@@ -598,6 +609,7 @@ namespace NormaMeasure.DBControl.Tables
             }
 
         }
+        */
 
         [DBColumn(Cable.CableId_ColumnName, ColumnDomain.UInt, Order = 11, OldDBColumnName = "CabNum", Nullable = false, ReferenceTo = "cables("+ Cable.CableId_ColumnName +") ON DELETE CASCADE")]
         public new uint CableId
@@ -621,13 +633,12 @@ namespace NormaMeasure.DBControl.Tables
                 {
                     if (IsNewRecord())
                     {
-                        measuredParameters = TestedStructureMeasuredParameterData.get_tested_structure_measured_parameters(0);
+                        measuredParameters = MeasuredParameterData.get_tested_structure_measured_parameters(0);
 
                     }
                     else
                     {
-                        measuredParameters = TestedStructureMeasuredParameterData.get_tested_structure_measured_parameters(this);
-                        
+                        measuredParameters = MeasuredParameterData.get_tested_structure_measured_parameters(this.CableStructureId); 
                     }
                 }
                 return measuredParameters;

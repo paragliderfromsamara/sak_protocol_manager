@@ -12,3 +12,15 @@ D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Debug\
 D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Debug\NormaDBControl.csproj.GenerateResource.Cache
 D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Debug\NormaDBControl.dll
 D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Debug\NormaDBControl.pdb
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Debug\NormaDBControl.csprojResolveAssemblyReference.cache
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Debug\NormaMeasure.DBControl.SAC.Forms.BarabanTypesControlForm.resources
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Debug\NormaMeasure.DBControl.SAC.Forms.CableForm.resources
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Debug\NormaMeasure.DBControl.SAC.Forms.CablesListForm.resources
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Debug\NormaMeasure.DBControl.SAC.Forms.UsersForm.resources
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Debug\NormaDBControl.csproj.GenerateResource.Cache
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Debug\NormaDBControl.dll
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Debug\NormaDBControl.pdb
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\bin\Debug\NormaDBControl.dll
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\bin\Debug\NormaDBControl.pdb
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\bin\Debug\MySql.Data.dll
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\bin\Debug\MySql.Data.xml

@@ -81,7 +81,7 @@ namespace NormaMeasure.DBControl.Tables
         public virtual CableStructure AddCableStructure(CableStructure copied_structure)
         {
             CableStructure structure = AddCableStructure(copied_structure.StructureTypeId);
-            structure.CopyFromStructure(copied_structure);
+            //structure.CopyFromStructure(copied_structure);
             structure.OwnCable = this;
             structure.Save();
             return structure;
@@ -483,7 +483,7 @@ namespace NormaMeasure.DBControl.Tables
                     List<uint> ids = new List<uint>();
                     foreach(CableStructure s in CableStructures.Rows)
                     {
-                        foreach(CableStructureMeasuredParameterData mpd in s.MeasuredParameters.Rows)
+                        foreach(MeasuredParameterData mpd in s.MeasuredParameters.Rows)
                         {
                             if (!ids.Contains(mpd.ParameterTypeId)) ids.Add(mpd.ParameterTypeId);
                         }

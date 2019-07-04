@@ -214,9 +214,9 @@ namespace NormaMeasure.DBControl.SAC.Forms
            float v = 0f;
            float.TryParse((sender as NumericUpDown).Value.ToString(), out v);
            Cable.BuildLength = v;
-           refreshBuildLengthOnStructureMeasureParameters();
+           //refreshBuildLengthOnStructureMeasureParameters();
         }
-
+        /*
         /// <summary>
         /// Обновляем длину приведения в измеряемых параметрах структур, в которых длина приведения - строительная длина кабеля
         /// </summary>
@@ -231,7 +231,7 @@ namespace NormaMeasure.DBControl.SAC.Forms
                 }
             }
         }
-
+        */
         private void linearMass_input_ValueChanged(object sender, System.EventArgs e)
         {
             float v = 0f;
@@ -1166,18 +1166,21 @@ namespace NormaMeasure.DBControl.SAC.Forms
             DataGridViewBindingSource.ResetBindings(false);
         }
 
+        
         /// <summary>
         /// Добавляет тип параметра в коллекцию CableStructure.MeasuredParameters
         /// </summary>
         /// <param name="parameter_type"></param>
         private void AddParameterDataToCableStructure(MeasuredParameterType parameter_type)
         {
+            /*
             CableStructureMeasuredParameterData newPData = (CableStructureMeasuredParameterData)CableStructure.MeasuredParameters.NewRow();
             newPData.ParameterType = parameter_type;
             newPData.AssignedStructure = CableStructure;
             newPData.MeasuredParameterDataId = 0;
             newPData.LengthBringingTypeId = LengthBringingType.NoBringing;
             CableStructure.MeasuredParameters.Rows.Add(newPData);
+            */
         } 
 
         private void MeasuredParamsDataGridView_CurrentCellDirtyStateChanged(object sender, EventArgs e)

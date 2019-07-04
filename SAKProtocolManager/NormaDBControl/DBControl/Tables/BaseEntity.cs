@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data;
-using NormaMeasure.Utils;
+
 
 namespace NormaMeasure.DBControl.Tables
 {
@@ -17,34 +17,7 @@ namespace NormaMeasure.DBControl.Tables
 
         }
 
-        /// <summary>
-        /// Синхронизация с ini файлом 
-        /// </summary>
-        /// <param name="isExport">Направление синхронизации</param>
-        /// <param name="file">Исходный файл</param>
-        /// <param name="section">Название секции. Если не указано то берется из названия таблицы</param>
-        public void SyncWithIniFile(bool isExport, IniFile file, string section=null)
-        {
-            if (section == null) section = this.Table.TableName;
-            foreach (DataColumn col in this.Table.Columns)
-            {
-                if (isExport)
-                {
-                    file.Write(col.ColumnName, this.dbColumnValue(col), this.Table.TableName);
-                }
-                else
-                {
-                    if (file.KeyExists(col.ColumnName, this.Table.TableName))
-                    {
-                        this[col.ColumnName] = file.Read(col.ColumnName, this.Table.TableName);
-                    }
-                    else
-                    {
-                        file.Write(col.ColumnName, this.dbColumnValue(col), this.Table.TableName);
-                    }
-                }
-            }
-        }
+
 
         /// <summary>
         /// Удаление из БД по заданному критерию

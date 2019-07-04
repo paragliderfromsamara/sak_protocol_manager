@@ -31,6 +31,7 @@ namespace NormaMeasure.DBControl.Tables
         /// </summary>
         public const float PercentDefault = 100;
 
+        /*
         public static MeasuredParameterData GetByParameters(CableStructureMeasuredParameterData cab_struct_data)
         {
             Random r = new Random();
@@ -67,6 +68,19 @@ namespace NormaMeasure.DBControl.Tables
             {
                 this.Save();
             }
+        }
+        */
+
+        public static DBEntityTable get_tested_structure_measured_parameters(uint structure_id)
+        {
+            DBEntityTable mdt = new DBEntityTable(typeof(MeasuredParameterData));
+            DBEntityTable frt = new DBEntityTable(typeof(FrequencyRange));
+            DBEntityTable pt = new DBEntityTable(typeof(MeasuredParameterType));
+            DBEntityTable lbt = new DBEntityTable(typeof(LengthBringingType));
+            DBEntityTable cs = new DBEntityTable(typeof(TestedCableStructure));
+            string selectQuery = mdt.SelectQuery.Replace("*", $"*, {pt.TableName}.{MeasuredParameterType.ParameterMeasure_ColumnName} AS result_measure");
+            selectQuery = $"{selectQuery} LEFT OUTER JOIN {frt.TableName} USING({frt.PrimaryKey[0].ColumnName}) LEFT OUTER JOIN {pt.TableName} USING({pt.PrimaryKey[0].ColumnName}) LEFT OUTER JOIN {lbt.TableName} USING ({lbt.PrimaryKey[0].ColumnName}) WHERE {cs.PrimaryKey[0].ColumnName} = {structure_id}";
+            return find_by_query(selectQuery, typeof(MeasuredParameterData));
         }
 
         public static MeasuredParameterData build()
@@ -207,6 +221,139 @@ namespace NormaMeasure.DBControl.Tables
                 this[Percent_ColumnName] = value;
             }
         }
+
+        #region Колонки типа измеряемого параметра (ParameterType)
+
+        [DBColumn(MeasuredParameterType.ParameterName_ColumnName, ColumnDomain.Tinytext, Order = 19, IsVirtual = true)]
+        public string ParameterName
+        {
+            get
+            {
+                return this[MeasuredParameterType.ParameterName_ColumnName].ToString();
+            }
+            set
+            {
+                this[MeasuredParameterType.ParameterName_ColumnName] = value;
+            }
+        }
+
+        [DBColumn(MeasuredParameterType.ParameterMeasure_ColumnName, ColumnDomain.Tinytext, Order = 20, IsVirtual = true)]
+        public string ParameterMeasure
+        {
+            get
+            {
+                return this[MeasuredParameterType.ParameterMeasure_ColumnName].ToString();
+            }
+            set
+            {
+                this[MeasuredParameterType.ParameterMeasure_ColumnName] = value;
+            }
+        }
+
+        [DBColumn(MeasuredParameterType.ParameterDescription_ColumnName, ColumnDomain.Tinytext, Nullable = true, Order = 21, IsVirtual = true)]
+        public string ParameterDescription
+        {
+            get
+            {
+                return this[MeasuredParameterType.ParameterDescription_ColumnName].ToString();
+            }
+            set
+            {
+                this[MeasuredParameterType.ParameterDescription_ColumnName] = value;
+            }
+        }
+
+        #endregion
+
+        #region Парметры частоты 
+
+        [DBColumn(FrequencyRange.FreqMin_ColumnName, ColumnDomain.Float, Order = 22, Nullable = true, IsVirtual = true)]
+        public float FrequencyMin
+        {
+            get
+            {
+                return tryParseFloat(FrequencyRange.FreqMin_ColumnName);
+            }
+            set
+            {
+                this[FrequencyRange.FreqMin_ColumnName] = value;
+            }
+        }
+
+        [DBColumn(FrequencyRange.FreqMax_ColumnName, ColumnDomain.Float, Order = 23, Nullable = true, IsVirtual = true)]
+        public float FrequencyMax
+        {
+            get
+            {
+                return tryParseFloat(FrequencyRange.FreqMax_ColumnName);
+            }
+            set
+            {
+                this[FrequencyRange.FreqMax_ColumnName] = value;
+            }
+        }
+
+        [DBColumn(FrequencyRange.FreqStep_ColumnName, ColumnDomain.Float, Order = 24, Nullable = true, IsVirtual = true)]
+        public float FrequencyStep
+        {
+            get
+            {
+                return tryParseFloat(FrequencyRange.FreqStep_ColumnName);
+            }
+            set
+            {
+                this[FrequencyRange.FreqStep_ColumnName] = value;
+            }
+        }
+
+
+        #endregion
+
+        #region Тип приведения результата 
+
+
+        [DBColumn(LengthBringingType.BringingMeasure_ColumnName, ColumnDomain.Tinytext, Order = 25, Nullable = true, IsVirtual = true)]
+        public string MeasureLengthTitle
+        {
+            get
+            {
+                return this[LengthBringingType.BringingMeasure_ColumnName].ToString();
+            }
+            set
+            {
+                this[LengthBringingType.BringingMeasure_ColumnName] = value;
+            }
+        }
+
+        [DBColumn(LengthBringingType.BringingName_ColumnName, ColumnDomain.Tinytext, Order = 26, Nullable = true, IsVirtual = true)]
+        public string LengthBringingName
+        {
+            get
+            {
+                return this[LengthBringingType.BringingName_ColumnName].ToString();
+            }
+            set
+            {
+                this[LengthBringingType.BringingName_ColumnName] = value;
+            }
+        }
+
+        #endregion
+
+        [DBColumn("result_measure", ColumnDomain.Tinytext, Order = 27, Nullable = true, IsVirtual = true)]
+        public string ResultMeasure
+        {
+            get
+            {
+                return this["result_measure"].ToString();
+            }
+            set
+            {
+                this["result_measure"] = value;
+            }
+        }
+
+
 
 
         public const string LengthBringing_ColumnName = "Lpriv";
