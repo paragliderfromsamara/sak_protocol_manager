@@ -21,6 +21,13 @@ namespace NormaMeasure.DBControl.Tables
             return get_all(typeof(IsolationMaterial));
         }
 
+        public static IsolationMaterial get_by_id(uint material_id)
+        {
+            DBEntityTable t = find_by_primary_key(material_id, typeof(IsolationMaterial));
+            if (t.Rows.Count == 0) return null;
+            else return (IsolationMaterial)t.Rows[0];
+        }
+
         #region Колонки таблицы
         [DBColumn(MaterialId_ColumnName, ColumnDomain.UInt, Order = 11, OldDBColumnName = "MaterInd", Nullable = false, IsPrimaryKey = true, AutoIncrement = true)]
         public uint MaterialId
@@ -52,5 +59,26 @@ namespace NormaMeasure.DBControl.Tables
         public const string MaterialName_ColumnName = "MaterName";
 
         #endregion
+
+        public float GetCoeffByTemperature(float temperature)
+        {
+            float coeff = 1;
+            DataRow[] coeffRow = MaterialCoeffs.Select($"{IsolMaterialCoeffs.Temperature_ColumnName} = {temperature}");
+            if (coeffRow.Length > 0) coeff = ((IsolMaterialCoeffs)coeffRow[0]).Temperature;
+            return coeff;
+
+        }
+        private DBEntityTable materialCoeffs;
+        public DBEntityTable MaterialCoeffs
+        {
+            get
+            {
+                if (materialCoeffs == null)
+                {
+                    materialCoeffs = IsolMaterialCoeffs.get_all_for_material(MaterialId);
+                }
+                return materialCoeffs;
+            }
+        }
     }
 }

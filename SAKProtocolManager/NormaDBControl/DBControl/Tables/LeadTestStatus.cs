@@ -31,6 +31,11 @@ namespace NormaMeasure.DBControl.Tables
         /// </summary>
         public const uint Broken = 3;
 
+        public static DBEntityTable get_all()
+        {
+            return get_all(typeof(LeadTestStatus));
+        }
+
         #region Колонки таблицы
         [DBColumn(StatusId_ColumnName, ColumnDomain.UInt, Order = 10, OldDBColumnName = "StatGil", Nullable = true, IsPrimaryKey = true)]
         public uint StatusId
@@ -58,8 +63,8 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        public const string StatusId_ColumnName = "status_id";
-        public const string StatusTitle_ColumnName = "status_title";
+        public const string StatusId_ColumnName = "StatGil";
+        public const string StatusTitle_ColumnName = "StatGilName";
 
 
 

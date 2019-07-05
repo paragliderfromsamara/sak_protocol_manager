@@ -19,6 +19,13 @@ namespace NormaMeasure.DBControl.Tables
             return get_all(typeof(LeadMaterial));
         }
 
+        public static LeadMaterial get_by_id(uint material_id)
+        {
+            DBEntityTable t = find_by_primary_key(material_id, typeof(LeadMaterial));
+            if (t.Rows.Count == 0) return null;
+            else return (LeadMaterial)t.Rows[0];
+        }
+
         #region Колонки таблицы 
         [DBColumn(MaterialId_ColumnName, ColumnDomain.UInt, Order = 11, OldDBColumnName = "MaterInd", Nullable = false, IsPrimaryKey = true, AutoIncrement = true)]
         public uint MaterialId

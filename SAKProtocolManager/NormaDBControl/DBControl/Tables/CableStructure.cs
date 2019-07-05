@@ -416,6 +416,33 @@ namespace NormaMeasure.DBControl.Tables
         public const string WorkCapGroup_ColumnName = "Cr_grup";
 
         #endregion 
+
+        private LeadMaterial leadMaterial;
+        public LeadMaterial LeadMaterial
+        {
+            get
+            {
+                if (leadMaterial == null)
+                {
+                    leadMaterial = LeadMaterial.get_by_id(LeadMaterialTypeId);
+                }
+                return leadMaterial;
+            }
+        }
+
+        private IsolationMaterial isolMaterial;
+        public IsolationMaterial IsolMaterial
+        {
+            get
+            {
+                if (isolMaterial == null)
+                {
+                    isolMaterial = IsolationMaterial.get_by_id(IsolationMaterialId);
+                }
+                return isolMaterial;
+            }
+        }
+
         private void refreshDRMeasureData()
         {
             /*
@@ -563,6 +590,21 @@ namespace NormaMeasure.DBControl.Tables
         {
         }
 
+        public TestedCable testedCable = null;
+
+        public TestedCable TestedCable
+        {
+            get
+            {
+                if (OwnCable != null && testedCable == null)
+                {
+                    testedCable = (TestedCable)OwnCable;
+                }
+                return testedCable;
+            }
+        } 
+
+
         public new static TestedCableStructure find_by_structure_id(uint structure_id)
         {
             DBEntityTable t = find_by_primary_key(structure_id, typeof(TestedCableStructure));
@@ -656,13 +698,50 @@ namespace NormaMeasure.DBControl.Tables
             return GetTestResultsByParameterTypeId(parameter_type_id).Rows.Count > 0;
         }
 
+        public DBEntityTable GetAffectedResult()
+        {
+            DataRow[] rows = TestedCable.Test.TestResults.Select($"ParamInd = {MeasuredParameterType.Calling} AND {CableStructure.StructureId_ColumnName} = {CableStructureId} AND Resultat > {LeadTestStatus.Ok}");
+            DBEntityTable t = new DBEntityTable(typeof(CableTestResult), rows);
+            return t;
+        }
+
+        private DBEntityTable affectedElements;
+
+        public DBEntityTable AffectedElements
+        {
+            get
+            {
+                if (affectedElements == null)
+                {
+                    affectedElements = GetAffectedResult();
+                }
+                return affectedElements;
+            }
+        }
+
+        public LeadTestStatus GetElementStatus(uint element_number)
+        {
+            DataRow[] sts = AffectedElements.Select($"{CableTestResult.StructElementNumber_ColumnName} = {element_number}");
+            float stsId = LeadTestStatus.Ok;
+            if (sts.Length > 0)
+            {
+                foreach(DataRow r in sts)
+                {
+                    float curSts = ((CableTestResult)r).Result;
+                    if (stsId < curSts) stsId = curSts; 
+                }
+            }
+            return (LeadTestStatus)TestedCable.Test.LeadStatuses.Select($"{LeadTestStatus.StatusId_ColumnName} = {stsId}")[0];
+        }
+
+
         public DBEntityTable GetTestResultsByParameterTypeId(uint parameter_type_id)
         {
             if (!TestResults_Dictionary.ContainsKey(parameter_type_id))
             {
-                DataRow[] rows = ((TestedCable)OwnCable).Test.TestResults.Select($"ParamInd = {parameter_type_id}");
-                DBEntityTable t = new DBEntityTable(typeof(CableTestResult));
-                foreach (DataRow r in rows) t.ImportRow(r);
+                DataRow[] rows = TestedCable.Test.TestResults.Select($"ParamInd = {parameter_type_id} AND {CableStructure.StructureId_ColumnName} = {CableStructureId}");
+                DBEntityTable t = new DBEntityTable(typeof(CableTestResult), rows);
+
                 //CableTestResult.find_by_structure_id_and_parameter_type_id(CableStructureId, parameter_type_id);
                 TestResults_Dictionary.Add(parameter_type_id, t);
             }

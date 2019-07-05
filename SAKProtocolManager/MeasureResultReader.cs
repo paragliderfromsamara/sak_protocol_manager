@@ -237,7 +237,7 @@ namespace SAKProtocolManager
             }
             if (NeedGenerate == DialogResult.Yes)
             {
-                PDFProtocol.MakeOldStylePDFProtocol(this.CableTestOld.Id);
+                PDFProtocol.MakeOldStylePDFProtocol(this.CableTest.TestId.ToString());
             }
         }
 

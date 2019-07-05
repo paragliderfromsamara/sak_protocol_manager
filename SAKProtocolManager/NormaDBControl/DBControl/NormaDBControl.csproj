@@ -99,6 +99,7 @@
     <Compile Include="Tables\dRFormula.cs" />
     <Compile Include="Tables\FrequencyRange.cs" />
     <Compile Include="Tables\IsolationMaterial.cs" />
+    <Compile Include="Tables\IsolMaterialCoeffs.cs" />
     <Compile Include="Tables\LeadMaterial.cs" />
     <Compile Include="Tables\LeadTestStatus.cs" />
     <Compile Include="Tables\LengthBringingType.cs" />

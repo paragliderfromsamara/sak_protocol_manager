@@ -362,12 +362,18 @@ namespace NormaMeasure.DBControl.Tables
         public const string Percent_ColumnName = "Percent";
         #endregion
 
+
+        public bool HasMaxLimit => MeasuredParameterType.IsHasMaxLimit(ParameterTypeId);
+        public bool HasMinLimit => MeasuredParameterType.IsHasMinLimit(ParameterTypeId);
+
+        public bool IsFreqParameter => MeasuredParameterType.IsItFreqParameter(ParameterTypeId);
+
         public TestedCableStructure TestedStructure;
         private DBEntityTable testResults;
 
         private void AssignResult(CableTestResult r)
         {
-            
+            r.ParameterData = this;
         }
 
         public DBEntityTable TestResults
@@ -415,15 +421,95 @@ namespace NormaMeasure.DBControl.Tables
                 }
                 return measure;
             }
+        }
+
+        public decimal BringMeasuredValue(decimal value)
+        {
+            if (this.ParameterTypeId == MeasuredParameterType.Risol2 || this.ParameterTypeId == MeasuredParameterType.Risol4) return value;
+            decimal brLength = getBringingLength();
+            decimal tstLength = (decimal)this.TestedStructure.TestedCable.Test.CableLength;
+            value = bringToCoeffs(value);
+            if (brLength == tstLength || tstLength == 0) return value;
+            return BringToLength(value, tstLength, brLength);
+        }
+
+        public decimal BringToLength(decimal value, decimal curLength, decimal brLength)
+        {
+            switch (this.ParameterTypeId)
+            {
+                case MeasuredParameterType.Rleads:
+                case MeasuredParameterType.Cp:
+                case MeasuredParameterType.Co:
+                case MeasuredParameterType.Ea:
+                case MeasuredParameterType.K1:
+                case MeasuredParameterType.K2:
+                case MeasuredParameterType.K3:
+                case MeasuredParameterType.K9:
+                case MeasuredParameterType.K10:
+                case MeasuredParameterType.K11:
+                case MeasuredParameterType.K12:
+                case MeasuredParameterType.K23:
+                case MeasuredParameterType.K9_12:
+                    value *= brLength / curLength;
+                    break;
+                case MeasuredParameterType.Risol1:
+                case MeasuredParameterType.Risol3:
+                    value *= curLength / brLength;
+                    break;
+                case MeasuredParameterType.al:
+                    value *= brLength / curLength;
+                    break;
+                case MeasuredParameterType.Ao:
+                case MeasuredParameterType.Az:
+                    value += 10 * (decimal)Math.Log10(((double)curLength / (double)brLength));
+                    break;
+            }
+            return value;
+        }
+
+
+
+
+        private decimal bringToCoeffs(decimal value)
+        {
+            decimal temperature = (decimal)this.TestedStructure.TestedCable.Test.Temperature;
+            switch (this.ParameterTypeId)
+            {
+                case MeasuredParameterType.Rleads:
+                    value *= (1 / (1 + (decimal)this.TestedStructure.LeadMaterial.MaterialTKC * (temperature - 20)));
+                    return Math.Round(value, 1);
+                case MeasuredParameterType.Risol1:
+                case MeasuredParameterType.Risol3:
+                    value *= (decimal)this.TestedStructure.IsolMaterial.GetCoeffByTemperature((float)temperature);
+                    return Math.Round(value, 1);
+                default:
+                    return value;
+            }
 
         }
+
+        private decimal getBringingLength()
+        {
+            switch (LngthBringingTypeId)
+            {
+                case LengthBringingType.ForBuildLength:
+                    return (decimal)this.TestedStructure.OwnCable.BuildLength;
+                case LengthBringingType.ForOneKilometer:
+                    return 1000;
+                case LengthBringingType.ForAnotherLengthInMeters:
+                    return (decimal)this.LengthBringing;
+                default:
+                    return (decimal)this.TestedStructure.TestedCable.Test.CableLength;
+            }
+        }
+
 
         public string GetNormaTitle()
         {
             string norma = String.Empty;
             string rMeasure = ResultMeasure_WithLength;
-            if (MinValue > MinValueDefault) norma += String.Format(" от {0}{1}", MinValue, rMeasure);
-            if (MaxValue < MaxValueDefault) norma += String.Format(" до {0}{1}", MaxValue, rMeasure);
+            if (HasMinLimit) norma += String.Format(" от {0}{1}", MinValue, rMeasure);
+            if (HasMaxLimit) norma += String.Format(" до {0}{1}", MaxValue, rMeasure);
             norma += String.Format(" {0}%", Percent);
             return norma;
         }

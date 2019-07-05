@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using SAKProtocolManager.DBEntities;
 using SAKProtocolManager.DBEntities.TestResultEntities;
+using System.Data;
+using System.Diagnostics;
 
 using NormaMeasure.DBControl;
 using Tables = NormaMeasure.DBControl.Tables;
@@ -61,8 +63,8 @@ namespace SAKProtocolManager.MyFormElements
             //DrawCorrectionLimitControl();
             //drawMeasureStatLabel();
             //yPos += 115;
-            //DrawValuesTable();
-            //SetValuesTableStyle();
+            DrawValuesTable();
+            SetValuesTableStyle();
         }
 
         private void drawMeasureStatLabel()
@@ -92,30 +94,17 @@ namespace SAKProtocolManager.MyFormElements
         private DataGridView MakeTable()
         {
             
-            switch (ParameterDataOld.ParameterType.Name)
+            switch (ParameterData.ParameterTypeId)
             {
-                //case "Rж":
-                //case "dR":
-               // case "Cр":
-               // case "Rиз1":
-              //  case "Rиз2":
-              //  case "Co":
-                    
-                    //return DrawPrimaryParameterTable(pData);
-             //       return DrawByLeadsParameterTable();
-                //case "Cр":
-
-                //return DrawByElementsParameterTable(pData);
-                case "al":
-                case "Ao":
-                case "Az":
+                case Tables.MeasuredParameterType.al:// "al":
+                case Tables.MeasuredParameterType.Ao:
+                case Tables.MeasuredParameterType.Az:
                     return DrawPVTable();
-                case "Rиз3":
-                case "Rиз4":
+                case Tables.MeasuredParameterType.Risol3: //"Rиз3":
+                case Tables.MeasuredParameterType.Risol4:
                     return DrawIzolationCombinationTable();
                 default:
                     return DrawByLeadsParameterTable();
-                    //return DrawDefaultTable();
             }
         }
 
@@ -131,6 +120,12 @@ namespace SAKProtocolManager.MyFormElements
         {
             if (ValuesTable == null) return;
             //if (ValuesTable.RowCount < 2) return;
+
+            foreach (DataGridViewRow r in ValuesTable.Rows)
+            {
+                SetRowStyle(r);
+            }
+           // ValuesTable.Update();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopCenter;
@@ -145,7 +140,9 @@ namespace SAKProtocolManager.MyFormElements
             dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.Teal;
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.OldLace;
 
-            if (ValuesTable.Columns.Contains("value")) ValuesTable.Columns["value"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+
+            if (ValuesTable.Columns.Contains(Tables.CableTestResult.ResultForView_ColumnName)) ValuesTable.Columns[Tables.CableTestResult.ResultForView_ColumnName].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             ValuesTable.Name = String.Format("dataGridViewOfResult_{0}", 1);
             ValuesTable.Parent = this;
             ValuesTable.Location = new System.Drawing.Point(xPos, yPos);
@@ -158,12 +155,18 @@ namespace SAKProtocolManager.MyFormElements
             ValuesTable.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             ValuesTable.MultiSelect = false;
             ValuesTable.EditMode = DataGridViewEditMode.EditOnEnter;
+            ValuesTable.AllowUserToAddRows = false;
+            ValuesTable.AllowUserToDeleteRows = false;
+            
+
+
         }
 
 
         private DataGridView DrawIzolationCombinationTable()
         {
             DataGridView dgv = new DataGridView();
+            /*
             dgv.Columns.Add("elements_group", "Пучок №");
             dgv.Columns.Add("combination", "Комбинация №");
             dgv.Columns.Add("value", String.Format("Результат, {0}", ParameterDataOld.ResultMeasure()));
@@ -186,46 +189,73 @@ namespace SAKProtocolManager.MyFormElements
                     dgv.Rows[i].Cells["max_norma"].Value = ParameterDataOld.MaxValue;
                 }
             }
-
+            */
             return dgv;
+        }
+
+        private DataGridView Build_DataGridView()
+        {
+            DBEntityTable t = new DBEntityTable(typeof(Tables.CableTestResult));
+            DataGridView dgv = new DataGridView();
+            string[] HiddenCols = new string[] 
+            {
+                Tables.MeasuredParameterType.ParameterTypeId_ColumnName,
+                "Temperetur",
+                Tables.CableTest.CableTestId_ColumnName,
+                Tables.CableTestResult.ElementNumberOnGenerator_ColumnName,
+                Tables.CableTestResult.PairNumberOnGenerator_ColumnName,
+                Tables.CableStructure.StructureId_ColumnName,
+                "FreqDiap",
+                Tables.CableTestResult.BringingResult_ColumnName,
+                Tables.CableTestResult.IsAffected_ColumnName,
+                Tables.CableTestResult.IsOutOfNorma_ColumnName,
+                Tables.CableTestResult.MeasureResult_ColumnName
+            };
+            dgv.ReadOnly = true;
+            foreach (DataColumn c in t.Columns)
+            {
+                dgv.Columns.Add(c.ColumnName, c.ColumnName);
+                //dgv.Columns[c.ColumnName].HeaderText = c.ColumnName;
+                dgv.Columns[c.ColumnName].DataPropertyName = c.ColumnName;
+                dgv.Columns[c.ColumnName].Visible = !HiddenCols.Contains(c.ColumnName);
+                //Debug.WriteLine($"Build_DataGridView: column {c.ColumnName}; visible {!HiddenCols.Contains(c.ColumnName)}");  
+            }
+            dgv.Columns[Tables.CableTestResult.MinAllowedValue_ColumnName].Visible = ParameterData.HasMinLimit;
+            dgv.Columns[Tables.CableTestResult.MaxAllowedValue_ColumnName].Visible = ParameterData.HasMaxLimit;
+
+            dgv.DataBindingComplete += Dgv_DataBindingComplete;
+            dgv.Refresh();
+            return dgv;
+        }
+
+        private void Dgv_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            DataGridView v = sender as DataGridView;
+            foreach (DataGridViewRow r in v.Rows)
+            {
+                SetRowStyle(r);
+            }
         }
 
         private DataGridView DrawByLeadsParameterTable()
         {
-            DataGridView dgv = new DataGridView();
-            bool isQuatro = ParameterDataOld.ParameterType.Structure.BendingTypeLeadsNumber == 4;
+            DataGridView dgv = Build_DataGridView();
+            bool isQuatro = ParameterData.TestedStructure.StructureType.StructureLeadsAmount == 4;
             string[] subElHideAlways = isQuatro ? new string[] { "K1", "K2", "K3", "K9", "K10", "K11", "K12" } : new string[] { "dR", "K1", "K2", "K3", "K9", "K10", "K11", "K12", "Cр", "Ea" };
-            bool isPairParam = ParameterDataOld.ParameterType.Name == "Cр" || ParameterDataOld.ParameterType.Name == "Ea" || ParameterDataOld.ParameterType.Name == "dR";
-            dgv.Columns.Add("element_number", String.Format("{0} №", ParameterDataOld.ParameterType.Structure.BendingTypeName));
-            dgv.Columns.Add("lead", isQuatro && isPairParam ? "Пара" : "Жила");
-            dgv.Columns.Add("value", String.Format("Результат {0}", ParameterDataOld.ResultMeasure()));
-            dgv.Columns.Add("min_val", String.Format("Мин. {0}", ParameterDataOld.ResultMeasure()));
-            dgv.Columns.Add("max_val", String.Format("Макс. {0}", ParameterDataOld.ResultMeasure()));
-            dgv.Columns["min_val"].Visible = ParameterDataOld.MinValue != Decimal.MinValue;
-            dgv.Columns["max_val"].Visible = ParameterDataOld.MaxValue != Decimal.MaxValue;
- 
-            dgv.Columns["lead"].Visible = !subElHideAlways.Contains(ParameterDataOld.ParameterType.Name);// ParameterData.ParameterType.Name != "dR" && ParameterData.ParameterType.Name != "K1";
-            dgv.MultiSelect = false;
-            dgv.Columns["max_val"].ReadOnly = dgv.Columns["min_val"].ReadOnly = dgv.Columns["element_number"].ReadOnly = dgv.Columns["lead"].ReadOnly = true;
+            bool isPairParam = ParameterData.ParameterName == "Cр" || ParameterData.ParameterName == "Ea" || ParameterData.ParameterName == "dR";
+            string measure = ParameterData.ResultMeasure_WithLength;
 
-            TestResult[] results = ParameterDataOld.TestResults;
-            if (results.Length > 0)
-            {
-                foreach(TestResult result in results)
-                {
-                    TestResultDataGridViewRow r = new TestResultDataGridViewRow(result);
-                    r.CreateCells(dgv);
-                    r.Cells[0].Value = result.ElementNumber;
-                    r.Cells[1].Value = result.SubElementTitle();
-                    r.Cells[2].ReadOnly = result.Affected;
-                    r.Cells[2].Value = result.GetStringTableValue();
-                    r.Cells[3].Value = ParameterDataOld.MinValue.ToString();
-                    r.Cells[4].Value = ParameterDataOld.MaxValue.ToString();
-                    r.DefaultCellStyle = GetRowStyle(result);
-                    dgv.Rows.Add(r);
-                }
-            }
-            dgv.CellValueChanged += Dgv_CellValueChanged;
+            dgv.Columns[Tables.CableTestResult.StructElementNumber_ColumnName].HeaderText = $"{ParameterData.TestedStructure.StructureType.StructureTypeName} №";
+            dgv.Columns[Tables.CableTestResult.MeasureOnElementNumber_ColumnName].HeaderText = isQuatro && isPairParam ? "Пара" : "Жила";
+            dgv.Columns[Tables.CableTestResult.MeasureOnElementNumber_ColumnName].Visible = !subElHideAlways.Contains(ParameterData.ParameterName);
+
+            dgv.Columns[Tables.CableTestResult.ResultForView_ColumnName].HeaderText = String.Format("Результат {0}", measure);
+
+            dgv.MultiSelect = false;
+            dgv.DataSource = ParameterData.TestResults;
+            dgv.Refresh();
+
+
             return dgv;
         }
 
@@ -268,7 +298,7 @@ namespace SAKProtocolManager.MyFormElements
             dgv.Columns.Add("percent_out", String.Format("Отклонение {0}", ParameterDataOld.ParameterType.DeviationMeasure()));
             dgv.Columns["min_val"].Visible = ParameterDataOld.MinValue > Decimal.MinValue;
             dgv.Columns["max_val"].Visible = ParameterDataOld.MaxValue < Decimal.MaxValue;
-            
+           
             TestResult[] results = ParameterDataOld.TestResults;
             if (results.Length > 0)
             {
@@ -290,47 +320,24 @@ namespace SAKProtocolManager.MyFormElements
         private DataGridView DrawPVTable()
         {
             //string recElNumTxt, genElName
-            DataGridView dgv = new DataGridView();
-            bool isPair = ParameterDataOld.ParameterType.Structure.BendingTypeLeadsNumber == 2;
-            bool isAl = ParameterDataOld.ParameterType.Name == "al";
-            dgv.Columns.Add("receiver_number", String.Format("{0} приёмника №", ParameterDataOld.ParameterType.Structure.BendingTypeName));    //0
-            dgv.Columns.Add("sub_receiver_number", "Пара приёмника");                                                                       //1
-            dgv.Columns.Add("sub_transponder_number", "Пара генератора");                                                                   //2
-            dgv.Columns.Add("transponder_number", String.Format("{0} генератора №", ParameterDataOld.ParameterType.Structure.BendingTypeName));//3
-            dgv.Columns.Add("freq_range", "Диапазон, кГц");                                                                                 //4
-            dgv.Columns.Add("value", "результат, " + ParameterDataOld.ParameterType.ParameterDataList[0].ResultMeasure());                     //5
-            dgv.Columns.Add("norma", isAl ? "Макс" : "Мин");                                                                                //6
+            DataGridView dgv = Build_DataGridView();
 
-            dgv.Columns["sub_receiver_number"].Visible = !isPair;
-            dgv.Columns["sub_transponder_number"].Visible = !isPair && !isAl;
-            dgv.Columns["transponder_number"].Visible = !isAl;
+            bool isPair = ParameterData.TestedStructure.StructureType.StructureLeadsAmount == 2;
+            bool isAl = ParameterData.ParameterTypeId == Tables.MeasuredParameterType.al;
 
-            foreach (DataGridViewColumn c in dgv.Columns) c.ReadOnly = c.Name != "value";
+            dgv.Columns[Tables.CableTestResult.StructElementNumber_ColumnName].HeaderText = String.Format("{0} приёмника №", ParameterData.TestedStructure.StructureType.StructureTypeName);
 
-            TestResult[] results = ParameterDataOld.TestResults;
-            if (results.Length > 0)
-            {
-                foreach (TestResult result in results)
-                {
-                    TestResultDataGridViewRow r = new TestResultDataGridViewRow(result);
-                    r.CreateCells(dgv);
-                    r.Cells[0].Value = result.ElementNumber; //receiver_number
-                    r.Cells[1].Value = result.SubElementTitle(); //sub_receiver_number
-                    r.Cells[2].Value = result.GeneratorSubElementTitle(); //sub_transponder_number
-                    r.Cells[3].Value = result.GeneratorElementNumber; //transponder_number
-                    r.Cells[4].Value = result.ParameterData.GetFreqRangeTitle(); //freq_range
-                    r.Cells[5].Value = result.GetStringTableValue(); //value
-                    r.Cells[6].Value = isAl ? ParameterDataOld.MaxValue : ParameterDataOld.MinValue; //norma
+            dgv.Columns[Tables.CableTestResult.MeasureOnElementNumber_ColumnName].HeaderText = "Пара приёмника";
+            dgv.Columns[Tables.CableTestResult.MeasureOnElementNumber_ColumnName].Visible = ParameterData.TestedStructure.StructureType.StructureLeadsAmount > 2;
 
-                    r.Cells[5].ReadOnly = result.Affected; //лочим редактирование плохих структур
+            dgv.Columns[Tables.CableTestResult.PairNumberOnGenerator_ColumnName].HeaderText = "Пара генератора";
+            dgv.Columns[Tables.CableTestResult.PairNumberOnGenerator_ColumnName].Visible = ParameterData.TestedStructure.StructureType.StructureLeadsAmount > 2;
 
-                    r.DefaultCellStyle = GetRowStyle(result);
-                    dgv.Rows.Add(r);
-                }
-            }
-            dgv.CellValueChanged += Dgv_CellValueChanged;
+            dgv.Columns[Tables.CableTestResult.ElementNumberOnGenerator_ColumnName].HeaderText = String.Format("{0} генератора №", ParameterData.TestedStructure.StructureType.StructureTypeName);
+            dgv.Columns[Tables.CableTestResult.ResultForView_ColumnName].HeaderText = String.Format("Результат {0}", ParameterData.ResultMeasure_WithLength);
+            dgv.MultiSelect = false;
+            dgv.DataSource = ParameterData.TestResults;
             dgv.Refresh();
-
             return dgv;
         }
 
@@ -363,6 +370,31 @@ namespace SAKProtocolManager.MyFormElements
             return dgv;
         }
 
+        private void SetRowStyle(DataGridViewRow row)
+        {
+            DataGridViewCellStyle s = new DataGridViewCellStyle();
+            bool IsAffected = (bool)row.Cells[Tables.CableTestResult.IsAffected_ColumnName].Value;
+            bool IsOutOfNorm = (bool)row.Cells[Tables.CableTestResult.IsOutOfNorma_ColumnName].Value;
+            Debug.WriteLine($"{row.Cells[Tables.CableTestResult.StructElementNumber_ColumnName].Value} {IsAffected}");
+            if (IsAffected)
+            {
+                s.BackColor = System.Drawing.Color.DarkRed;
+                s.ForeColor = System.Drawing.Color.MintCream;
+            }
+            else if (IsOutOfNorm)
+            {
+                s.BackColor = System.Drawing.Color.DarkOrange;
+                s.ForeColor = System.Drawing.Color.MintCream;
+            }
+            else
+            {
+                s.BackColor = System.Drawing.Color.MintCream;
+            }
+            s.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            s.SelectionBackColor = System.Drawing.Color.Teal;
+            s.SelectionForeColor = System.Drawing.Color.OldLace;
+            row.DefaultCellStyle = s;
+        }
 
         private DataGridViewCellStyle GetRowStyle(TestResult tr)
         {
@@ -370,11 +402,14 @@ namespace SAKProtocolManager.MyFormElements
             if (tr.Affected)
             {
                 s.BackColor = System.Drawing.Color.DarkRed;
+
             }
             else if (tr.DeviationPercent > 0)
             {
                 s.BackColor = System.Drawing.Color.DarkOrange;
-            }else
+
+            }
+            else
             {
                 s.BackColor = System.Drawing.Color.MintCream;
             }

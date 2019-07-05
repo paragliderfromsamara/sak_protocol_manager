@@ -505,6 +505,18 @@ namespace NormaMeasure.DBControl.Tables
         private User _operator;
 
 
+        private DBEntityTable leadStatuses;
+        public DBEntityTable LeadStatuses
+        {
+            get
+            {
+                if (leadStatuses == null) leadStatuses = LeadTestStatus.get_all();
+                return leadStatuses;
+            }
+        }
+
+
+
     }
 
 

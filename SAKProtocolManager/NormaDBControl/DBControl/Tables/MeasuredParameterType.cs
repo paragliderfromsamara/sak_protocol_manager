@@ -117,7 +117,7 @@ namespace NormaMeasure.DBControl.Tables
 
         public static bool IsHasMaxLimit(uint parameter_type_id)
         {
-            uint[] notAllowed = new uint[] {Calling, Ao, Az};
+            uint[] notAllowed = new uint[] {Calling, Ao, Az, Risol1, Risol3};
             foreach(uint v in notAllowed)
             {
                 if (v == parameter_type_id) return false;

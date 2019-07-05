@@ -115,6 +115,8 @@ namespace SAKProtocolManager.DBEntities
             TestResults = tResult.GetMeasuredResults();
         } 
 
+        
+
 
         /*
         public void CalculateMinMaxAverage()
