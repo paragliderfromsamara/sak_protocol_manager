@@ -450,7 +450,7 @@ namespace NormaMeasure.DBControl.Tables
         public const string TestedCableId_ColumnName = "CabNum";
        // public const string SourceCableId_ColumnName = "source_cable_id";
         public const string OperatorId_ColumnName = "operator";
-        public const string Temperature_ColumnName = "Temperetur";
+        public const string Temperature_ColumnName = "Temperatur";
         public const string CableLength_ColumnName = "CabelLengt";
         public const string VSVI_ColumnName = "vsvi";
         public const string VSVISkin_ColumnName = "vsvi_obol";

@@ -398,8 +398,9 @@ namespace NormaMeasure.DBControl.Tables
                 CheckIsAffected();
                 float brResult = (float)parameterData.BringMeasuredValue((decimal)Result);
                 BringingResult = brResult;
-                CheckIsOutOfNorm();
                 ResultForView = MakeResultForView();
+                CheckIsOutOfNorm();
+
 
             }
         }
@@ -422,7 +423,7 @@ namespace NormaMeasure.DBControl.Tables
         }
 
         private LeadTestStatus leadTestStatus;
-        private LeadTestStatus LeadTestStatus => leadTestStatus;
+        public LeadTestStatus LeadTestStatus => leadTestStatus;
         private void CheckIsAffected()
         {
             if (parameterData == null) return;

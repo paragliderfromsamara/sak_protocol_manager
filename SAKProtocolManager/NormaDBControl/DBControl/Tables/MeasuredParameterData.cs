@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace NormaMeasure.DBControl.Tables
 {
@@ -371,10 +372,10 @@ namespace NormaMeasure.DBControl.Tables
         public TestedCableStructure TestedStructure;
         private DBEntityTable testResults;
 
-        private void AssignResult(CableTestResult r)
-        {
-            r.ParameterData = this;
-        }
+        public float MeasuredPercent;
+        public float AverageResult;
+        public float MaxResult;
+        public float MinResult;
 
         public DBEntityTable TestResults
         {
@@ -391,8 +392,27 @@ namespace NormaMeasure.DBControl.Tables
                 testResults = value;
                 if (testResults.Rows.Count > 0)
                 {
-                    foreach (CableTestResult r in testResults.Rows) AssignResult(r);
+                    MeasuredPercent = 0;
+                    AverageResult = 0;
+                    MaxResult = 0;
+                    MinResult = 0;
+                    float measuredCount = 0;
+                    List<float> results = new List<float>();
+                    foreach (CableTestResult r in testResults.Rows)
+                    {
+                        r.ParameterData = this;
+                        if (!r.IsAffected || r.LeadTestStatus.StatusId == LeadTestStatus.Broken) results.Add(r.BringingResult);
+                        if (r.IsAffected || r.IsOutOfNorma) measuredCount++;
+                    }
+                    MeasuredPercent = (float)Math.Round((double)(100f * (measuredCount/ (float)testResults.Rows.Count)));
+                    if (results.Count > 0)
+                    {
+                       MaxResult = results.Max();
+                       MinResult = results.Min();
+                       AverageResult = results.Average();
+                    }
                 }
+                Debug.WriteLine($"MeasureParameterData.TestResults.Set: max {MaxResult}; min {MinResult}; average {AverageResult}; MeasurePercent {MeasuredPercent} ;");
             }
         }
         public string GetFreqRangeTitle()
@@ -430,6 +450,7 @@ namespace NormaMeasure.DBControl.Tables
             decimal tstLength = (decimal)this.TestedStructure.TestedCable.Test.CableLength;
             value = bringToCoeffs(value);
             if (brLength == tstLength || tstLength == 0) return value;
+            if (this.ParameterTypeId == MeasuredParameterType.Rleads) Debug.WriteLine($"BringToLength({value}, {tstLength}, {brLength});");
             return BringToLength(value, tstLength, brLength);
         }
 
@@ -476,7 +497,8 @@ namespace NormaMeasure.DBControl.Tables
             switch (this.ParameterTypeId)
             {
                 case MeasuredParameterType.Rleads:
-                    value *= (1 / (1 + (decimal)this.TestedStructure.LeadMaterial.MaterialTKC * (temperature - 20)));
+                    Debug.WriteLine($"Temperature({temperature}, {this.TestedStructure.LeadMaterial.MaterialTKC}, {value});");
+                    value *= (1 / (1 + ((decimal)this.TestedStructure.LeadMaterial.MaterialTKC * (temperature - 20))));
                     return Math.Round(value, 1);
                 case MeasuredParameterType.Risol1:
                 case MeasuredParameterType.Risol3:

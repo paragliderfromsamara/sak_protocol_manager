@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using SAKProtocolManager.DBEntities;
 using SAKProtocolManager.DBEntities.TestResultEntities;
 using System.Data;
-using System.Diagnostics;
+//using System.Diagnostics;
 
 using NormaMeasure.DBControl;
 using Tables = NormaMeasure.DBControl.Tables;
@@ -188,7 +188,7 @@ namespace SAKProtocolManager.MyFormElements
             string[] HiddenCols = new string[] 
             {
                 Tables.MeasuredParameterType.ParameterTypeId_ColumnName,
-                "Temperetur",
+                "Temperatur",
                 Tables.CableTest.CableTestId_ColumnName,
                 Tables.CableTestResult.ElementNumberOnGenerator_ColumnName,
                 Tables.CableTestResult.PairNumberOnGenerator_ColumnName,
@@ -370,7 +370,7 @@ namespace SAKProtocolManager.MyFormElements
             DataGridViewCellStyle s = new DataGridViewCellStyle();
             bool IsAffected = (bool)row.Cells[Tables.CableTestResult.IsAffected_ColumnName].Value;
             bool IsOutOfNorm = (bool)row.Cells[Tables.CableTestResult.IsOutOfNorma_ColumnName].Value;
-            Debug.WriteLine($"{row.Cells[Tables.CableTestResult.StructElementNumber_ColumnName].Value} {IsAffected}");
+            //Debug.WriteLine($"{row.Cells[Tables.CableTestResult.StructElementNumber_ColumnName].Value} {IsAffected}");
             if (IsAffected)
             {
                 s.BackColor = System.Drawing.Color.DarkRed;
