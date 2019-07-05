@@ -457,7 +457,7 @@ namespace NormaMeasure.DBControl.Tables
         {
             get
             {
-                return $"{StructureType.StructureLeadsAmount}x{DisplayedAmount}x{LeadDiameter}";
+                return $"{DisplayedAmount}x{StructureType.StructureLeadsAmount}x{LeadDiameter}";
             }
         }
         public CableStructureType StructureType
