@@ -383,8 +383,21 @@ namespace NormaMeasure.DBControl.Tables
             {
                 if (testResults == null)
                 {
-                    DataRow[] rows = TestedStructure.GetTestResultsByParameterTypeId(ParameterTypeId).RowsAsArray();
+                    DataRow[] rows;
+                    if (MeasuredParameterType.IsItFreqParameter(ParameterTypeId))
+                    {
+                        rows = TestedStructure.GetTestResultsByParameterTypeId(ParameterTypeId).Select($"FreqDiap = {FrequencyRangeId}");
+                        if (rows.Length == 0)
+                        {
+                            rows = TestedStructure.GetLosted_TestResults_ByParameterTypeId_ForFreqParameters(this);
+                        }
+                    }
+                    else
+                    {
+                        rows = TestedStructure.GetTestResultsByParameterTypeId(ParameterTypeId).RowsAsArray();
+                    }
                     TestResults = new DBEntityTable(typeof(CableTestResult), rows);
+
                 }
                 return testResults;
             }set

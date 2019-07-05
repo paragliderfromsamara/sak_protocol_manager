@@ -38,6 +38,12 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
+        public static DBEntityTable find_by_min_freq(float min_freq)
+        {
+            return find_by_criteria($"{FreqMin_ColumnName} = {min_freq}", typeof(FrequencyRange));
+        }
+
+
         protected void find_or_create()
         {
             DBEntityTable t = find_by_criteria(makeWhereQueryForAllColumns(), typeof(FrequencyRange));

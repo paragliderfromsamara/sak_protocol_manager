@@ -739,13 +739,42 @@ namespace NormaMeasure.DBControl.Tables
         {
             if (!TestResults_Dictionary.ContainsKey(parameter_type_id))
             {
-                DataRow[] rows = TestedCable.Test.TestResults.Select($"ParamInd = {parameter_type_id} AND {CableStructure.StructureId_ColumnName} = {CableStructureId}");
+                DataRow[] rows = TestedCable.Test.TestResults.Select($"ParamInd = {parameter_type_id} AND {CableStructure.StructureId_ColumnName} = {CableStructureId} ");
                 DBEntityTable t = new DBEntityTable(typeof(CableTestResult), rows);
 
                 //CableTestResult.find_by_structure_id_and_parameter_type_id(CableStructureId, parameter_type_id);
                 TestResults_Dictionary.Add(parameter_type_id, t);
             }
             return TestResults_Dictionary[parameter_type_id];
+        }
+
+        internal DataRow[] GetLosted_TestResults_ByParameterTypeId_ForFreqParameters(MeasuredParameterData measuredParameterData)
+        {
+            DBEntityTable results = GetTestResultsByParameterTypeId(measuredParameterData.ParameterTypeId);
+            DataRow[] returnedRows = new DataRow[] { };
+            DBEntityTable sameFreqRanges = FrequencyRange.find_by_min_freq(measuredParameterData.FrequencyMin);
+            uint failedRangeId = 0;
+            foreach (FrequencyRange r in sameFreqRanges.Rows)
+            {
+                if (r.FrequencyRangeId != measuredParameterData.FrequencyRangeId)
+                {
+                    DataRow[] pDataUsingCurRange = MeasuredParameters.Select($"FreqDiap = {r.FrequencyRangeId}");
+                    if (pDataUsingCurRange.Length == 0)
+                    {
+                        DataRow[] resWithThatRange = results.Select($"FreqDiap = {r.FrequencyRangeId}");
+                        if (resWithThatRange.Length > 0)
+                        {
+                            failedRangeId = r.FrequencyRangeId;
+                            results.WriteSingleQuery($"UPDATE {results.TableName} SET FreqDiap = {measuredParameterData.FrequencyRangeId} WHERE {CableTest.CableTestId_ColumnName} = {TestedCable.Test.TestId} AND {MeasuredParameterType.ParameterTypeId_ColumnName} = {measuredParameterData.ParameterTypeId} AND FreqDiap = {failedRangeId} AND {CableStructure.StructureId_ColumnName} = {CableStructureId}");
+                            foreach (CableTestResult res in resWithThatRange) res.FrequencyRangeId = measuredParameterData.FrequencyRangeId;
+                            returnedRows = resWithThatRange;
+                            break;
+                        }
+                    }
+                }
+            }
+            return returnedRows;
+
         }
 
         public MeasuredParameterType[] TestedParameterTypes
