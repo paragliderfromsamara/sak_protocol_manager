@@ -165,31 +165,19 @@ namespace SAKProtocolManager.MyFormElements
 
         private DataGridView DrawIzolationCombinationTable()
         {
-            DataGridView dgv = new DataGridView();
-            /*
-            dgv.Columns.Add("elements_group", "Пучок №");
-            dgv.Columns.Add("combination", "Комбинация №");
-            dgv.Columns.Add("value", String.Format("Результат, {0}", ParameterDataOld.ResultMeasure()));
-            dgv.Columns.Add("min_norma", String.Format("Макс., {0}", ParameterDataOld.ResultMeasure()));
-            dgv.Columns.Add("max_norma", String.Format("Мин., {0}", ParameterDataOld.ResultMeasure()));
-            dgv.Columns["min_norma"].Visible = ParameterDataOld.MinValue > Decimal.MinValue;
-            dgv.Columns["max_norma"].Visible = ParameterDataOld.MaxValue < Decimal.MaxValue;
+            DataGridView dgv = Build_DataGridView();
 
-            TestResult[] results = ParameterDataOld.TestResults;
-            if (results.Length > 0)
+            dgv.Columns[Tables.CableTestResult.StructElementNumber_ColumnName].HeaderText = "Пучок №";
+            dgv.Columns[Tables.CableTestResult.MeasureOnElementNumber_ColumnName].HeaderText = "Комбинация №";
+            dgv.Columns[Tables.CableTestResult.ResultForView_ColumnName].HeaderText = String.Format("Результат, {0}", ParameterData.ResultMeasure_WithLength);
+
+
+            dgv.MultiSelect = false;
+            dgv.DataSource = ParameterData.TestResults;
+            if (ParameterData.TestResults.Rows.Count > 0)
             {
-                dgv.Columns["elements_group"].Visible = results[0].ElementNumber > 0;
-                dgv.Rows.Add(results.Length);
-                for (int i = 0; i < results.Length; i++)
-                {
-                    dgv.Rows[i].Cells["elements_group"].Value = results[i].ElementNumber;
-                    dgv.Rows[i].Cells["combination"].Value = results[i].SubElementNumber;
-                    dgv.Rows[i].Cells["value"].Value = results[i].GetStringTableValue();
-                    dgv.Rows[i].Cells["min_norma"].Value = ParameterDataOld.MinValue;
-                    dgv.Rows[i].Cells["max_norma"].Value = ParameterDataOld.MaxValue;
-                }
+                dgv.Columns[Tables.CableTestResult.StructElementNumber_ColumnName].Visible = ((Tables.CableTestResult)ParameterData.TestResults.Rows[0]).ElementNumber > 0;
             }
-            */
             return dgv;
         }
 
@@ -222,6 +210,8 @@ namespace SAKProtocolManager.MyFormElements
             }
             dgv.Columns[Tables.CableTestResult.MinAllowedValue_ColumnName].Visible = ParameterData.HasMinLimit;
             dgv.Columns[Tables.CableTestResult.MaxAllowedValue_ColumnName].Visible = ParameterData.HasMaxLimit;
+
+
 
             dgv.DataBindingComplete += Dgv_DataBindingComplete;
             dgv.Refresh();
@@ -335,6 +325,11 @@ namespace SAKProtocolManager.MyFormElements
 
             dgv.Columns[Tables.CableTestResult.ElementNumberOnGenerator_ColumnName].HeaderText = String.Format("{0} генератора №", ParameterData.TestedStructure.StructureType.StructureTypeName);
             dgv.Columns[Tables.CableTestResult.ResultForView_ColumnName].HeaderText = String.Format("Результат {0}", ParameterData.ResultMeasure_WithLength);
+
+
+            dgv.Columns[Tables.CableTestResult.PairNumberOnGenerator_ColumnName].Visible = !isAl && !isPair;
+            dgv.Columns[Tables.CableTestResult.ElementNumberOnGenerator_ColumnName].Visible = !isAl;
+
             dgv.MultiSelect = false;
             dgv.DataSource = ParameterData.TestResults;
             dgv.Refresh();
