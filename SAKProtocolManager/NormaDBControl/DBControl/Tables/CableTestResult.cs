@@ -147,7 +147,7 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        [DBColumn(PairNumberOnGenerator_ColumnName, ColumnDomain.UInt, Order = 19, OldDBColumnName = "PairNum_gen", Nullable = true)]
+        [DBColumn(PairNumberOnGenerator_ColumnName, ColumnDomain.UInt, Order = 19, OldDBColumnName = "ParaNum_gen", Nullable = true)]
         public uint GeneratorPairNumber
         {
             get
@@ -308,7 +308,7 @@ namespace NormaMeasure.DBControl.Tables
         public const string MeasureOnElementNumber_ColumnName = "IsmerNum";
         public const string MeasureResult_ColumnName = "Resultat";
         public const string ElementNumberOnGenerator_ColumnName = "StruktElNum_gen";
-        public const string PairNumberOnGenerator_ColumnName = "PairNum_gen";
+        public const string PairNumberOnGenerator_ColumnName = "ParaNum_gen";
 
         public const string BringingResult_ColumnName = "bringing_result";
         public const string IsOutOfNorma_ColumnName = "is_out_of_norma";
