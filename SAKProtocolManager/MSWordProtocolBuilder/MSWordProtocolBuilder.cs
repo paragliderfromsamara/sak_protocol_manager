@@ -110,7 +110,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         {
 
             addPrimaryParametersTable(structure);
-            //addRizolByGroupTable(structure);
+            addRizolByGroupTable(structure);
            // add_al_Table(structure);
             //add_AoAz_Table(structure, MeasureParameterType.Ao);
            // add_AoAz_Table(structure, MeasureParameterType.Az);
@@ -452,30 +452,30 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return rslt;
         }
 
-        private static void addRizolByGroupTable(CableStructure structure)
+        private static void addRizolByGroupTable(Tables.TestedCableStructure structure)
         {
-            MeasureParameterType type = null;
-            MeasuredParameterData mpd = null;
+            Tables.MeasuredParameterType type = null;
+            Tables.MeasuredParameterData mpd = null;
 
             OpenXmlElement[] elementsToPage = new OpenXmlElement[2]; 
             int i = 0;
-            foreach (MeasureParameterType mpt in structure.MeasuredParameters)
+            foreach (Tables.MeasuredParameterType mpt in structure.TestedParameterTypes)
             {
-                if (mpt.Id != MeasureParameterType.Risol3 && mpt.Id != MeasureParameterType.Risol4 || mpt.TestResults.Length == 0) continue;
+                if (mpt.ParameterTypeId != Tables.MeasuredParameterType.Risol3 && mpt.ParameterTypeId != Tables.MeasuredParameterType.Risol4) continue;
                 type = mpt;
                 break;
             }
             if (type == null) return;
-            statusPanel.AddToBarPosition($"Таблица {type.Name}", 0);
-            mpd = type.ParameterDataList[0];
-            Debug.WriteLine(mpd.ParameterType.Name);
-            bool MoreThanOneGroups = mpd.TestResults[0].ElementNumber > 0;
+            statusPanel.AddToBarPosition($"Таблица {type.ParameterName}", 0);
+            mpd = structure.GetAll_MeasuredParameterData_By_ParameterTypeId(type.ParameterTypeId)[0];
+            Debug.WriteLine(mpd.ParameterName);
+            bool MoreThanOneGroups = ((Tables.CableTestResult)mpd.TestResults.Rows[0]).ElementNumber > 0;
             int colsAmount = 2;
             OpenXML.Table table = BuildTable();
             OpenXML.TableRow headerRow = BuildRow();
             OpenXML.TableCell cellGroupElNumber = BuildCell("№/№ Гр.");
             OpenXML.TableCell cellElNumber = BuildCell("№/№ Комб.");
-            OpenXML.TableCell cellParameterName = BuildCell(ParameterNameText(mpd.ParameterType, mpd.ResultMeasure()).ToArray());//}, {mpd.ParameterType.ParameterDataList[0].ResultMeasure()}");
+            OpenXML.TableCell cellParameterName = BuildCell(ParameterNameText(type, mpd.ResultMeasure_WithLength).ToArray());//}, {mpd.ParameterType.ParameterDataList[0].ResultMeasure()}");
 
 
 
@@ -488,9 +488,10 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             headerRow.AppendChild(cellElNumber);
             headerRow.AppendChild(cellParameterName);
             table.Append(headerRow);
-            foreach (TestResult r in mpd.TestResults)
+
+            foreach (Tables.CableTestResult r in mpd.TestResults.Rows)
             {
-                uint bottomDorderWidth = (uint)((i < mpd.TestResults.Length - 1) ? 0 : 2);
+                uint bottomDorderWidth = (uint)((i < mpd.TestResults.Rows.Count - 1) ? 0 : 2);
                 OpenXML.TableCellBorders borderStyle = BuildBordersStyle(0, bottomDorderWidth);
 
                 OpenXML.TableRow resRow = BuildRow();
@@ -518,19 +519,19 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
             OpenXML.Paragraph p = new OpenXML.Paragraph();
             List<OpenXML.Run> noteRun = new List<OpenXML.Run>();
-            foreach (MeasureParameterType t in structure.MeasuredParameters_Full)
+            foreach (Tables.MeasuredParameterData d in structure.MeasuredParameters.Rows)
             {
-                Debug.WriteLine($"Параметр {t.Id}");
-                if (type.Id == MeasureParameterType.Risol4 && t.Id == MeasureParameterType.Risol3)
+                Debug.WriteLine($"Параметр {d.ParameterTypeId}");
+                if (type.ParameterTypeId == Tables.MeasuredParameterType.Risol4 && d.ParameterTypeId == Tables.MeasuredParameterType.Risol3)
                 {
-                    noteRun = ParameterNameText(t);
-                    noteRun.Add(AddRun($"норма: {t.ParameterDataList[0].MinValue} МОм"));
+                    noteRun = ParameterNameText(d);
+                    noteRun.Add(AddRun($"норма: {d.MinValue} МОм"));
                     
                     //text = $"Rиз Норма: {}";
-                }else if (type.Id == MeasureParameterType.Risol3 && t.Id == MeasureParameterType.Risol4)
+                }else if (type.ParameterTypeId == Tables.MeasuredParameterType.Risol3 && d.ParameterTypeId == Tables.MeasuredParameterType.Risol4)
                 {
-                    noteRun = ParameterNameText(t);
-                    noteRun.Add(AddRun($"За время {t.ParameterDataList[0].MaxValue}"));
+                    noteRun = ParameterNameText(d);
+                    noteRun.Add(AddRun($"За время {d.MaxValue}"));
                 }
             }
             //noteRun.Add(AddRun($"За время 100500 лет"));
@@ -538,7 +539,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             elementsToPage[1] = BuildParagraph(noteRun.ToArray());
 
            // wordProtocol.AddTable(table, colsAmount, mpd.ParameterType.TestResults.Length + 2);
-            wordProtocol.AddElementsAsXML(elementsToPage, wordProtocol.CellHeight*(mpd.ParameterType.TestResults.Length + 4), wordProtocol.CellWidth * colsAmount);
+            wordProtocol.AddElementsAsXML(elementsToPage, wordProtocol.CellHeight*(mpd.TestResults.Rows.Count + 4), wordProtocol.CellWidth * colsAmount);
             statusPanel.AddToBarPosition();
         }
 
@@ -1386,10 +1387,11 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             else return "пары";
         }
 
-        private static List<OpenXML.Run> ParameterNameText(Tables.MeasuredParameterType pType, string measure = null)
+        private static List<OpenXML.Run> ParameterNameText(uint parameter_type_id, string measure = null, string default_name = null)
         {
             List<OpenXML.Run> runList = new List<OpenXML.Run>();
-            switch (pType.ParameterTypeId)
+            if (string.IsNullOrWhiteSpace(default_name)) default_name = "N/A";
+            switch (parameter_type_id)
             {
                 case Tables.MeasuredParameterType.K12:
                     runList.Add(AddRun("K"));
@@ -1461,94 +1463,30 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     runList.Add(AddRun("ΔR"));
                     break;
                 default:
-                    runList.Add(AddRun(pType.ParameterName));
+           
+                    runList.Add(AddRun(default_name));
                     break;
             }
             if (measure != null) runList.Add(AddRun($",{measure}"));
             return runList;
         }
 
+        private static List<OpenXML.Run> ParameterNameText(Tables.MeasuredParameterType pType, string measure = null)
+        {
+            return ParameterNameText(pType.ParameterTypeId, measure, pType.ParameterName);
+        }
+
+        private static List<OpenXML.Run> ParameterNameText(Tables.MeasuredParameterData pData, string measure = null)
+        {
+            return ParameterNameText(pData.ParameterTypeId, measure, pData.ParameterName);
+        }
+
 
         private static List<OpenXML.Run> ParameterNameText(MeasureParameterType pType, string measure = null)
         {
-            List<OpenXML.Run> runList = new List<OpenXML.Run>();
-            switch(pType.Id)
-            {
-                case MeasureParameterType.K12:
-                    runList.Add(AddRun("K"));
-                    runList.Add(AddRun("12", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.K11:
-                    runList.Add(AddRun("K"));
-                    runList.Add(AddRun("11", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.K10:
-                    runList.Add(AddRun("K"));
-                    runList.Add(AddRun("10", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.K9:
-                    runList.Add(AddRun("K"));
-                    runList.Add(AddRun("9", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.K3:
-                    runList.Add(AddRun("K"));
-                    runList.Add(AddRun("3", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.K2:
-                    runList.Add(AddRun("K"));
-                    runList.Add(AddRun("2", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.K1:
-                    runList.Add(AddRun("K"));
-                    runList.Add(AddRun("1", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.Ea:
-                    runList.Add(AddRun("E"));
-                    runList.Add(AddRun("a", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.Cp:
-                    runList.Add(AddRun("С"));
-                    runList.Add(AddRun("р", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.Co:
-                    runList.Add(AddRun("С"));
-                    runList.Add(AddRun("0", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.Rleads:
-                    runList.Add(AddRun("R"));
-                    runList.Add(AddRun("ж", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.Ao:
-                    runList.Add(AddRun("A"));
-                    runList.Add(AddRun("0", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.Az:
-                    runList.Add(AddRun("A"));
-                    runList.Add(AddRun("з", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.al:
-                    runList.Add(AddRun("α"));
-                    runList.Add(AddRun("l", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.Risol1:
-                case MeasureParameterType.Risol3:
-                    runList.Add(AddRun("R"));
-                    runList.Add(AddRun("из", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.Risol2:
-                case MeasureParameterType.Risol4:
-                    runList.Add(AddRun("T"));
-                    runList.Add(AddRun("из", MSWordStringTypes.Subscript));
-                    break;
-                case MeasureParameterType.dR:
-                    runList.Add(AddRun("ΔR"));
-                    break;
-                default:
-                    runList.Add(AddRun(pType.Name));
-                    break;
-            }
-            if (measure != null) runList.Add(AddRun($",{measure}"));
-            return runList;
+            uint id = 0;
+            uint.TryParse(pType.Id, out id);
+            return ParameterNameText(id, measure, pType.Name);
         }
 
         private static int ColumsCountForParameter(uint parameter_type_id, int leads_number)
