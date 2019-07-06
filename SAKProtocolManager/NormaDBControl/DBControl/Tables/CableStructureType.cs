@@ -109,6 +109,28 @@ namespace NormaMeasure.DBControl.Tables
 
         private DBEntityTable measuredParameterTypes;
 
+        public string StructureTypeName_Multiple
+        {
+            get
+            {
+                switch (StructureTypeId)
+                {
+                    case Lead:
+                        return "жилы";
+                    case Pair:
+                        return "пары";
+                    case Triplet:
+                        return "тройки";
+                    case Quattro:
+                        return "четвёрки";
+                    case HightFreqQuattro:
+                        return "четвёрки";
+                    default:
+                        return "элементы";
+                }
+            }
+        }
+
 
         public const uint Lead = 1;
         public const uint Pair = 2;

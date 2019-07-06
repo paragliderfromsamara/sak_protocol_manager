@@ -115,7 +115,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             add_AoAz_Table(structure, Tables.MeasuredParameterType.Ao);
             add_AoAz_Table(structure, Tables.MeasuredParameterType.Az);
             add_Statistic_Table(structure);
-           // add_VSVI_TestResult(structure);
+            add_VSVI_TestResult(structure);
            // add_StructElements_Conclusion(structure);
         }
 
@@ -149,6 +149,41 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             descriptionParagraph.Append(AddRun(" жирным ", MSWordStringTypes.Typical, true, true), AddRun("шрифтом.", MSWordStringTypes.Typical, false, true));
             paragraphs.Add(descriptionParagraph);
             wordProtocol.AddElementsAsXML(paragraphs.ToArray(), 4 * 13, 400);
+        }
+
+        private static void add_VSVI_TestResult(Tables.TestedCableStructure structure)
+        {
+
+            if (!structure.TestedCable.Test.VSVILeadLeadResult) return;
+            List<OpenXML.Paragraph> paragraphs = new List<OpenXML.Paragraph>();
+            paragraphs.Add(BuildParagraph(AddRun("Испытательное напряжение (постоянный ток) в течение 1 мин, приложенное:")));
+            if (structure.LeadToLeadTestVoltage > 0) paragraphs.Add(BuildParagraph(AddRun($"   -Между жилами                   {structure.LeadToLeadTestVoltage} В")));
+            if (structure.LeadToShieldTestVoltage > 0) paragraphs.Add(BuildParagraph(AddRun($"   -Между жилами и экраном {structure.LeadToShieldTestVoltage} В")));
+            OpenXML.Paragraph vsviResultParagraph = BuildParagraph();
+            if (structure.BrokenElements.Length > 0)
+            {
+                if (structure.BrokenElements.Length > 1)
+                {
+                    vsviResultParagraph.Append(AddRun($"Пробитые {structure.StructureType.StructureTypeName_Multiple} №№: "));
+                }
+                else
+                {
+                    vsviResultParagraph.Append(AddRun($"Пробитая {structure.StructureType.StructureTypeName} №"));
+                }
+
+                for (int i = 0; i < structure.BrokenElements.Length; i++)
+                {
+                    if (i > 0) vsviResultParagraph.Append(AddRun(", ")); // s += ", ";
+                    vsviResultParagraph.Append(AddRun(structure.BrokenElements[i].ToString(), MSWordStringTypes.Typical, true));
+                }
+                vsviResultParagraph.Append(AddRun(";"));
+            }
+            else
+            {
+                vsviResultParagraph.Append(AddRun("Выдержал."));
+            }
+            paragraphs.Add(vsviResultParagraph);
+            wordProtocol.AddElementsAsXML(paragraphs.ToArray(), paragraphs.Count * 13, 400);
         }
 
         private static void add_VSVI_TestResult(CableStructure structure)

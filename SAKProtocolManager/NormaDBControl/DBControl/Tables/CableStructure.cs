@@ -796,6 +796,24 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
+        public int[] BrokenElements
+        {
+            get
+            {
+                if (brokenElements == null)
+                {
+                    List<int> brokenElementsList = new List<int>();
+                    CableTestResult[] brokenElsRows = (CableTestResult[])(AffectedElements.Select($"{Tables.CableTestResult.MeasureResult_ColumnName} = {LeadTestStatus.Broken}"));
+                    foreach(CableTestResult r in brokenElsRows)
+                    {
+                        brokenElementsList.Add((int)r.ElementNumber);
+                    }
+                    brokenElements = brokenElementsList.Distinct().ToArray();
+                }
+                return brokenElements;
+            }
+        }
+        private int[] brokenElements;
         private MeasuredParameterType[] testedParameterTypes;
         protected Dictionary<uint, DBEntityTable> TestResults_Dictionary = new Dictionary<uint, DBEntityTable>();
 
