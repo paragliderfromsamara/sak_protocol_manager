@@ -922,13 +922,12 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                         {
                             float norma = 600;
                             string measure = "МОм/км";
-                            foreach (Tables.MeasuredParameterType r in structure.TestedParameterTypes)
+                            foreach (Tables.MeasuredParameterData d in structure.MeasuredParameters.Rows)
                             {
-                                if (r.ParameterTypeId == Tables.MeasuredParameterType.Risol1)
+                                if (d.ParameterTypeId == Tables.MeasuredParameterType.Risol1)
                                 {
-                                    Tables.MeasuredParameterData[] data = structure.GetAll_MeasuredParameterData_By_ParameterTypeId(r.ParameterTypeId);
-                                    norma = data[0].MinValue;
-                                    measure = data[0].ResultMeasure_WithLength;
+                                    norma = d.MinValue;
+                                    measure = d.ResultMeasure_WithLength;
                                 }
                             }
 

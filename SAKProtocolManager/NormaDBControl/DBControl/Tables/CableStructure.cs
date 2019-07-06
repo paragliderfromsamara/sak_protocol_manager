@@ -689,13 +689,7 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-        public bool HasMeasuredParameters
-        {
-            get
-            {
-                return MeasuredParameters.Rows.Count > 0;
-            }
-        }
+        public bool HasMeasuredParameters => MeasuredParameters.Rows.Count > 0;
 
 
 

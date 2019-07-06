@@ -422,7 +422,7 @@ namespace NormaMeasure.DBControl.Tables
                     {
                        MaxResult = results.Max();
                        MinResult = results.Min();
-                       AverageResult = results.Average();
+                       AverageResult = (float)Math.Round(results.Average(), 1);
                     }
                 }
                 Debug.WriteLine($"MeasureParameterData.TestResults.Set: max {MaxResult}; min {MinResult}; average {AverageResult}; MeasurePercent {MeasuredPercent} ;");
