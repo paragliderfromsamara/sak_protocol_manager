@@ -167,10 +167,18 @@ namespace NormaMeasure.DBControl.Tables
             return parameters.Contains(parameter_type_id);
         }
 
-        public bool IsEK()
+        public bool IsPrimaryParameter
         {
-            return IsEKParameter(this.ParameterTypeId);
+            get
+            {
+                return ((ParameterTypeId == Rleads) || (ParameterTypeId == dR) || ParameterTypeId == Risol1 || ParameterTypeId == Risol2 || (ParameterTypeId == Cp) || (ParameterTypeId == Co) || IsEK);
+            }
         }
+
+        public bool Is_K_Parameter => IsEK && (this.ParameterTypeId != Ea);
+
+        public bool IsEK => IsEKParameter(this.ParameterTypeId);
+
 
         public static bool IsHasMinLimit(uint parameter_type_id)
         {

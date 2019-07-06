@@ -63,6 +63,26 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
+        public string StatusTitle_Short
+        {
+            get
+            {
+                switch(StatusId)
+                {
+                    case Ok:
+                        return "Годн.";
+                    case Ragged:
+                        return "Обр.";
+                    case Closured:
+                        return "Зам.";
+                    case Broken:
+                        return "Проб.";
+                    default:
+                        return StatusTitle.Substring(0, 3) + ".";
+                }
+            }
+        }
+
         public const string StatusId_ColumnName = "StatGil";
         public const string StatusTitle_ColumnName = "StatGilName";
 

@@ -170,6 +170,13 @@ namespace NormaMeasure.DBControl.Tables
             else return null;
         }
 
+        public MeasuredParameterData[] GetAll_MeasuredParameterData_By_ParameterTypeId(uint parameter_type_id)
+        {
+            DataRow[] rows = MeasuredParameters.Select($"{MeasuredParameterType.ParameterTypeId_ColumnName} = {parameter_type_id}");
+            return (MeasuredParameterData[])rows;
+        }
+
+
         #region Колонки таблицы
         [DBColumn(StructureId_ColumnName, ColumnDomain.UInt, Order = 10, OldDBColumnName = "StruktInd", IsPrimaryKey = true, Nullable = true, AutoIncrement = true)]
         public uint CableStructureId
@@ -774,7 +781,6 @@ namespace NormaMeasure.DBControl.Tables
                 }
             }
             return returnedRows;
-
         }
 
         public MeasuredParameterType[] TestedParameterTypes

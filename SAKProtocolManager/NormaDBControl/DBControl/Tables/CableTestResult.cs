@@ -243,6 +243,9 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
+
+
+
         [DBColumn(MinAllowedValue_ColumnName, ColumnDomain.Float, Order = 24, IsVirtual = true, Nullable = true, DefaultValue = 0)]
         public float MinAllowed
         {

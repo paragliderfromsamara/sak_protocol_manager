@@ -490,7 +490,7 @@ namespace SAKProtocolManager
             */
             StatusPanel statPanel = new StatusPanel(procNameLbl, lengthUpdProgressBarLbl, LengthUpdProgressBar);
             lengthUpdProgressBarField.Visible = true;
-            MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTestOld, statPanel);
+            MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest, statPanel);
             lengthEditor.Visible = true;
             lengthUpdProgressBarField.Visible = false;
 
