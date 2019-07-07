@@ -544,6 +544,8 @@ namespace SAKProtocolManager
             }
             set
             {
+                if (value > progrBar.Maximum) progrBar.Maximum = value;
+                if (value < progrBar.Minimum) progrBar.Minimum = value;
                 progrBar.Value = value;
                 progrBar.Refresh();
                 progrBar.Update();

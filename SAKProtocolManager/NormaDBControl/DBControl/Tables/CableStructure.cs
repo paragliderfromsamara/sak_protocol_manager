@@ -674,7 +674,6 @@ namespace NormaMeasure.DBControl.Tables
                     if (IsNewRecord())
                     {
                         measuredParameters = MeasuredParameterData.get_tested_structure_measured_parameters(0);
-
                     }
                     else
                     {
@@ -682,8 +681,24 @@ namespace NormaMeasure.DBControl.Tables
                     }
                     if (measuredParameters.Rows.Count > 0)
                     {
-                        foreach (MeasuredParameterData mpd in measuredParameters.Rows) mpd.TestedStructure = this;
+                        MeasuredParameterData[] Kparams = (MeasuredParameterData[])measuredParameters.Select($"{MeasuredParameterType.ParameterTypeId_ColumnName} in ({MeasuredParameterType.K9_12}, {MeasuredParameterType.K23})");
+                        foreach(MeasuredParameterData k_pd in Kparams)
+                        {
+                           DataRow[] kDatas = k_pd.MakeSplit_K_Parameters();
+                           
+                           foreach(MeasuredParameterData d in kDatas)
+                            {
+                                d.TestedStructure = this;
+                                measuredParameters.ImportRow(d);
+                            }
+                           
+                        }
+                        foreach (MeasuredParameterData mpd in measuredParameters.Rows)
+                        {
+                            mpd.TestedStructure = this;
+                        }
                     }
+                    //measuredParameters = tmp;
                 }
                 return measuredParameters;
             }

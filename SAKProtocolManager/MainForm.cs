@@ -277,8 +277,8 @@ namespace SAKProtocolManager
 
         private void OpenTest(string testId)
         {
-            try
-            {
+           // try
+          //  {
                 Tables.CableTest test = GetTestById(testId);
                 topMenu.Enabled = TestListtPanel.Enabled = false;
                 this.Cursor = Cursors.WaitCursor;
@@ -297,8 +297,8 @@ namespace SAKProtocolManager
                 }
 
                 this.Cursor = Cursors.Default;
-            }
-            catch (NullReferenceException) { }
+           // }
+          //  catch (NullReferenceException) { }
         }
 
         

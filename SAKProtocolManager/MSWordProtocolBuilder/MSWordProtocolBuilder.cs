@@ -259,7 +259,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     }
                 }
             }
-            wordProtocol.AddTable(table, 19, rowsAmount+1);
+            wordProtocol.AddTable(table, 10, rowsAmount+3);
         }
 
         private static OpenXML.TableRow[] BuildStatTable_HeaderRow()
@@ -335,7 +335,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                         if (pairsAmount % colsPerTable > 0) tablesOnWide++;
                     }
                     
-                    Debug.WriteLine($"add_AoAz_Table: onWide = {tablesOnWide} colsPerTable = {colsPerTable}");
+                    //Debug.WriteLine($"add_AoAz_Table: onWide = {tablesOnWide} colsPerTable = {colsPerTable}");
                     
                     for(int tableNum=0; tableNum < tablesOnWide; tableNum++)
                     {
@@ -628,7 +628,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private static void Build_al_Table(List<Tables.MeasuredParameterData> curTableData, int colsAmount, Tables.TestedCableStructure structure)
         {
             int curElementNumber = 1;
-            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount + 3 + 2, 3, true);
+            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount + 3 + 2, 5);
 
             for(int idx = 0; idx < tablesRowsCount.Length; idx++)
             {
@@ -879,7 +879,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private static void BuildPrimaryParametersTable_WithOpenXML(Tables.MeasuredParameterType[] pTypes, Tables.TestedCableStructure structure, int colsAmount)
         {
             int curElementNumber = 1;
-            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount + 3+2, 4);
+            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount + 3+2, 7);
             Debug.WriteLine($"{structure.RealAmount}");
 
             for (int idx = 0; idx < tablesRowsCount.Length; idx++)
@@ -1363,6 +1363,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private static int[] CalcMaxRowsCount_For_AoAz(int cols, int rows)
         {
             SubTable[] subTables = wordProtocol.EstimateTablePosition_For_AoAz(cols, rows);
+            foreach (SubTable st in subTables) Debug.WriteLine($"columns {st.ColumnsCount} rows {st.RowsCount} page {st.TableShapePlanedCoord.page}");
             List<int> template = new List<int>();
             foreach (SubTable st in subTables) template.Add(st.RowsCount);
             return template.ToArray();
@@ -1796,13 +1797,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             //if (MinRowsPerTable > rowsCount) MinRowsPerTable = rowsCount;
             ShapeCoord lastCoord = LastShapeCoords == null ? new ShapeCoord() { x = 0, y = 0, width = 0, height = 0, page = 0 } : LastShapeCoords; //Координаты последней добавленной фигуры
             float[] pageLine = (float[])PageLine.Clone(); //создаём копию массива фигур для данной строки
-            List<SubTable> subTables = new List<SubTable>(); 
+            List<SubTable> subTables = new List<SubTable>();
             int curPage = lastCoord.page; //устанавливаем текущей странице страницу из координат последней фигуры в документе
 
             float xCoord = (int)lastCoord.x + (int)lastCoord.width; //устанавливаем текущую координату 
             if (xCoord + tableWidth > PageWidth) xCoord = 0f; //если фигура не умещается устанавливаем x = 0
             float line = GetLine(pageLine, (int)lastCoord.x, (int)tableWidth); // ищем строку для вставки
-            if (line + (rowsCount/3) * CellHeight > PageHeight ) // высота 1/3 ячеек таблицы не помещается на текущей странице - переходим на новый лист
+            if (line + (rowsCount / 3) * CellHeight > PageHeight) // высота 1/3 ячеек таблицы не помещается на текущей странице - переходим на новый лист
             {
                 for (int ps = 0; ps < pageLine.Length; ps++) pageLine[ps] = 0f;
                 xCoord = 0f;
@@ -1810,26 +1811,28 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
 
             while (rowsCount > 0)
-            { 
+            {
                 line = GetLine(pageLine, (int)lastCoord.x, (int)tableWidth);
                 int rowsOnCurrentPosition = (int)((PageHeight - line) / CellHeight); //Количество строк в данной строке документа
                 int colsOnCurrentPosition = colsCount; //Количество столбцов в данной строке документа
                 int tablesToAddCount = 0; //количестов таблиц для добавления в документ
+                if (rowsOnCurrentPosition == 0) rowsOnCurrentPosition = (MaxRowsPerTable > rowsCount) ? rowsCount : MaxRowsPerTable;
                 if (xCoord == 0)
                 {
-                    rowsOnCurrentPosition = (int)((PageHeight - line) / CellHeight);
-                    tablesToAddCount = tablesOnPageRow;
+                    tablesToAddCount = rowsCount > 22 ? tablesOnPageRow : 1;
                     if (rowsCount / tablesOnPageRow < rowsOnCurrentPosition)
                     {
                         if (rowsCount > 14)
                         {
                             rowsOnCurrentPosition = rowsCount / tablesOnPageRow;
-                        }else
+                        }
+                        else
                         {
                             rowsOnCurrentPosition = rowsCount;
                         }
                     }
-                }else
+                }
+                else
                 {
                     tablesToAddCount = 1;
                 }
@@ -2138,7 +2141,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             {
                 object idx = 1;
                 Word.Shape oShape = headerDoc.Shapes.get_Item(ref idx);
-                oShape.Width = PageWidth - MarginRight;
+                oShape.Width = PageWidth - MarginRight-MarginLeft;
                 oShape.RelativeHorizontalPosition = WdRelativeHorizontalPosition.wdRelativeHorizontalPositionMargin;
                 AddShapeToCoordsList(oShape);
                 replaceRegular(ref oShape, test);

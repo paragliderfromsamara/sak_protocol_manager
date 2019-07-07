@@ -538,6 +538,40 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
+        /// <summary>
+        /// Разделяем К23 и К9_12 на отдельные параметры К2, К3 и К9, К10, К11, К12 соответственно
+        /// </summary>
+        /// <param name="mpd"></param>
+        /// <returns></returns>
+        public DataRow[] MakeSplit_K_Parameters()
+        {
+            uint[] ids;
+            if (this.ParameterTypeId == MeasuredParameterType.K23) ids = new uint[] { MeasuredParameterType.K2, MeasuredParameterType.K3 };
+            else if (this.ParameterTypeId == MeasuredParameterType.K9_12) ids = new uint[] { MeasuredParameterType.K9, MeasuredParameterType.K10, MeasuredParameterType.K11, MeasuredParameterType.K12 };
+            else return new MeasuredParameterData[] { };
+
+            DBEntityTable t = new DBEntityTable(typeof(MeasuredParameterData));
+            foreach(uint id in ids)
+            {
+                MeasuredParameterType pType = MeasuredParameterType.find_by_id(id);
+                MeasuredParameterData mpdNew = (MeasuredParameterData)t.NewRow();
+                mpdNew.SourceCableId = this.SourceCableId;
+                mpdNew.SourceStructureId = this.SourceStructureId;
+                mpdNew.ParameterTypeId = pType.ParameterTypeId;
+                mpdNew.ParameterName = pType.ParameterName;
+                mpdNew.ParameterMeasure = this.ParameterMeasure;
+                mpdNew.ParameterDescription = this.ParameterDescription;
+                mpdNew.MinValue = this.MinValue;
+                mpdNew.MaxValue = this.MaxValue;
+                mpdNew.Percent = this.Percent;
+                mpdNew.LngthBringingTypeId = this.LngthBringingTypeId;
+                mpdNew.LengthBringingName = this.LengthBringingName;
+                mpdNew.LengthBringing = this.LengthBringing;
+                mpdNew.FrequencyRangeId = this.FrequencyRangeId;
+                t.Rows.Add(mpdNew);
+            }
+            return t.RowsAsArray();
+        }
 
         public string GetNormaTitle()
         {
