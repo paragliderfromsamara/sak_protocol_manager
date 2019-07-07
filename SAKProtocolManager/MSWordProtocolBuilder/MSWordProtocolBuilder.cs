@@ -110,13 +110,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         {
 
             addPrimaryParametersTable(structure);
-            addRizolByGroupTable(structure);
-            add_al_Table(structure);
-            add_AoAz_Table(structure, Tables.MeasuredParameterType.Ao);
-            add_AoAz_Table(structure, Tables.MeasuredParameterType.Az);
-            add_Statistic_Table(structure);
-            add_VSVI_TestResult(structure);
-            add_StructElements_Conclusion(structure);
+            //addRizolByGroupTable(structure);
+            //add_al_Table(structure);
+            //add_AoAz_Table(structure, Tables.MeasuredParameterType.Ao);
+            //add_AoAz_Table(structure, Tables.MeasuredParameterType.Az);
+            //add_Statistic_Table(structure);
+            //add_VSVI_TestResult(structure);
+            //add_StructElements_Conclusion(structure);
         }
 
         /*
@@ -574,7 +574,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             elementsToPage[0] = table;
             elementsToPage[1] = BuildParagraph(noteRun.ToArray());
 
-           // wordProtocol.AddTable(table, colsAmount, mpd.ParameterType.TestResults.Length + 2);
+            //wordProtocol.AddTable(table, colsAmount, mpd.ParameterType.TestResults.Length + 2);
             wordProtocol.AddElementsAsXML(elementsToPage, wordProtocol.CellHeight*(mpd.TestResults.Rows.Count + 4), wordProtocol.CellWidth * colsAmount);
             statusPanel.AddToBarPosition();
         }
@@ -628,7 +628,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private static void Build_al_Table(List<Tables.MeasuredParameterData> curTableData, int colsAmount, Tables.TestedCableStructure structure)
         {
             int curElementNumber = 1;
-            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount + 3 + 2, 5);
+            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount, 2, 3);
 
             for(int idx = 0; idx < tablesRowsCount.Length; idx++)
             {
@@ -879,18 +879,19 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private static void BuildPrimaryParametersTable_WithOpenXML(Tables.MeasuredParameterType[] pTypes, Tables.TestedCableStructure structure, int colsAmount)
         {
             int curElementNumber = 1;
-            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount + 3+2, 7);
+            int headerRowsCount = 2;
+            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount, headerRowsCount, 3);
             Debug.WriteLine($"{structure.RealAmount}");
 
             for (int idx = 0; idx < tablesRowsCount.Length; idx++)
             {
 
-                int rows = 2 + tablesRowsCount[idx];
+                int rows = tablesRowsCount[idx]- headerRowsCount;
                 OpenXML.Table table = BuildTable();
                 OpenXML.TableRow[] headerRows = BuildPrimaryParamsTableHeader_WithOpenXML(pTypes, structure);
                 List<OpenXmlElement> elementsToPage = new List<OpenXmlElement>();
                 foreach (OpenXML.TableRow r in headerRows) table.Append(r);
-                for (int i = 0; i < tablesRowsCount[idx]; i++)
+                for (int i = 0; i < rows; i++)
                 {
                     OpenXML.TableRow row = BuildRow();
                     
@@ -899,7 +900,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     {
                         OpenXML.TableCell numbCell = BuildCell(curElementNumber.ToString());
                         if (i % 2 == 1) FillCellByColor(numbCell, "ededed");
-                        OpenXML.TableCellBorders borderStyle = BuildBordersStyle(0, (uint)((i < tablesRowsCount[idx] - 1) ? 0 : 2) );
+                        OpenXML.TableCellBorders borderStyle = BuildBordersStyle(0, (uint)((i < rows - 1) ? 0 : 2) );
                         SetCellBordersStyle(numbCell, borderStyle);
                         row.Append(numbCell); //Ячейка номера элемента
                         for (int pIdx = 0; pIdx < pTypes.Length; pIdx++)//(MeasureParameterType mpt in pTypes)
@@ -910,9 +911,18 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                             int resIdx = (curElementNumber - 1) * elsColsPerParam;
                             for (int rIdx = resIdx; rIdx < resIdx + elsColsPerParam; rIdx++)
                             {
-                                Tables.CableTestResult res = (Tables.CableTestResult)results[rIdx];
-                                OpenXML.TableCellBorders resBordStyle = BuildBordersStyle(0, (uint)((i < tablesRowsCount[idx] - 1) ? 0 : 2));
-                                OpenXML.TableCell resCell = BuildCell(BuildParagraph(ResultText(res)));
+                                OpenXML.TableCell resCell;
+                                OpenXML.TableCellBorders resBordStyle = BuildBordersStyle(0, (uint)((i < rows - 1) ? 0 : 2));
+                                try
+                                {
+                                    Tables.CableTestResult res = (Tables.CableTestResult)results[rIdx];
+
+                                    resCell = BuildCell(BuildParagraph(ResultText(res)));
+                                }
+                                catch(IndexOutOfRangeException)
+                                {
+                                    resCell = BuildCell();
+                                }
                                 if (i % 2 == 1) FillCellByColor(resCell, "ededed");
                                 SetCellBordersStyle(resCell, resBordStyle);
                                 row.Append(resCell);
@@ -1369,11 +1379,16 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return template.ToArray();
         }
 
-        private static int[] CalcMaxRowsCount(int cols, int rows, int minRowsPerTable = 5, bool from_new_line = false)
+        private static int[] CalcMaxRowsCount(int cols, int contentRowsCount, int headerRowsCount = 2, int lastTableRowsCount = 3)
         {
-            SubTable[] subTables = wordProtocol.EstimateTablePosition(cols, rows, minRowsPerTable, from_new_line);
+            SubTable[] subTables = wordProtocol.EstimateTablePosition(cols, contentRowsCount, headerRowsCount, lastTableRowsCount);
             List <int> template = new List<int>();
-            foreach (SubTable st in subTables) template.Add(st.RowsCount);
+            int tId = 0;
+            foreach (SubTable st in subTables)
+            {
+                Debug.WriteLine($"CalcMaxRowsCount: {tId++}) {st.RowsCount}");
+                if (st.RowsCount != 0) template.Add(st.RowsCount);
+            }
             return template.ToArray();
         }
 
@@ -1851,58 +1866,53 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return subTables.ToArray();
         }
 
-        public SubTable[] EstimateTablePosition(int colsCount, int rowsCount, int MinRowsPerTable = 5, bool from_new_line = false)
+        public SubTable[] EstimateTablePosition(int colsCount, int contentRowsCount, int headerRowsCount = 2, int lastTableFooterRowsCount=3)
         {
             float tableWidth = colsCount * CellWidth;
+            int MinRowsPerTable = 1;
             if (tableWidth > PageWidth) tableWidth = PageWidth;
             int tablesOnPageRow = (int)(PageWidth / tableWidth);
-            int MaxRowsPerTable = 65;
-            if (MinRowsPerTable > rowsCount) MinRowsPerTable = rowsCount;
+            if (contentRowsCount / tablesOnPageRow < 1) tablesOnPageRow = contentRowsCount;
+            int MaxRowsPerTable = 65-headerRowsCount-lastTableFooterRowsCount;
+            if (MinRowsPerTable > contentRowsCount) MinRowsPerTable = contentRowsCount;
             ShapeCoord lastCoord = LastShapeCoords == null ? new ShapeCoord() { x = 0, y = 0, width = 0, height =0, page=0} : LastShapeCoords;
             float[] pageLine = (float[])PageLine.Clone();
             List<SubTable> subTables = new List<SubTable>();
             int curPage = lastCoord.page;
             float line;
             float xCoord = (int)lastCoord.x + (int)lastCoord.width;
-            if (xCoord > 0 && from_new_line)
-            {
-                line = GetNewLine(pageLine);
-                xCoord = 0;
-            }
-            else
-            {
-                if (xCoord + tableWidth > PageWidth || lastCoord.height < MinRowsPerTable * CellHeight) xCoord = 0f;
-                line = GetLine(pageLine, (int)lastCoord.x, (int)tableWidth);
-            }
+            if (xCoord + tableWidth > PageWidth || lastCoord.height < MinRowsPerTable * CellHeight) xCoord = 0f;
+            line = GetLine(pageLine, (int)lastCoord.x, (int)tableWidth);
 
-            if (line + MinRowsPerTable*CellHeight > PageHeight)
+            if (line + (MinRowsPerTable+headerRowsCount+lastTableFooterRowsCount)*CellHeight > PageHeight)
             {
                 for (int ps = 0; ps < pageLine.Length; ps++) pageLine[ps] = 0f;
                 xCoord = 0f;
                 curPage++;
             }
          
-            while (rowsCount>0)
+            while (contentRowsCount > 0)
             {
                 int rowsOnCurrentPosition; //Количество строк в данной строке документа
                 int colsOnCurrentPosition; 
-                int tablesToAddCount = 0;
+                int tablesToAddCount = 1;
                 if (xCoord == 0)
                 {
                     rowsOnCurrentPosition = (int)((PageHeight-line) / CellHeight);
-                    if (rowsOnCurrentPosition > MaxRowsPerTable) rowsOnCurrentPosition = MaxRowsPerTable;
+                    if (rowsOnCurrentPosition > contentRowsCount) rowsOnCurrentPosition = contentRowsCount;
                     colsOnCurrentPosition = (int)((PageWidth) / CellWidth);
-                    if (rowsOnCurrentPosition * tablesOnPageRow > rowsCount)
+
+                    if (rowsOnCurrentPosition * tablesOnPageRow > contentRowsCount)
                     {
-                        tablesToAddCount = tablesOnPageRow;
+                        //tablesToAddCount = contentRowsCount > MinRowsPerTable ? tablesOnPageRow : 1;
                         for(int tCnt = 1; tCnt <= tablesOnPageRow; tCnt++)
                         {
-                            if (rowsCount / tCnt > MinRowsPerTable)
+                            if (contentRowsCount / tCnt > 2)
                             {
                                 tablesToAddCount = tCnt;
                             }
                         }
-                        rowsOnCurrentPosition = rowsCount / tablesToAddCount;
+                        rowsOnCurrentPosition = contentRowsCount / tablesToAddCount;
                     } else
                     {
                         tablesToAddCount = tablesOnPageRow;
@@ -1912,25 +1922,27 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 {
                     //Это выполняется только если таблица вставляется в строку с другим блоком и только для первой таблицы в коллекции
                     rowsOnCurrentPosition = (int)(lastCoord.height / CellHeight);
-                    colsOnCurrentPosition = (int)((PageWidth - xCoord) / CellWidth);
-                    if (rowsOnCurrentPosition >= rowsCount)
+                    colsOnCurrentPosition = (int)((PageWidth - lastCoord.x-tableWidth) / CellWidth);
+                    if (rowsOnCurrentPosition >= contentRowsCount)
                     {
-                        rowsOnCurrentPosition = rowsCount;
+                        rowsOnCurrentPosition = contentRowsCount;
                         tablesToAddCount = 1;
                     }else
                     {
                         tablesToAddCount = colsOnCurrentPosition / colsCount;
                     }
                 }
+                Debug.WriteLine($"EstimateTablePosition: tablesToAddCount = {tablesToAddCount}; rowsOnCurrentPosition = {rowsOnCurrentPosition}; colsOnCurrentPosition = {colsOnCurrentPosition}; ");
                 for(int tIdx = 0; tIdx < tablesToAddCount; tIdx++)
                 {
-                    int rowsToAddCount = rowsCount - rowsOnCurrentPosition < 0 ? rowsCount : rowsOnCurrentPosition;
-                    if (tIdx == tablesToAddCount-1 && (rowsCount - rowsToAddCount <= MinRowsPerTable)) rowsToAddCount = rowsCount;
+                    int rowsToAddCount = contentRowsCount - rowsOnCurrentPosition < 0 ? contentRowsCount : rowsOnCurrentPosition;
+                    if (tIdx == tablesToAddCount-1) rowsToAddCount = contentRowsCount;
 
                     float tableHeight = rowsToAddCount * CellHeight;
                     ShapeCoord curTableCoord = GetNextShapeCoord(tableWidth, tableHeight, lastCoord, pageLine);
-                    subTables.Add(new SubTable() { TableShapePlanedCoord = curTableCoord, ColumnsCount = colsCount, RowsCount = rowsToAddCount });
-                    rowsCount -= rowsToAddCount;
+                    int headerAndFooterRows = (tablesToAddCount - 1 == tIdx) ? headerRowsCount + lastTableFooterRowsCount : headerRowsCount;
+                    subTables.Add(new SubTable() { TableShapePlanedCoord = curTableCoord, ColumnsCount = colsCount, RowsCount = rowsToAddCount + headerAndFooterRows });
+                    contentRowsCount -= rowsToAddCount;
                     lastCoord = curTableCoord;
                 }
             }
