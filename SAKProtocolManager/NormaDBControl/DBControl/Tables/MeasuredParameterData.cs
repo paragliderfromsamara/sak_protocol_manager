@@ -354,6 +354,22 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
+        /// <summary>
+        /// Прошел ли параметр в процентный допуск
+        /// </summary>
+        [DBColumn(IsPassed_ColumnName, ColumnDomain.Boolean, Order = 28, Nullable = true, IsVirtual = true, DefaultValue = true)]
+        public bool IsPassed
+        {
+            get
+            {
+                return tryParseBoolean(IsPassed_ColumnName, true);
+            }
+            set
+            {
+                this[IsPassed_ColumnName] = value;
+            }
+        }
+
 
 
 
@@ -361,6 +377,7 @@ namespace NormaMeasure.DBControl.Tables
         public const string MinValue_ColumnName = "Min";
         public const string MaxValue_ColumnName = "Max";
         public const string Percent_ColumnName = "Percent";
+        public const string IsPassed_ColumnName = "is_passed";
         #endregion
 
 
@@ -415,14 +432,15 @@ namespace NormaMeasure.DBControl.Tables
                     {
                         r.ParameterData = this;
                         if (!r.IsAffected || r.LeadTestStatus.StatusId == LeadTestStatus.Broken) results.Add(r.BringingResult);
-                        if (r.IsAffected || r.IsOutOfNorma) measuredCount++;
+                        if ((r.IsAffected && (r.LeadTestStatus.StatusId != LeadTestStatus.Broken)) || r.IsOutOfNorma) measuredCount++;
                     }
-                    MeasuredPercent = (float)Math.Round((double)(100f * (measuredCount/ (float)testResults.Rows.Count)));
+                    MeasuredPercent = (float)Math.Round((double)(100f * ((testResults.Rows.Count - measuredCount) / (float)testResults.Rows.Count)));
                     if (results.Count > 0)
                     {
                        MaxResult = results.Max();
                        MinResult = results.Min();
                        AverageResult = (float)Math.Round(results.Average(), 1);
+                        IsPassed = MeasuredPercent >= Percent;
                     }
                 }
                 Debug.WriteLine($"MeasureParameterData.TestResults.Set: max {MaxResult}; min {MinResult}; average {AverageResult}; MeasurePercent {MeasuredPercent} ;");
@@ -512,11 +530,11 @@ namespace NormaMeasure.DBControl.Tables
                 case MeasuredParameterType.Rleads:
                     Debug.WriteLine($"Temperature({temperature}, {this.TestedStructure.LeadMaterial.MaterialTKC}, {value});");
                     value *= (1 / (1 + ((decimal)this.TestedStructure.LeadMaterial.MaterialTKC * (temperature - 20))));
-                    return Math.Round(value, 1);
+                    return value;
                 case MeasuredParameterType.Risol1:
                 case MeasuredParameterType.Risol3:
                     value *= (decimal)this.TestedStructure.IsolMaterial.GetCoeffByTemperature((float)temperature);
-                    return Math.Round(value, 1);
+                    return value;
                 default:
                     return value;
             }

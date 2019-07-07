@@ -2106,6 +2106,10 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 text = text.Replace("#брутто", $"{test.BruttoWeight} кг");
                 text = text.Replace("#длинакабеля", $"{test.CableLength} м");
                 text = text.Replace("#номерзаказа", $"{test.OrderNumber}");
+                text = text.Replace("#не", $"{ (test.CableIsNotPassTest ? "не":"")}");
+                text = text.Replace("#номердокумента", $"{ test.TestedCable.QADocument.ShortName}");
+                text = text.Replace("#фиооператора", $"{ test.Operator.FullNameShort}");
+                text = text.Replace("#датасегодня", $"{ DateTime.Now.ToString("dd.MM.yyyy")}");
                 //text = text.Replace("TestStatistic", tres.ValidElementsAmount.ToString());
                 //string st = " пар ";
                 //if (tres.Plan.Structure == 4) st = " четв. ";

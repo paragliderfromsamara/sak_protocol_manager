@@ -174,6 +174,9 @@ namespace NormaMeasure.DBControl.Tables
                 switch (this.ParameterTypeId)
                 {
                     case MeasuredParameterType.Rleads:
+                        round = value > 9 ? 1 : 2;
+                        brVal = Math.Round(value, round);
+                        break;
                     case MeasuredParameterType.Cp:
                     case MeasuredParameterType.Co:
                     case MeasuredParameterType.Ea:

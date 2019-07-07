@@ -518,8 +518,21 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
-
-
+        public bool CableIsNotPassTest
+        {
+            get
+            {
+                foreach(TestedCableStructure s in TestedCable.CableStructures.Rows)
+                {
+                    foreach(MeasuredParameterType t in s.TestedParameterTypes)
+                    {
+                        MeasuredParameterData[] data = (MeasuredParameterData[])s.MeasuredParameters.Select($"{MeasuredParameterData.IsPassed_ColumnName} = false");
+                        if (data.Length > 0) return true;
+                    }
+                }
+                return false;
+            }
+        }
     }
 
 
