@@ -231,16 +231,19 @@ namespace SAKProtocolManager
         {
             //PDFProtocol protocol = new PDFProtocol(this.CableTest);
             DialogResult NeedGenerate = DialogResult.Yes;
+            /*
             if(CheckCableLengthIsUpdated())
             {
                 NeedGenerate = MessageBox.Show(String.Format("Протокол не был пересчитан на длину кабеля {0} м. Сформированный протокол будет соответствовать длине {1} м., которая указана в Базе Данных на текущий момент \n\nВы согласны?", testedLengthInput.Value, CableTestOld.TestedLength), "Вопрос.", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             }
+            */
             if (NeedGenerate == DialogResult.Yes)
             {
                 PDFProtocol.MakeOldStylePDFProtocol(this.CableTest.TestId.ToString());
             }
         }
 
+        /*
         private void updateCableLength_Click(object sender, EventArgs e)
         {
             DialogResult dr = MessageBox.Show(String.Format("Вы уверены, что хотите пересчитать результаты испытания под длину кабеля {0} м.", testedLengthInput.Value), "Вопрос", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -262,7 +265,7 @@ namespace SAKProtocolManager
                 MessageBox.Show(String.Format("Результат успешно пересчитан на длину кабеля {0} м.", testedLengthInput.Value), "Длина успешно пересчитана", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
             }
         }
-
+        */
         private void UpdateLength()
         {
             decimal newLength = this.testedLengthInput.Value;
@@ -335,17 +338,17 @@ namespace SAKProtocolManager
 
         private void testedLengthInput_ValueChanged(object sender, EventArgs e)
         {
-            CheckCableLengthIsUpdated();
+            //CheckCableLengthIsUpdated();
         }
-
+        /*
         private bool CheckCableLengthIsUpdated()
         {
             return updateCableLength.Enabled = (decimal)CableTest.CableLength != testedLengthInput.Value;
         }
-
+        */
         private void testedLengthInput_KeyUp(object sender, KeyEventArgs e)
         {
-            CheckCableLengthIsUpdated();
+            //CheckCableLengthIsUpdated();
         }
 
         private void parameterTypeCB_SelectedIndexChanged(object sender, EventArgs e)
@@ -475,23 +478,10 @@ namespace SAKProtocolManager
 
         private void MSWordImport_Click(object sender, EventArgs e)
         {
-            //MSWordProtocol protocol = new MSWordProtocol();
-            //protocol.Init();
-            //protocol.CutCreatedTableFromTmpFile();
-            //OpenXMLTableCreator.GetTableFromFile();
-            //OpenXMLTableCreator.WDAddTable("test.docx", new string[,] { { "4", "5", "6" } });
-            /*
-            bool needCreateProtocol = true;
-            if (MSWordProtocolBuilder.DoesProtocolExist(CableTest))
-            {
-                DialogResult r = MessageBox.Show("Протокол в формате MSWord уже сформирован.\n")
-               
-            }
-            */
             StatusPanel statPanel = new StatusPanel(procNameLbl, lengthUpdProgressBarLbl, LengthUpdProgressBar);
             lengthUpdProgressBarField.Visible = true;
             MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest, statPanel);
-            lengthEditor.Visible = true;
+            //lengthEditor.Visible = true;
             lengthUpdProgressBarField.Visible = false;
 
         }

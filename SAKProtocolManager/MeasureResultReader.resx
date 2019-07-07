@@ -131,15 +131,6 @@
         ww/OrshFWNcAAAAASUVORK5CYII=
 </value>
   </data>
-  <data name="updateCableLength.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAN
-        1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAACRSURBVFhH7c4x
-        DoAwDEPR3v/SoAxZTKr8GgaoeFIGR4qV8Xuz4+FZVpXcmWX2odjngcx0kmZsVkQnacbcIvfuwi1y7y5m
-        RXSSZmxWRCdpxuxDsdcDuutyqHYIKetyqHaIfSj2ekB3XQ7VDiFlXQ7VDrEPxV4P6K7LodohpKzLodoh
-        9qH4/gNPzbKq5M783miME3qPAwzb83ctAAAAAElFTkSuQmCC
-</value>
-  </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         AAABAAEAZGQAAAEAIACoogAAFgAAACgAAABkAAAAyAAAAAEAIAAAAAAAQJwAAAAAAAAAAAAAAAAAAAAA
