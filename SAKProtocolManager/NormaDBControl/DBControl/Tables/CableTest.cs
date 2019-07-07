@@ -17,6 +17,9 @@ namespace NormaMeasure.DBControl.Tables
         {
         }
 
+        public string OrderNumber = string.Empty;
+
+
         private static string selectQueryForTestList
         {
             get

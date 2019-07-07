@@ -813,6 +813,39 @@ namespace NormaMeasure.DBControl.Tables
                 return brokenElements;
             }
         }
+
+        public uint[] BadElements
+        {
+            get
+            {
+                List<uint> badElsIds = new List<uint>();
+                foreach (CableTestResult r in AffectedElements.Rows) badElsIds.Add(r.ElementNumber);
+                foreach (MeasuredParameterType pType in TestedParameterTypes)
+                {
+                    MeasuredParameterData[] parameter_data_list = GetAll_MeasuredParameterData_By_ParameterTypeId(pType.ParameterTypeId);
+                    foreach(MeasuredParameterData pd in parameter_data_list)
+                    {
+                        if (pd.TestResults.Rows.Count == 0) continue;
+                        CableTestResult[] out_of_norma_results = (CableTestResult[])pd.TestResults.Select($"{CableTestResult.IsOutOfNorma_ColumnName} = {true}");
+                        foreach(CableTestResult r in out_of_norma_results)
+                        {
+                            badElsIds.Add(r.ElementNumber);
+                            if (r.GeneratorElementNumber > 0) badElsIds.Add(r.GeneratorElementNumber);
+                        }
+                    }
+                }
+                return badElsIds.Distinct().ToArray();
+            }
+        }
+
+        public object NormalElementsAmount
+        {
+            get
+            {
+                return RealAmount - BadElements.Length;
+            }
+        }
+
         private int[] brokenElements;
         private MeasuredParameterType[] testedParameterTypes;
         protected Dictionary<uint, DBEntityTable> TestResults_Dictionary = new Dictionary<uint, DBEntityTable>();

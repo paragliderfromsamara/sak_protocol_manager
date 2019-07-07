@@ -122,7 +122,6 @@ namespace NormaMeasure.DBControl.Tables
                     case Triplet:
                         return "тройки";
                     case Quattro:
-                        return "четвёрки";
                     case HightFreqQuattro:
                         return "четвёрки";
                     default:
@@ -131,6 +130,31 @@ namespace NormaMeasure.DBControl.Tables
             }
         }
 
+
+        /// <summary>
+        /// Возвращает название элемента структуры в родительском падеже
+        /// </summary>
+        /// <returns></returns>
+        public string StructureTypeName_RodPadej_Multiple
+        {
+            get
+            {
+                switch (StructureTypeId)
+                {
+                    case Lead:
+                        return "жил";
+                    case Pair:
+                        return "пар";
+                    case Triplet:
+                        return "троек";
+                    case Quattro:
+                    case HightFreqQuattro:
+                        return "четвёрок";
+                    default:
+                        return "элементов";
+                }
+            }
+        }
 
         public const uint Lead = 1;
         public const uint Pair = 2;

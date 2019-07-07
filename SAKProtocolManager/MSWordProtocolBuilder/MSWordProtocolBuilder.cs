@@ -84,7 +84,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 wordProtocol.Init();
                 statusPanel.AddToBarPosition();
                 statusPanel.AddToBarPosition("Добавление шапки документа", 5);
-               // wordProtocol.AddHeader(test);
+                wordProtocol.AddHeader(test);
                 statusPanel.AddToBarPosition();
 
                 foreach (Tables.TestedCableStructure s in CableTest.TestedCable.CableStructures.Rows)
@@ -93,7 +93,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     PrintStructure(s);
                 }
                 statusPanel.AddToBarPosition("Добавление завершения документа", 5);
-                //wordProtocol.AddFooter(test);
+                wordProtocol.AddFooter(test);
                 statusPanel.SetBarPosition("Расстановка таблиц", 99);
                 Thread.Sleep(250);
                 wordProtocol.Finalise();
@@ -116,7 +116,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             add_AoAz_Table(structure, Tables.MeasuredParameterType.Az);
             add_Statistic_Table(structure);
             add_VSVI_TestResult(structure);
-           // add_StructElements_Conclusion(structure);
+            add_StructElements_Conclusion(structure);
         }
 
         /*
@@ -138,12 +138,12 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         /// Отрисовка вывода о годности элементов
         /// </summary>
         /// <param name="structure"></param>
-        private static void add_StructElements_Conclusion(CableStructure structure)
+        private static void add_StructElements_Conclusion(Tables.TestedCableStructure structure)
         {
             List<OpenXML.Paragraph> paragraphs = new List<OpenXML.Paragraph>();
-            paragraphs.Add(BuildParagraph(AddRun($"Номинальное количество {structure.BendingTypeName_RodPadej_Multiple}: {structure.RealNumberInCable}")));
-            paragraphs.Add(BuildParagraph(AddRun($"Фактическое количество {structure.BendingTypeName_RodPadej_Multiple}: {structure.NumberInCable}")));
-            paragraphs.Add(BuildParagraph(AddRun($"годных {structure.BendingTypeName_RodPadej_Multiple}: {structure.NormalElementsCount}")));
+            paragraphs.Add(BuildParagraph(AddRun($"Номинальное количество {structure.StructureType.StructureTypeName_RodPadej_Multiple}: {structure.DisplayedAmount}")));
+            paragraphs.Add(BuildParagraph(AddRun($"Фактическое количество {structure.StructureType.StructureTypeName_RodPadej_Multiple}: {structure.RealAmount}")));
+            paragraphs.Add(BuildParagraph(AddRun($"годных {structure.StructureType.StructureTypeName_RodPadej_Multiple}: {structure.NormalElementsAmount}")));
             OpenXML.Paragraph descriptionParagraph = BuildParagraph();
             descriptionParagraph.Append(AddRun("Значения измеренных параметров вышедшие за установленные нормы выделены", MSWordStringTypes.Typical, false, true));
             descriptionParagraph.Append(AddRun(" жирным ", MSWordStringTypes.Typical, true, true), AddRun("шрифтом.", MSWordStringTypes.Typical, false, true));
@@ -628,7 +628,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private static void Build_al_Table(List<Tables.MeasuredParameterData> curTableData, int colsAmount, Tables.TestedCableStructure structure)
         {
             int curElementNumber = 1;
-            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount + 3 + 2);
+            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount + 3 + 2, 3, true);
 
             for(int idx = 0; idx < tablesRowsCount.Length; idx++)
             {
@@ -879,7 +879,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private static void BuildPrimaryParametersTable_WithOpenXML(Tables.MeasuredParameterType[] pTypes, Tables.TestedCableStructure structure, int colsAmount)
         {
             int curElementNumber = 1;
-            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount + 3+2);
+            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount + 3+2, 4);
             Debug.WriteLine($"{structure.RealAmount}");
 
             for (int idx = 0; idx < tablesRowsCount.Length; idx++)
@@ -1368,9 +1368,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return template.ToArray();
         }
 
-        private static int[] CalcMaxRowsCount(int cols, int rows, int minRowsPerTable = 5)
+        private static int[] CalcMaxRowsCount(int cols, int rows, int minRowsPerTable = 5, bool from_new_line = false)
         {
-            SubTable[] subTables = wordProtocol.EstimateTablePosition(cols, rows, minRowsPerTable);
+            SubTable[] subTables = wordProtocol.EstimateTablePosition(cols, rows, minRowsPerTable, from_new_line);
             List <int> template = new List<int>();
             foreach (SubTable st in subTables) template.Add(st.RowsCount);
             return template.ToArray();
@@ -1848,7 +1848,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             return subTables.ToArray();
         }
 
-        public SubTable[] EstimateTablePosition(int colsCount, int rowsCount, int MinRowsPerTable = 5)
+        public SubTable[] EstimateTablePosition(int colsCount, int rowsCount, int MinRowsPerTable = 5, bool from_new_line = false)
         {
             float tableWidth = colsCount * CellWidth;
             if (tableWidth > PageWidth) tableWidth = PageWidth;
@@ -1859,10 +1859,19 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             float[] pageLine = (float[])PageLine.Clone();
             List<SubTable> subTables = new List<SubTable>();
             int curPage = lastCoord.page;
-
+            float line;
             float xCoord = (int)lastCoord.x + (int)lastCoord.width;
-            if (xCoord + tableWidth > PageWidth || lastCoord.height < MinRowsPerTable*CellHeight) xCoord = 0f;
-            float line = GetLine(pageLine, (int)lastCoord.x, (int)tableWidth);
+            if (xCoord > 0 && from_new_line)
+            {
+                line = GetNewLine(pageLine);
+                xCoord = 0;
+            }
+            else
+            {
+                if (xCoord + tableWidth > PageWidth || lastCoord.height < MinRowsPerTable * CellHeight) xCoord = 0f;
+                line = GetLine(pageLine, (int)lastCoord.x, (int)tableWidth);
+            }
+
             if (line + MinRowsPerTable*CellHeight > PageHeight)
             {
                 for (int ps = 0; ps < pageLine.Length; ps++) pageLine[ps] = 0f;
@@ -1872,7 +1881,6 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
          
             while (rowsCount>0)
             {
-
                 int rowsOnCurrentPosition; //Количество строк в данной строке документа
                 int colsOnCurrentPosition; 
                 int tablesToAddCount = 0;
@@ -2060,6 +2068,11 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 Debug.WriteLine($"MSWordProtocol.CutShape(): CalculatedWidth = {width}; CalculatedHeight = {height}");
             }
         }
+        
+        private float GetNewLine(float[] arr)
+        {
+            return GetLine(arr, 0, (int)PageWidth);
+        }
 
         private float GetLine(float[] arr, int begin, int width)
         {
@@ -2074,7 +2087,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             for (int pos = begin; pos < (begin + width); pos++) arr[pos] = val;
         }
 
-        private void replaceRegular(ref Word.Shape sh, CableTest test)
+        private void replaceRegular(ref Word.Shape sh, Tables.CableTest test)
         {
             int quant = sh.TextFrame.TextRange.Paragraphs.Count;
             for (int i = 1; i <= quant; i++)
@@ -2085,10 +2098,10 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 text = text.Replace("#маркакабеля", test.TestedCable.Name);
                 text = text.Replace("#температура", $"{test.Temperature} °С");
                 text = text.Replace("#датаиспытания", test.TestDate.ToString("dd.MM.yyyy"));
-                text = text.Replace("#номербарабана", test.Baraban.Number);
-                text = text.Replace("#типбарабана", test.Baraban.Name);
+                text = text.Replace("#номербарабана", test.ReleasedBaraban.SerialNumber);
+                text = text.Replace("#типбарабана", test.ReleasedBaraban.BarabanType.TypeName);
                 text = text.Replace("#брутто", $"{test.BruttoWeight} кг");
-                text = text.Replace("#длинакабеля", $"{test.TestedLength} м");
+                text = text.Replace("#длинакабеля", $"{test.CableLength} м");
                 text = text.Replace("#номерзаказа", $"{test.OrderNumber}");
                 //text = text.Replace("TestStatistic", tres.ValidElementsAmount.ToString());
                 //string st = " пар ";
@@ -2116,7 +2129,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
-        internal void AddHeader(CableTest test)
+        internal void AddHeader(Tables.CableTest test)
         {
             object filePath = ProtocolHeaderFile;
             object oSave = false;
@@ -2141,7 +2154,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             headerDoc.Close(ref oSave, ref oMissing, ref oMissing);
         }
 
-        internal void AddFooter(CableTest test)
+        internal void AddFooter(Tables.CableTest test)
         {
             object filePath = ProtocolFooterFile;
             object oSave = false;
