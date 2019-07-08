@@ -109,14 +109,14 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         public static void PrintStructure(Tables.TestedCableStructure structure)
         {
 
-            //addPrimaryParametersTable(structure);
-            //addRizolByGroupTable(structure);
+            addPrimaryParametersTable(structure);
+            addRizolByGroupTable(structure);
             add_al_Table(structure);
-            //add_AoAz_Table(structure, Tables.MeasuredParameterType.Ao);
-            //add_AoAz_Table(structure, Tables.MeasuredParameterType.Az);
-            ///add_Statistic_Table(structure);
-            //add_VSVI_TestResult(structure);
-            //add_StructElements_Conclusion(structure);
+            add_AoAz_Table(structure, Tables.MeasuredParameterType.Ao);
+            add_AoAz_Table(structure, Tables.MeasuredParameterType.Az);
+            add_Statistic_Table(structure);
+            add_VSVI_TestResult(structure);
+            add_StructElements_Conclusion(structure);
         }
 
         /*
@@ -628,22 +628,23 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private static void Build_al_Table(List<Tables.MeasuredParameterData> curTableData, int colsAmount, Tables.TestedCableStructure structure)
         {
             int curElementNumber = 1;
-            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount, 2, 3);
+            int headerRowsCount = structure.StructureType.StructureLeadsAmount == 4 ? 2 : 1;
+            int[] tablesRowsCount = CalcMaxRowsCount(colsAmount, (int)structure.RealAmount, headerRowsCount, 3);
 
             for(int idx = 0; idx < tablesRowsCount.Length; idx++)
             {
                 OpenXML.Table table = BuildTable();
                 OpenXML.TableRow[] headerRows = Build_al_TableHeader_WithOpenXML(curTableData, structure);
                 foreach (OpenXML.TableRow r in headerRows) table.Append(r);
-
-                for (int i = 0; i < tablesRowsCount[idx]; i++)
+                int rows = tablesRowsCount[idx] - headerRowsCount;
+                for (int i = 0; i < rows; i++)
                 {
                     OpenXML.TableRow row = BuildRow();
                     if (curElementNumber <= structure.RealAmount)
                     {
                         OpenXML.TableCell numbCell = BuildCell(curElementNumber.ToString());
                         if (i % 2 == 1) FillCellByColor(numbCell, "ededed");
-                        OpenXML.TableCellBorders borderStyle = BuildBordersStyle(0, (uint)((i < tablesRowsCount[idx] - 1) ? 0 : 2));
+                        OpenXML.TableCellBorders borderStyle = BuildBordersStyle(0, (uint)((i < rows - 1) ? 0 : 2));
                         SetCellBordersStyle(numbCell, borderStyle);
                         row.Append(numbCell); //Ячейка номера элемента
                         foreach (Tables.MeasuredParameterData mpd in curTableData)//(MeasureParameterType mpt in pTypes)
@@ -654,7 +655,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                             for (int rIdx = resIdx; rIdx < resIdx + elsColsPerParam; rIdx++)
                             {
                                 Tables.CableTestResult res = (Tables.CableTestResult)results[rIdx];
-                                OpenXML.TableCellBorders resBordStyle = BuildBordersStyle(0, (uint)((i < tablesRowsCount[idx] - 1) ? 0 : 2));
+                                OpenXML.TableCellBorders resBordStyle = BuildBordersStyle(0, (uint)((i < rows - 1) ? 0 : 2));
                                 OpenXML.TableCell resCell = BuildCell(BuildParagraph(ResultText(res)));
                                 if (i % 2 == 1) FillCellByColor(resCell, "ededed");
                                 SetCellBordersStyle(resCell, resBordStyle);
@@ -973,12 +974,14 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     }
                 }
                 elementsToPage.Add(table);
+                bool withRisolDesc = false;
                 if (idx == tablesRowsCount.Length -1)
                 {
                     foreach (Tables.MeasuredParameterType t in pTypes)
                     {
                         if (t.ParameterTypeId == Tables.MeasuredParameterType.Risol2)
                         {
+                            withRisolDesc = true;
                             float norma = 600;
                             string measure = "МОм/км";
                             foreach (Tables.MeasuredParameterData d in structure.MeasuredParameters.Rows)
@@ -1002,7 +1005,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     }
 
                 }
-                wordProtocol.AddElementsAsXML(elementsToPage.ToArray(), wordProtocol.CellHeight * (tablesRowsCount[idx])+5f, wordProtocol.CellWidth*colsAmount);
+                float table_height = wordProtocol.CellHeight * (tablesRowsCount[idx]) + 5f;
+                if (withRisolDesc) table_height += wordProtocol.CellHeight * 3;
+                wordProtocol.AddElementsAsXML(elementsToPage.ToArray(), table_height, wordProtocol.CellWidth*colsAmount);
                 statusPanel.AddToBarPosition();
 
                 //  wordProtocol.AddParagraph("Каждый охотник желает знать где сидит фазан", 18f);
@@ -1903,20 +1908,20 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     Debug.WriteLine($"EstimateTablePosition: 1) rowsOnCurrentPosition = {rowsOnCurrentPosition}");
                     if (rowsOnCurrentPosition * tablesOnPageRow > contentRowsCount)
                     {
-                        contentRowsCount += lastTableFooterRowsCount;
+                        //contentRowsCount += lastTableFooterRowsCount;
                         //tablesToAddCount = contentRowsCount > MinRowsPerTable ? tablesOnPageRow : 1;
                         for (int tCnt = 1; tCnt <= tablesOnPageRow; tCnt++)
                         {
-                            if (contentRowsCount / tCnt > 2)
+                            if ((contentRowsCount+ lastTableFooterRowsCount) / tCnt > 2)
                             {
                                 tablesToAddCount = tCnt;
                             }
                         }
-                        if (tablesToAddCount < tablesOnPageRow && contentRowsCount % tablesToAddCount > 0)
+                        if (tablesToAddCount < tablesOnPageRow && (contentRowsCount + lastTableFooterRowsCount) % tablesToAddCount > 0)
                         {
                             tablesToAddCount++;
                         }
-                        rowsOnCurrentPosition = contentRowsCount / tablesToAddCount;
+                        rowsOnCurrentPosition = (contentRowsCount + lastTableFooterRowsCount) / tablesToAddCount;
                         Debug.WriteLine($"EstimateTablePosition: 2) rowsOnCurrentPosition = {rowsOnCurrentPosition}");
                         //if (contentRowsCount - rowsOnCurrentPosition > 0 && tablesToAddCount == tablesOnPageRow) rowsOnCurrentPosition += contentRowsCount % tablesToAddCount;
                     } else
@@ -1943,9 +1948,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 for (int tIdx = 0; tIdx < tablesToAddCount; tIdx++)
                 {
                     if (contentRowsCount == 0) break;
-                    int rowsToAddCount = contentRowsCount - rowsOnCurrentPosition < 3 ? contentRowsCount : rowsOnCurrentPosition;
-                    if ((contentRowsCount - rowsOnCurrentPosition < 0)) rowsToAddCount = contentRowsCount;
-
+                    int rowsToAddCount = (contentRowsCount + lastTableFooterRowsCount) - rowsOnCurrentPosition < lastTableFooterRowsCount ? contentRowsCount : rowsOnCurrentPosition;
+                    if (((contentRowsCount + lastTableFooterRowsCount) - rowsOnCurrentPosition < 0)) rowsToAddCount = contentRowsCount;
+                    //if (rowsToAddCount == contentRowsCount) rowsToAddCount += lastTableFooterRowsCount;
                     float tableHeight = rowsToAddCount * CellHeight;
                     ShapeCoord curTableCoord = GetNextShapeCoord(tableWidth, tableHeight, lastCoord, pageLine);
                     int headerAndFooterRows = (rowsToAddCount == contentRowsCount) ? headerRowsCount + lastTableFooterRowsCount : headerRowsCount;
