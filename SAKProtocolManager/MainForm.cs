@@ -165,7 +165,7 @@ namespace SAKProtocolManager
 
                 testsListView.DataSource = tests;
                 testsListView.Refresh();
-                ClearList.Visible = true;
+                //ClearList.Visible = true;
                 SearchButton.Text = defaultText;
                 this.Cursor = Cursors.Arrow;
                 SearchButton.Enabled = true;
@@ -275,16 +275,16 @@ namespace SAKProtocolManager
             return test;
         }
 
-        private void OpenTest(string testId)
+        private void OpenTest(string testId, bool with_mswordprint = false, bool with_pdfexport = false)
         {
-           // try
-          //  {
+           try
+            {
                 Tables.CableTest test = GetTestById(testId);
                 topMenu.Enabled = TestListtPanel.Enabled = false;
                 this.Cursor = Cursors.WaitCursor;
                 if (test != null)
                 {
-                    MeasureResultReader form = new MeasureResultReader(test, this);
+                    MeasureResultReader form = new MeasureResultReader(test, this, with_mswordprint, with_pdfexport);
                     form.FormClosed += new FormClosedEventHandler(this.MeasureResultReaderClosed);
                     form.Show();
                     this.readerForm = form;
@@ -297,8 +297,10 @@ namespace SAKProtocolManager
                 }
 
                 this.Cursor = Cursors.Default;
-           // }
-          //  catch (NullReferenceException) { }
+           }
+           catch (NullReferenceException) {
+                MessageBox.Show("Не удалось открыть протокол испытаний");
+            }
         }
 
         
@@ -467,9 +469,17 @@ namespace SAKProtocolManager
         }
         private void exportToPDFToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
-            PDFProtocolEntities.PDFProtocol.MakeOldStylePDFProtocol(test_id);
+            try
+            {
+                string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
+                OpenTest(test_id, false, true);
+            }
+            catch (NullReferenceException) { }
+            //string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
+            //PDFProtocolEntities.PDFProtocol.MakeOldStylePDFProtocol(test_id);
         }
+
+
 
         private void setSearchType()
         {
@@ -555,6 +565,16 @@ namespace SAKProtocolManager
                 MessageBox.Show(ex.Message);
             }
             
+        }
+
+        private void экспортВMSWordToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string test_id = testsListView.SelectedRows[0].Cells[0].Value.ToString();
+                OpenTest(test_id, true);
+            }
+            catch (NullReferenceException) { }
         }
     }
 

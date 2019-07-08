@@ -381,13 +381,14 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                                 rowAver.Append(averTitleCells);
                                 rowAver.Append(averValCells);
 
-                                
 
-                                curTableRowsAmount += 5;
+
+                                //curTableRowsAmount += 2;
                                 table.Append(rowMin, rowAver, rowMax);
 
                             }
-                            wordProtocol.AddTable(table, colsAmount, curTableRowsAmount+2);
+                            wordProtocol.AddTable(table, colsAmount, curTableRowsAmount+4);
+                            //wordProtocol.AddElementsAsXML(new OpenXmlElement[] { table }, (curTableRowsAmount*wordProtocol.CellHeight+10f, colsAmount*wordProtocol.CellWidth);
                             statusPanel.AddToBarPosition();
                             startGenEl += rowsAmount;
                         }
@@ -493,7 +494,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             Tables.MeasuredParameterType type = null;
             Tables.MeasuredParameterData mpd = null;
 
-            OpenXmlElement[] elementsToPage = new OpenXmlElement[2]; 
+            List<OpenXmlElement> elementsToPage = new List<OpenXmlElement>(); 
             int i = 0;
             foreach (Tables.MeasuredParameterType mpt in structure.TestedParameterTypes)
             {
@@ -502,80 +503,133 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 break;
             }
             if (type == null) return;
-            statusPanel.AddToBarPosition($"Таблица {type.ParameterName}", 0);
             mpd = structure.GetAll_MeasuredParameterData_By_ParameterTypeId(type.ParameterTypeId)[0];
-            Debug.WriteLine(mpd.ParameterName);
             bool MoreThanOneGroups = ((Tables.CableTestResult)mpd.TestResults.Rows[0]).ElementNumber > 0;
-            int colsAmount = 2;
-            OpenXML.Table table = BuildTable();
-            OpenXML.TableRow headerRow = BuildRow();
-            OpenXML.TableCell cellGroupElNumber = BuildCell("№/№ Гр.");
-            OpenXML.TableCell cellElNumber = BuildCell("№/№ Комб.");
-            OpenXML.TableCell cellParameterName = BuildCell(ParameterNameText(type, mpd.ResultMeasure_WithLength).ToArray());//}, {mpd.ParameterType.ParameterDataList[0].ResultMeasure()}");
+            List<OpenXML.Run> noteRun = new List<OpenXML.Run>();
 
-
-
+            float elementWidth, elementHeight;
             if (MoreThanOneGroups)
             {
-                colsAmount++;
-                headerRow.AppendChild(cellGroupElNumber);
-            }
-
-            headerRow.AppendChild(cellElNumber);
-            headerRow.AppendChild(cellParameterName);
-            table.Append(headerRow);
-
-            foreach (Tables.CableTestResult r in mpd.TestResults.Rows)
-            {
-                uint bottomDorderWidth = (uint)((i < mpd.TestResults.Rows.Count - 1) ? 0 : 2);
-                OpenXML.TableCellBorders borderStyle = BuildBordersStyle(0, bottomDorderWidth);
-
-                OpenXML.TableRow resRow = BuildRow();
-
-                OpenXML.TableCell groupCell = BuildCell($"{r.ElementNumber}");
-                SetCellBordersStyle(groupCell, BuildBordersStyle(0, bottomDorderWidth));
-
-                OpenXML.TableCell numCell = BuildCell($"{r.SubElementNumber}");
-                SetCellBordersStyle(numCell, BuildBordersStyle(0, bottomDorderWidth));
-
-                OpenXML.TableCell resCell = BuildCell(BuildParagraph(ResultText(r)));
-                SetCellBordersStyle(resCell, BuildBordersStyle(0, bottomDorderWidth));
-
-                if (i++ % 2 == 1)
+                elementWidth = 2*wordProtocol.PageWidth/3;
+                elementHeight = 0;
+                OpenXML.Paragraph firstParagraph = BuildParagraph();
+                foreach (Tables.MeasuredParameterData d in structure.MeasuredParameters.Rows)
                 {
-                    FillCellByColor(groupCell, "ededed");
-                    FillCellByColor(numCell, "ededed");
-                    FillCellByColor(resCell, "ededed");
+                    Debug.WriteLine($"Параметр {d.ParameterTypeId}");
+                    if (type.ParameterTypeId == Tables.MeasuredParameterType.Risol4 && d.ParameterTypeId == Tables.MeasuredParameterType.Risol3)
+                    {
+                        firstParagraph.Append(AddRun($"Время достижения нормы сопротивления изоляции комбинации ({d.MinValue} {d.ResultMeasure_WithLength}), сек:"));
+                        break;
+                    }
+                    else if (type.ParameterTypeId == Tables.MeasuredParameterType.Risol3 && d.ParameterTypeId == Tables.MeasuredParameterType.Risol4)
+                    {
+                        firstParagraph.Append(AddRun($"Максимальное значение сопротивления изоляции комбинации за время {d.MaxValue} сек, {mpd.ResultMeasure_WithLength}:"));
+                        break;
+                    }
                 }
+                elementsToPage.Add(firstParagraph);
+                uint curPuchok = 0;
+                OpenXML.Paragraph puchokSubElementsParagraph = BuildParagraph();
+                OpenXML.Paragraph puchokTitle = BuildParagraph();
+                foreach (Tables.CableTestResult r in mpd.TestResults.Rows)
+                {
+                    if (r.ElementNumber != curPuchok)
+                    {
+                        if (curPuchok!=0)
+                        {
+                            elementHeight += 2;
+                            elementsToPage.Add(puchokTitle);
+                            elementsToPage.Add(puchokSubElementsParagraph);
+                            puchokSubElementsParagraph = BuildParagraph();
+                        }
+                        curPuchok = r.ElementNumber;
+                        puchokTitle = BuildParagraph(AddRun($"Пучок №{curPuchok}"));
 
-                if (MoreThanOneGroups) resRow.Append(groupCell);
-                resRow.Append(numCell);
-                resRow.Append(resCell);
-                table.Append(resRow);
-            }
-            OpenXML.Paragraph p = new OpenXML.Paragraph();
-            List<OpenXML.Run> noteRun = new List<OpenXML.Run>();
-            foreach (Tables.MeasuredParameterData d in structure.MeasuredParameters.Rows)
-            {
-                Debug.WriteLine($"Параметр {d.ParameterTypeId}");
-                if (type.ParameterTypeId == Tables.MeasuredParameterType.Risol4 && d.ParameterTypeId == Tables.MeasuredParameterType.Risol3)
-                {
-                    noteRun = ParameterNameText(d);
-                    noteRun.Add(AddRun($"норма: {d.MinValue} МОм"));
-                    
-                    //text = $"Rиз Норма: {}";
-                }else if (type.ParameterTypeId == Tables.MeasuredParameterType.Risol3 && d.ParameterTypeId == Tables.MeasuredParameterType.Risol4)
-                {
-                    noteRun = ParameterNameText(d);
-                    noteRun.Add(AddRun($"За время {d.MaxValue}"));
+                    }
+                    puchokSubElementsParagraph.Append(AddRun($"Кмб.{r.SubElementNumber}={r.ResultForView};"));
                 }
+                elementHeight += 2;
+                elementHeight *= wordProtocol.CellHeight+2f;
+                elementsToPage.Add(puchokTitle);
+                elementsToPage.Add(puchokSubElementsParagraph);
             }
-            //noteRun.Add(AddRun($"За время 100500 лет"));
-            elementsToPage[0] = table;
-            elementsToPage[1] = BuildParagraph(noteRun.ToArray());
+            else
+            {
+                statusPanel.AddToBarPosition($"Таблица {type.ParameterName}", 0);
+
+                Debug.WriteLine(mpd.ParameterName);
+
+                int colsAmount = 2;
+                OpenXML.Table table = BuildTable();
+                OpenXML.TableRow headerRow = BuildRow();
+                OpenXML.TableCell cellGroupElNumber = BuildCell("№/№ Гр.");
+                OpenXML.TableCell cellElNumber = BuildCell("№/№ Комб.");
+                OpenXML.TableCell cellParameterName = BuildCell(ParameterNameText(type, mpd.ResultMeasure_WithLength).ToArray());//}, {mpd.ParameterType.ParameterDataList[0].ResultMeasure()}");
+                if (MoreThanOneGroups)
+                {
+                    colsAmount++;
+                    headerRow.AppendChild(cellGroupElNumber);
+                }
+                elementWidth = colsAmount * wordProtocol.CellWidth;
+                headerRow.AppendChild(cellElNumber);
+                headerRow.AppendChild(cellParameterName);
+                table.Append(headerRow);
+
+                foreach (Tables.CableTestResult r in mpd.TestResults.Rows)
+                {
+                    uint bottomDorderWidth = (uint)((i < mpd.TestResults.Rows.Count - 1) ? 0 : 2);
+                    OpenXML.TableCellBorders borderStyle = BuildBordersStyle(0, bottomDorderWidth);
+
+                    OpenXML.TableRow resRow = BuildRow();
+
+                    OpenXML.TableCell groupCell = BuildCell($"{r.ElementNumber}");
+                    SetCellBordersStyle(groupCell, BuildBordersStyle(0, bottomDorderWidth));
+
+                    OpenXML.TableCell numCell = BuildCell($"{r.SubElementNumber}");
+                    SetCellBordersStyle(numCell, BuildBordersStyle(0, bottomDorderWidth));
+
+                    OpenXML.TableCell resCell = BuildCell(BuildParagraph(ResultText(r)));
+                    SetCellBordersStyle(resCell, BuildBordersStyle(0, bottomDorderWidth));
+
+                    if (i++ % 2 == 1)
+                    {
+                        FillCellByColor(groupCell, "ededed");
+                        FillCellByColor(numCell, "ededed");
+                        FillCellByColor(resCell, "ededed");
+                    }
+
+                    if (MoreThanOneGroups) resRow.Append(groupCell);
+                    resRow.Append(numCell);
+                    resRow.Append(resCell);
+                    table.Append(resRow);
+                }
+                OpenXML.Paragraph p = new OpenXML.Paragraph();
+
+                foreach (Tables.MeasuredParameterData d in structure.MeasuredParameters.Rows)
+                {
+                    Debug.WriteLine($"Параметр {d.ParameterTypeId}");
+                    if (type.ParameterTypeId == Tables.MeasuredParameterType.Risol4 && d.ParameterTypeId == Tables.MeasuredParameterType.Risol3)
+                    {
+                        noteRun = ParameterNameText(d);
+                        noteRun.Add(AddRun($"норма: {d.MinValue} {d.ResultMeasure_WithLength}"));
+
+                        //text = $"Rиз Норма: {}";
+                    }
+                    else if (type.ParameterTypeId == Tables.MeasuredParameterType.Risol3 && d.ParameterTypeId == Tables.MeasuredParameterType.Risol4)
+                    {
+                        noteRun = ParameterNameText(d);
+                        noteRun.Add(AddRun($"За время {d.MaxValue}"));
+                    }
+                }
+                //noteRun.Add(AddRun($"За время 100500 лет"));
+                elementsToPage.Add(table);
+                elementsToPage.Add(BuildParagraph(noteRun.ToArray()));
+                elementHeight = wordProtocol.CellHeight * (mpd.TestResults.Rows.Count + 4);
+            }
+
 
             //wordProtocol.AddTable(table, colsAmount, mpd.ParameterType.TestResults.Length + 2);
-            wordProtocol.AddElementsAsXML(elementsToPage, wordProtocol.CellHeight*(mpd.TestResults.Rows.Count + 4), wordProtocol.CellWidth * colsAmount);
+            wordProtocol.AddElementsAsXML(elementsToPage.ToArray(), elementHeight, elementWidth);
             statusPanel.AddToBarPosition();
         }
 
@@ -1005,7 +1059,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     }
 
                 }
-                float table_height = wordProtocol.CellHeight * (tablesRowsCount[idx]) + 5f;
+                float table_height = wordProtocol.CellHeight * (tablesRowsCount[idx]+1) + 10f;
                 if (withRisolDesc) table_height += wordProtocol.CellHeight * 3;
                 wordProtocol.AddElementsAsXML(elementsToPage.ToArray(), table_height, wordProtocol.CellWidth*colsAmount);
                 statusPanel.AddToBarPosition();

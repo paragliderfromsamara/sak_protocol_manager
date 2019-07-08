@@ -12,3 +12,15 @@ D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Releas
 D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Release\NormaDBControl.csproj.GenerateResource.Cache
 D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Release\NormaDBControl.dll
 D:\Source Code\SAK_2016\windows_app\SAK_2016\NormaDBControl\DBControl\obj\Release\NormaDBControl.pdb
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\bin\Release\NormaDBControl.dll
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\bin\Release\NormaDBControl.pdb
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\bin\Release\MySql.Data.dll
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\bin\Release\MySql.Data.xml
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Release\NormaDBControl.csprojResolveAssemblyReference.cache
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Release\NormaMeasure.DBControl.SAC.Forms.BarabanTypesControlForm.resources
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Release\NormaMeasure.DBControl.SAC.Forms.CableForm.resources
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Release\NormaMeasure.DBControl.SAC.Forms.CablesListForm.resources
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Release\NormaMeasure.DBControl.SAC.Forms.UsersForm.resources
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Release\NormaDBControl.csproj.GenerateResource.Cache
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Release\NormaDBControl.dll
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\NormaDBControl\DBControl\obj\Release\NormaDBControl.pdb

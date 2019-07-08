@@ -44,6 +44,8 @@
             this.testedAtLbl = new System.Windows.Forms.Label();
             this.barabanLbl = new System.Windows.Forms.Label();
             this.TestInfoPanel = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.testedLengthInput = new System.Windows.Forms.NumericUpDown();
             this.BruttoWeightTextField = new System.Windows.Forms.NumericUpDown();
             this.EditSaveBruttoButton = new System.Windows.Forms.Button();
             this.TemperatureLbl = new System.Windows.Forms.Label();
@@ -53,8 +55,6 @@
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabControlTestResult = new System.Windows.Forms.TabControl();
             this.GeneratePDFProtocolButton = new System.Windows.Forms.Button();
-            this.label2 = new System.Windows.Forms.Label();
-            this.testedLengthInput = new System.Windows.Forms.NumericUpDown();
             this.lengthUpdProgressBarField = new System.Windows.Forms.Panel();
             this.procNameLbl = new System.Windows.Forms.Label();
             this.lengthUpdProgressBarLbl = new System.Windows.Forms.Label();
@@ -67,9 +67,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.cableTable)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.measured_parameters_table_1)).BeginInit();
             this.TestInfoPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.testedLengthInput)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.BruttoWeightTextField)).BeginInit();
             this.tabControlTestResult.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.testedLengthInput)).BeginInit();
             this.lengthUpdProgressBarField.SuspendLayout();
             this.OutOfNormaRsltPanel.SuspendLayout();
             this.SuspendLayout();
@@ -182,6 +182,40 @@
             this.TestInfoPanel.TabStop = false;
             this.TestInfoPanel.Text = "Информация о испытании";
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(382, 106);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(61, 16);
+            this.label2.TabIndex = 11;
+            this.label2.Text = "Длина, м";
+            // 
+            // testedLengthInput
+            // 
+            this.testedLengthInput.Location = new System.Drawing.Point(385, 102);
+            this.testedLengthInput.Maximum = new decimal(new int[] {
+            999999,
+            0,
+            0,
+            0});
+            this.testedLengthInput.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.testedLengthInput.Name = "testedLengthInput";
+            this.testedLengthInput.Size = new System.Drawing.Size(138, 23);
+            this.testedLengthInput.TabIndex = 12;
+            this.testedLengthInput.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.testedLengthInput.Visible = false;
+            this.testedLengthInput.ValueChanged += new System.EventHandler(this.testedLengthInput_ValueChanged);
+            this.testedLengthInput.KeyUp += new System.Windows.Forms.KeyEventHandler(this.testedLengthInput_KeyUp);
+            // 
             // BruttoWeightTextField
             // 
             this.BruttoWeightTextField.Location = new System.Drawing.Point(96, 102);
@@ -193,6 +227,7 @@
             this.BruttoWeightTextField.Name = "BruttoWeightTextField";
             this.BruttoWeightTextField.Size = new System.Drawing.Size(111, 23);
             this.BruttoWeightTextField.TabIndex = 7;
+            this.BruttoWeightTextField.Visible = false;
             this.BruttoWeightTextField.ValueChanged += new System.EventHandler(this.BruttoWeightTextField_ValueChanged);
             this.BruttoWeightTextField.KeyUp += new System.Windows.Forms.KeyEventHandler(this.BruttoWeightTextField_ValueChanged);
             // 
@@ -205,6 +240,7 @@
             this.EditSaveBruttoButton.TabIndex = 6;
             this.EditSaveBruttoButton.Text = "Сохранить";
             this.EditSaveBruttoButton.UseVisualStyleBackColor = true;
+            this.EditSaveBruttoButton.Visible = false;
             this.EditSaveBruttoButton.Click += new System.EventHandler(this.EditSaveBruttoButton_Click);
             // 
             // TemperatureLbl
@@ -281,39 +317,6 @@
             this.GeneratePDFProtocolButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.GeneratePDFProtocolButton.UseVisualStyleBackColor = false;
             this.GeneratePDFProtocolButton.Click += new System.EventHandler(this.GeneratePDFProtocolButton_Click);
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(321, 108);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(61, 16);
-            this.label2.TabIndex = 11;
-            this.label2.Text = "Длина, м";
-            // 
-            // testedLengthInput
-            // 
-            this.testedLengthInput.Location = new System.Drawing.Point(385, 102);
-            this.testedLengthInput.Maximum = new decimal(new int[] {
-            999999,
-            0,
-            0,
-            0});
-            this.testedLengthInput.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.testedLengthInput.Name = "testedLengthInput";
-            this.testedLengthInput.Size = new System.Drawing.Size(138, 23);
-            this.testedLengthInput.TabIndex = 12;
-            this.testedLengthInput.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.testedLengthInput.ValueChanged += new System.EventHandler(this.testedLengthInput_ValueChanged);
-            this.testedLengthInput.KeyUp += new System.Windows.Forms.KeyEventHandler(this.testedLengthInput_KeyUp);
             // 
             // lengthUpdProgressBarField
             // 
@@ -415,9 +418,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.measured_parameters_table_1)).EndInit();
             this.TestInfoPanel.ResumeLayout(false);
             this.TestInfoPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.testedLengthInput)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.BruttoWeightTextField)).EndInit();
             this.tabControlTestResult.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.testedLengthInput)).EndInit();
             this.lengthUpdProgressBarField.ResumeLayout(false);
             this.lengthUpdProgressBarField.PerformLayout();
             this.OutOfNormaRsltPanel.ResumeLayout(false);

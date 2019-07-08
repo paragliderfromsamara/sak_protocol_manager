@@ -46,9 +46,18 @@
             this.dataColumn1 = new System.Data.DataColumn();
             this.dataColumn2 = new System.Data.DataColumn();
             this.testsListView = new System.Windows.Forms.DataGridView();
+            this.id = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.tested_at = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.cable_mark = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.length = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.bNumber = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.BruttoWeight = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.cable_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.build_length = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.testListContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.openMeasureResultReaderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportToPDFToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.экспортВMSWordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.удалитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label1 = new System.Windows.Forms.Label();
             this.dateTimeFrom = new System.Windows.Forms.DateTimePicker();
@@ -73,14 +82,6 @@
             this.руководствоПользователяToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusPanel = new System.Windows.Forms.StatusStrip();
             this.selectedCountLbl = new System.Windows.Forms.ToolStripStatusLabel();
-            this.id = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.tested_at = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.cable_mark = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.length = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.bNumber = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.BruttoWeight = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.cable_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.build_length = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataSetTest)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ispytan)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.date_range)).BeginInit();
@@ -214,20 +215,87 @@
             this.testsListView.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.OpenButtonToolStripMenuItem_Click);
             this.testsListView.SelectionChanged += new System.EventHandler(this.testsListView_SelectionChanged);
             // 
+            // id
+            // 
+            this.id.DataPropertyName = "IspInd";
+            this.id.HeaderText = "Номер испытания";
+            this.id.Name = "id";
+            this.id.ReadOnly = true;
+            this.id.Width = 114;
+            // 
+            // tested_at
+            // 
+            this.tested_at.DataPropertyName = "IspData";
+            this.tested_at.HeaderText = "Дата и время";
+            this.tested_at.Name = "tested_at";
+            this.tested_at.ReadOnly = true;
+            this.tested_at.Width = 94;
+            // 
+            // cable_mark
+            // 
+            this.cable_mark.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.cable_mark.DataPropertyName = "cable_name";
+            this.cable_mark.HeaderText = "Марка кабеля";
+            this.cable_mark.Name = "cable_mark";
+            this.cable_mark.ReadOnly = true;
+            // 
+            // length
+            // 
+            this.length.DataPropertyName = "CabelLengt";
+            this.length.HeaderText = "Длина кабеля";
+            this.length.Name = "length";
+            this.length.ReadOnly = true;
+            this.length.Width = 96;
+            // 
+            // bNumber
+            // 
+            this.bNumber.DataPropertyName = "baraban_name";
+            this.bNumber.HeaderText = "Номер барабана";
+            this.bNumber.Name = "bNumber";
+            this.bNumber.ReadOnly = true;
+            this.bNumber.Width = 107;
+            // 
+            // BruttoWeight
+            // 
+            this.BruttoWeight.DataPropertyName = "brutto";
+            this.BruttoWeight.HeaderText = "Брутто";
+            this.BruttoWeight.Name = "BruttoWeight";
+            this.BruttoWeight.ReadOnly = true;
+            this.BruttoWeight.Width = 66;
+            // 
+            // cable_id
+            // 
+            this.cable_id.DataPropertyName = "cable_id";
+            this.cable_id.HeaderText = "cable_id";
+            this.cable_id.Name = "cable_id";
+            this.cable_id.ReadOnly = true;
+            this.cable_id.Visible = false;
+            this.cable_id.Width = 72;
+            // 
+            // build_length
+            // 
+            this.build_length.DataPropertyName = "build_length";
+            this.build_length.HeaderText = "build_length";
+            this.build_length.Name = "build_length";
+            this.build_length.ReadOnly = true;
+            this.build_length.Visible = false;
+            this.build_length.Width = 89;
+            // 
             // testListContextMenu
             // 
             this.testListContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openMeasureResultReaderToolStripMenuItem,
             this.exportToPDFToolStripMenuItem,
+            this.экспортВMSWordToolStripMenuItem,
             this.удалитьToolStripMenuItem});
             this.testListContextMenu.Name = "testListContextMenu";
-            this.testListContextMenu.Size = new System.Drawing.Size(153, 70);
+            this.testListContextMenu.Size = new System.Drawing.Size(178, 92);
             // 
             // openMeasureResultReaderToolStripMenuItem
             // 
             this.openMeasureResultReaderToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("openMeasureResultReaderToolStripMenuItem.Image")));
             this.openMeasureResultReaderToolStripMenuItem.Name = "openMeasureResultReaderToolStripMenuItem";
-            this.openMeasureResultReaderToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.openMeasureResultReaderToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
             this.openMeasureResultReaderToolStripMenuItem.Text = "Открыть";
             this.openMeasureResultReaderToolStripMenuItem.Click += new System.EventHandler(this.OpenButtonToolStripMenuItem_Click);
             // 
@@ -235,16 +303,24 @@
             // 
             this.exportToPDFToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("exportToPDFToolStripMenuItem.Image")));
             this.exportToPDFToolStripMenuItem.Name = "exportToPDFToolStripMenuItem";
-            this.exportToPDFToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.exportToPDFToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
             this.exportToPDFToolStripMenuItem.Text = "Экспорт в PDF";
             this.exportToPDFToolStripMenuItem.Click += new System.EventHandler(this.exportToPDFToolStripMenuItem_Click);
+            // 
+            // экспортВMSWordToolStripMenuItem
+            // 
+            this.экспортВMSWordToolStripMenuItem.Name = "экспортВMSWordToolStripMenuItem";
+            this.экспортВMSWordToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.экспортВMSWordToolStripMenuItem.Text = "Экспорт в MSWord";
+            this.экспортВMSWordToolStripMenuItem.Click += new System.EventHandler(this.экспортВMSWordToolStripMenuItem_Click);
             // 
             // удалитьToolStripMenuItem
             // 
             this.удалитьToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("удалитьToolStripMenuItem.Image")));
             this.удалитьToolStripMenuItem.Name = "удалитьToolStripMenuItem";
-            this.удалитьToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.удалитьToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
             this.удалитьToolStripMenuItem.Text = "Удалить";
+            this.удалитьToolStripMenuItem.Visible = false;
             this.удалитьToolStripMenuItem.Click += new System.EventHandler(this.удалитьToolStripMenuItem_Click);
             // 
             // label1
@@ -316,6 +392,7 @@
             this.ClearList.TabIndex = 7;
             this.ClearList.Text = "УДАЛИТЬ ВЫБРАННОЕ";
             this.ClearList.UseVisualStyleBackColor = false;
+            this.ClearList.Visible = false;
             this.ClearList.Click += new System.EventHandler(this.button2_Click);
             // 
             // progressBarLbl
@@ -469,6 +546,7 @@
             this.справкаToolStripMenuItem.Name = "справкаToolStripMenuItem";
             this.справкаToolStripMenuItem.Size = new System.Drawing.Size(65, 20);
             this.справкаToolStripMenuItem.Text = "Справка";
+            this.справкаToolStripMenuItem.Visible = false;
             // 
             // руководствоПользователяToolStripMenuItem
             // 
@@ -492,72 +570,6 @@
             this.selectedCountLbl.Name = "selectedCountLbl";
             this.selectedCountLbl.Size = new System.Drawing.Size(123, 17);
             this.selectedCountLbl.Text = "Показано 0 из 104234";
-            // 
-            // id
-            // 
-            this.id.DataPropertyName = "IspInd";
-            this.id.HeaderText = "Номер испытания";
-            this.id.Name = "id";
-            this.id.ReadOnly = true;
-            this.id.Width = 114;
-            // 
-            // tested_at
-            // 
-            this.tested_at.DataPropertyName = "IspData";
-            this.tested_at.HeaderText = "Дата и время";
-            this.tested_at.Name = "tested_at";
-            this.tested_at.ReadOnly = true;
-            this.tested_at.Width = 94;
-            // 
-            // cable_mark
-            // 
-            this.cable_mark.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.cable_mark.DataPropertyName = "cable_name";
-            this.cable_mark.HeaderText = "Марка кабеля";
-            this.cable_mark.Name = "cable_mark";
-            this.cable_mark.ReadOnly = true;
-            // 
-            // length
-            // 
-            this.length.DataPropertyName = "CabelLengt";
-            this.length.HeaderText = "Длина кабеля";
-            this.length.Name = "length";
-            this.length.ReadOnly = true;
-            this.length.Width = 96;
-            // 
-            // bNumber
-            // 
-            this.bNumber.DataPropertyName = "baraban_name";
-            this.bNumber.HeaderText = "Номер барабана";
-            this.bNumber.Name = "bNumber";
-            this.bNumber.ReadOnly = true;
-            this.bNumber.Width = 107;
-            // 
-            // BruttoWeight
-            // 
-            this.BruttoWeight.DataPropertyName = "brutto";
-            this.BruttoWeight.HeaderText = "Брутто";
-            this.BruttoWeight.Name = "BruttoWeight";
-            this.BruttoWeight.ReadOnly = true;
-            this.BruttoWeight.Width = 66;
-            // 
-            // cable_id
-            // 
-            this.cable_id.DataPropertyName = "cable_id";
-            this.cable_id.HeaderText = "cable_id";
-            this.cable_id.Name = "cable_id";
-            this.cable_id.ReadOnly = true;
-            this.cable_id.Visible = false;
-            this.cable_id.Width = 72;
-            // 
-            // build_length
-            // 
-            this.build_length.DataPropertyName = "build_length";
-            this.build_length.HeaderText = "build_length";
-            this.build_length.Name = "build_length";
-            this.build_length.ReadOnly = true;
-            this.build_length.Visible = false;
-            this.build_length.Width = 89;
             // 
             // MainForm
             // 
@@ -651,6 +663,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn BruttoWeight;
         private System.Windows.Forms.DataGridViewTextBoxColumn cable_id;
         private System.Windows.Forms.DataGridViewTextBoxColumn build_length;
+        private System.Windows.Forms.ToolStripMenuItem экспортВMSWordToolStripMenuItem;
     }
 }
 

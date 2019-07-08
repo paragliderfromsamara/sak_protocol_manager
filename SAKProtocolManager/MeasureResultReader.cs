@@ -29,6 +29,8 @@ namespace SAKProtocolManager
         private CableTest CableTestOld;
         private Tables.CableTest CableTest;
         public MainForm MainForm;
+        private bool with_mswordprint;
+        private bool with_pdfexport;
 
         public MeasureResultReader(Tables.CableTest test, MainForm mForm)
         {
@@ -51,6 +53,35 @@ namespace SAKProtocolManager
             this.Text = String.Format("#{2} Испытание кабеля {0} от {1}", CableTestOld.TestedCable.Name, ServiceFunctions.MyDateTime(CableTestOld.TestDate), CableTestOld.Id);
             fillTestDataOld();
             //cableTypeLbl.Text = TestResult.GetBigRound(0, CableTest.TestedCable.Structures[0].MeasuredParameters[0].TestResults).Length.ToString();//CableId.ToString();//CableId.ToString();//this.TestId.ToString();
+        }
+
+        public MeasureResultReader(Tables.CableTest test, MainForm mForm, bool with_mswordprint, bool with_pdf_export) : this(test, mForm)
+        {
+            this.with_mswordprint = with_mswordprint;
+            this.with_pdfexport = with_pdf_export;
+            if (with_mswordprint || with_pdfexport)
+            {
+                this.Shown += MeasureResultReader_Shown;
+                //BuildMSWordProtocol();
+            }
+
+
+        }
+
+        private void MeasureResultReader_Shown(object sender, EventArgs e)
+        {
+
+            this.Shown -= MeasureResultReader_Shown;
+            if (with_pdfexport)
+            {
+                PDFProtocol.MakeOldStylePDFProtocol(this.CableTest.TestId.ToString());
+            }else if (with_mswordprint)
+            {
+                BuildMSWordProtocol();
+            }
+            this.Close();
+            this.Dispose();
+
         }
 
         private bool fillStructuresComboBox()
@@ -129,8 +160,10 @@ namespace SAKProtocolManager
             operatorLbl.Text = String.Format("Оператор: {0}", CableTest.Operator.FullNameShort);
             testedAtLbl.Text = String.Format("Испытан {0}", CableTest.TestDateString);
             TemperatureLbl.Text = String.Format("Температура: {0}°С", CableTest.Temperature);
-            testedLengthInput.Value = (int)CableTest.CableLength;
-            BruttoWeightTextField.Value = (decimal)CableTest.BruttoWeight;
+            label2.Text = $"Длина кабеля: {CableTest.CableLength}м";
+            BruttoWeight.Text = $"Брутто:{CableTest.BruttoWeight}кг";
+            //testedLengthInput.Value = (int)CableTest.CableLength;
+            //BruttoWeightTextField.Value = (decimal)CableTest.BruttoWeight;
             if (!fillStructuresComboBox())
             {
 
@@ -478,12 +511,20 @@ namespace SAKProtocolManager
 
         private void MSWordImport_Click(object sender, EventArgs e)
         {
+
+            BuildMSWordProtocol();
+        }
+
+        private void BuildMSWordProtocol()
+        {
             StatusPanel statPanel = new StatusPanel(procNameLbl, lengthUpdProgressBarLbl, LengthUpdProgressBar);
             lengthUpdProgressBarField.Visible = true;
+            this.Enabled = false;
             MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest, statPanel);
             //lengthEditor.Visible = true;
+            this.Enabled = true;
             lengthUpdProgressBarField.Visible = false;
-
+            
         }
     }
 

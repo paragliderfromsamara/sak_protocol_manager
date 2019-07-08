@@ -14,3 +14,12 @@ C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtoco
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.exe
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.pdb
 C:\Users\KRA\documents\visual studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.csprojResolveAssemblyReference.cache
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\DocumentFormat.OpenXml.dll
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\log4net.dll
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\NormaDBControl.dll
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\System.IO.FileSystem.Primitives.dll
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\System.IO.Packaging.dll
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\NormaDBControl.pdb
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\DocumentFormat.OpenXml.xml
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\bin\Release\log4net.xml
+C:\Users\KRA\Documents\Visual Studio 2015\Projects\SAKProtocolManager\SAKProtocolManager\obj\Release\SAKProtocolManager.MSWordProtocolBuilder.MSWordProtoco_StatusForm.resources
