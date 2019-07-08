@@ -109,12 +109,12 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         public static void PrintStructure(Tables.TestedCableStructure structure)
         {
 
-            addPrimaryParametersTable(structure);
+            //addPrimaryParametersTable(structure);
             //addRizolByGroupTable(structure);
-            //add_al_Table(structure);
+            add_al_Table(structure);
             //add_AoAz_Table(structure, Tables.MeasuredParameterType.Ao);
             //add_AoAz_Table(structure, Tables.MeasuredParameterType.Az);
-            //add_Statistic_Table(structure);
+            ///add_Statistic_Table(structure);
             //add_VSVI_TestResult(structure);
             //add_StructElements_Conclusion(structure);
         }
@@ -704,7 +704,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     }
 
                 }
-                wordProtocol.AddTable(table, colsAmount, tablesRowsCount[idx]+2);
+                wordProtocol.AddTable(table, colsAmount, tablesRowsCount[idx]);
                 statusPanel.AddToBarPosition();
             }
         }
@@ -1002,7 +1002,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     }
 
                 }
-                wordProtocol.AddElementsAsXML(elementsToPage.ToArray(), wordProtocol.CellHeight * (tablesRowsCount[idx]+3), wordProtocol.CellWidth*colsAmount);
+                wordProtocol.AddElementsAsXML(elementsToPage.ToArray(), wordProtocol.CellHeight * (tablesRowsCount[idx])+5f, wordProtocol.CellWidth*colsAmount);
                 statusPanel.AddToBarPosition();
 
                 //  wordProtocol.AddParagraph("Каждый охотник желает знать где сидит фазан", 18f);
@@ -1629,7 +1629,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             PageWidth = WordDocument.PageSetup.PageWidth - WordDocument.PageSetup.LeftMargin;// - WordDocument.PageSetup.RightMargin;
             PageHeight = WordDocument.PageSetup.PageHeight - WordDocument.PageSetup.TopMargin;// - WordDocument.PageSetup.BottomMargin;
 
-            CellHeight = FontSize * 1.3f + 0.3f;
+            CellHeight = FontSize * 1.2f + 1.2f;
             CellWidth = 24f;
             PageLine = new float[(int)PageWidth];
             ShapeCoordsList = new List<ShapeCoord>();
@@ -1873,7 +1873,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             if (tableWidth > PageWidth) tableWidth = PageWidth;
             int tablesOnPageRow = (int)(PageWidth / tableWidth);
             if (contentRowsCount / tablesOnPageRow < 1) tablesOnPageRow = contentRowsCount;
-            int MaxRowsPerTable = 65-headerRowsCount-lastTableFooterRowsCount;
+            int MaxRowsPerTable = 60-headerRowsCount-lastTableFooterRowsCount;
             if (MinRowsPerTable > contentRowsCount) MinRowsPerTable = contentRowsCount;
             ShapeCoord lastCoord = LastShapeCoords == null ? new ShapeCoord() { x = 0, y = 0, width = 0, height =0, page=0} : LastShapeCoords;
             float[] pageLine = (float[])PageLine.Clone();
@@ -1882,37 +1882,43 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             float line;
             float xCoord = (int)lastCoord.x + (int)lastCoord.width;
             if (xCoord + tableWidth > PageWidth || lastCoord.height < MinRowsPerTable * CellHeight) xCoord = 0f;
-            line = GetLine(pageLine, (int)lastCoord.x, (int)tableWidth);
-
-            if (line + (MinRowsPerTable+headerRowsCount+lastTableFooterRowsCount)*CellHeight > PageHeight)
+            line = GetLine(pageLine, (int)xCoord, (int)tableWidth);
+            if (line + (5+headerRowsCount+lastTableFooterRowsCount)*CellHeight > PageHeight)
             {
                 for (int ps = 0; ps < pageLine.Length; ps++) pageLine[ps] = 0f;
                 xCoord = 0f;
-                curPage++;
             }
-         
+
             while (contentRowsCount > 0)
             {
+
                 int rowsOnCurrentPosition; //Количество строк в данной строке документа
                 int colsOnCurrentPosition; 
                 int tablesToAddCount = 1;
                 if (xCoord == 0)
                 {
-                    rowsOnCurrentPosition = (int)((PageHeight-line) / CellHeight);
+                    rowsOnCurrentPosition = (int)((PageHeight-line) / (CellHeight+2))-headerRowsCount;
                     if (rowsOnCurrentPosition > contentRowsCount) rowsOnCurrentPosition = contentRowsCount;
                     colsOnCurrentPosition = (int)((PageWidth) / CellWidth);
-
+                    Debug.WriteLine($"EstimateTablePosition: 1) rowsOnCurrentPosition = {rowsOnCurrentPosition}");
                     if (rowsOnCurrentPosition * tablesOnPageRow > contentRowsCount)
                     {
+                        contentRowsCount += lastTableFooterRowsCount;
                         //tablesToAddCount = contentRowsCount > MinRowsPerTable ? tablesOnPageRow : 1;
-                        for(int tCnt = 1; tCnt <= tablesOnPageRow; tCnt++)
+                        for (int tCnt = 1; tCnt <= tablesOnPageRow; tCnt++)
                         {
                             if (contentRowsCount / tCnt > 2)
                             {
                                 tablesToAddCount = tCnt;
                             }
                         }
+                        if (tablesToAddCount < tablesOnPageRow && contentRowsCount % tablesToAddCount > 0)
+                        {
+                            tablesToAddCount++;
+                        }
                         rowsOnCurrentPosition = contentRowsCount / tablesToAddCount;
+                        Debug.WriteLine($"EstimateTablePosition: 2) rowsOnCurrentPosition = {rowsOnCurrentPosition}");
+                        //if (contentRowsCount - rowsOnCurrentPosition > 0 && tablesToAddCount == tablesOnPageRow) rowsOnCurrentPosition += contentRowsCount % tablesToAddCount;
                     } else
                     {
                         tablesToAddCount = tablesOnPageRow;
@@ -1932,19 +1938,22 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                         tablesToAddCount = colsOnCurrentPosition / colsCount;
                     }
                 }
-                Debug.WriteLine($"EstimateTablePosition: tablesToAddCount = {tablesToAddCount}; rowsOnCurrentPosition = {rowsOnCurrentPosition}; colsOnCurrentPosition = {colsOnCurrentPosition}; ");
-                for(int tIdx = 0; tIdx < tablesToAddCount; tIdx++)
+                Debug.WriteLine($"EstimateTablePosition: 3) rowsOnCurrentPosition = {rowsOnCurrentPosition}");
+                //Debug.WriteLine($"EstimateTablePosition: tablesToAddCount = {tablesToAddCount}; rowsOnCurrentPosition = {rowsOnCurrentPosition}; colsOnCurrentPosition = {colsOnCurrentPosition}; ");
+                for (int tIdx = 0; tIdx < tablesToAddCount; tIdx++)
                 {
-                    int rowsToAddCount = contentRowsCount - rowsOnCurrentPosition < 0 ? contentRowsCount : rowsOnCurrentPosition;
-                    if (tIdx == tablesToAddCount-1) rowsToAddCount = contentRowsCount;
+                    if (contentRowsCount == 0) break;
+                    int rowsToAddCount = contentRowsCount - rowsOnCurrentPosition < 3 ? contentRowsCount : rowsOnCurrentPosition;
+                    if ((contentRowsCount - rowsOnCurrentPosition < 0)) rowsToAddCount = contentRowsCount;
 
                     float tableHeight = rowsToAddCount * CellHeight;
                     ShapeCoord curTableCoord = GetNextShapeCoord(tableWidth, tableHeight, lastCoord, pageLine);
-                    int headerAndFooterRows = (tablesToAddCount - 1 == tIdx) ? headerRowsCount + lastTableFooterRowsCount : headerRowsCount;
+                    int headerAndFooterRows = (rowsToAddCount == contentRowsCount) ? headerRowsCount + lastTableFooterRowsCount : headerRowsCount;
                     subTables.Add(new SubTable() { TableShapePlanedCoord = curTableCoord, ColumnsCount = colsCount, RowsCount = rowsToAddCount + headerAndFooterRows });
                     contentRowsCount -= rowsToAddCount;
                     lastCoord = curTableCoord;
                 }
+
             }
             return subTables.ToArray();
         }
