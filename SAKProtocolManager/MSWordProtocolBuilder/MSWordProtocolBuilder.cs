@@ -705,7 +705,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                     }
 
                 }
-                wordProtocol.AddTable(table, colsAmount, tablesRowsCount[idx]);
+                wordProtocol.AddTable(table, colsAmount, tablesRowsCount[idx]+3);
                 statusPanel.AddToBarPosition();
             }
         }
