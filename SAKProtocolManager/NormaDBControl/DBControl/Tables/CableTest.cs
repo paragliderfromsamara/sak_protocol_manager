@@ -20,6 +20,16 @@ namespace NormaMeasure.DBControl.Tables
         public string OrderNumber = string.Empty;
 
 
+        public static DateTime GetLastTestDate()
+        {
+            DBEntityTable ct = new DBEntityTable(typeof(CableTest));
+            DateTime retDate = DateTime.Now;
+            string q = $"{ct.SelectQuery} ORDER BY {TestDate_ColumnName} DESC LIMIT 1";
+            ct.FillByQuery(q);
+            if (ct.Rows.Count > 0) retDate = ((CableTest)ct.Rows[0]).TestDate;
+            return retDate; 
+        }
+
         private static string selectQueryForTestList
         {
             get

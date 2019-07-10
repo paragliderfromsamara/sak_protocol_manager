@@ -64,69 +64,23 @@ namespace SAKProtocolManager
                 Thread.CurrentThread.CurrentCulture = ci;
             }
         }
-        private void SetDBConstants()
-        {
-            //MeasureParameterType mpt = new MeasureParameterType();
-            //FrequencyRange fr = new FrequencyRange();
-            //BendingType bt = new BendingType();
-            //DRFormula drf = new DRFormula();
-            //DRAdductionFormula draf = new DRAdductionFormula();
-            //Cable cable = new Cable("22");
-            //this.Text = cable.Name;
-            //this.MeasureParameterTypes = mpt.GetAll();
-            //this.FreqRanges = fr.GetAll();
-            //this.BendingTypes = bt.GetAll();
-            //this.DRFormuls = drf.GetAll();
-            //this.DRAdductionFormuls = draf.GetAll();
-         //   this.FreqRanges = FrequencyRange.GetAll();
-          //  this.BendingTypes = BendingType.GetAll();
-           // this.DRFormuls = DRFormula.GetAll();
-          //  this.DRAdductionFormuls = DRAdductionFormula.GetAll();
-        }
 
-        private void intiTestsList()
-        {
-
-        }
 
         private void initTestsList()
         {
             try
             {
-                //TestCount = tests.CountEntities();
+                DBEntityTable det = new DBEntityTable(typeof(Tables.CableTest));
+                DateTime dateTo = Tables.CableTest.GetLastTestDate();
+                DateTime dateFrom = DateTime.FromBinary(dateTo.ToBinary() - ((long)7 * (long)24 * (long)3600 * (long)10000000));
+                dateTimeFrom.Value = dateFrom;
+                dateTimeTo.Value = dateTo;
+                TestCount = det.CountEntities();
                 ClearList.Enabled = SearchButton.Enabled = false;
-                //statusPanel.Text = "База данных испытаний пуста";
                 fillTestList();
                 ClearList.Enabled = SearchButton.Enabled = true;
-                /*
-                DBControl mySql = new DBControl(DBQueries.Default.DBName);
-                ClearList.Enabled = SearchButton.Enabled = false;
-                string comDateRange = DBQueries.Default.MinMaxDateQuery;
-                mySql.MyConn.Open();
-                TestCount = mySql.RunNoQuery(DBQueries.Default.TestCount);
-                MySqlDataAdapter dateRange = new MySqlDataAdapter(comDateRange, mySql.MyConn);
-                dataSetTest.Tables["date_range"].Rows.Clear();
-                dateRange.Fill(dataSetTest.Tables["date_range"]);
-                mySql.MyConn.Close();
-                statusPanel.Text = "База данных испытаний пуста";
-                if (dataSetTest.Tables["date_range"].Rows.Count > 0)
-                {
-                    string dateMin, dateMax, dateToMin, dateToMax, dateFromMin, dateFromMax;
-                    dateMin = dataSetTest.Tables["date_range"].Rows[0][1].ToString();
-                    dateMax = dataSetTest.Tables["date_range"].Rows[0][0].ToString();
-                    if (String.IsNullOrWhiteSpace(dateMin) || String.IsNullOrWhiteSpace(dateMin)) return;
-                    dateFromMin = dateMin.Replace(dateMin.Substring(10), " 00:00:00");
-                    dateFromMax = dateMax.Replace(dateMax.Substring(10), " 00:00:00");
-                    dateToMin = dateMin.Replace(dateMin.Substring(10), " 23:59:59");
-                    dateToMax = dateMax.Replace(dateMax.Substring(10), " 23:59:59");
-                    //label3.Text = dbDateFormat(DateTime.Parse(dateFromMax));
-                    dateTimeFrom.MinDate = DateTime.Parse(dateFromMin);
-                    dateTimeFrom.MaxDate = dateTimeFrom.Value = DateTime.Parse(dateFromMax);
-                    dateTimeTo.MinDate = DateTime.Parse(dateToMin);
-                    dateTimeTo.MaxDate = dateTimeTo.Value = DateTime.Parse(dateToMax);
-                    fillTestList();
-                }
-                */
+
+
             }
             catch(MySqlException ex)
             {
@@ -577,6 +531,7 @@ namespace SAKProtocolManager
             catch (NullReferenceException) { }
         }
     }
+
 
    
 }
