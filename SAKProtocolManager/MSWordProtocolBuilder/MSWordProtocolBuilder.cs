@@ -30,45 +30,12 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         static MSWordProtocol wordProtocol;
         private const int MaxColsPerPage = 20;
         private static StatusPanel statusPanel;
-        /*
-        public static void BuildProtocolForTest(CableTest test, StatusPanel panel)
+
+        public bool ProtocolIsCreated
         {
-            int tryingTime = 3;
-            CableTest_Old = test;
-            statusPanel = panel;
-            try
-            {
-                //statusForm.Show();
-                statusPanel.Reset();
-                statusPanel.SetBarRange(1, 100);
-                statusPanel.SetBarPosition("Создание документа MS Word", "Инициализация", 5);
-                wordProtocol = new MSWordProtocol();
-                wordProtocol.Init();
-                statusPanel.AddToBarPosition();
-                statusPanel.AddToBarPosition("Добавление шапки документа", 5);
-                wordProtocol.AddHeader(test);
-                statusPanel.AddToBarPosition();
 
-                foreach (CableStructure s in CableTest_Old.TestedCable.Structures)
-                {
-                    statusPanel.AddToBarPosition($"Структура {s.Name}", "", 5);
-                    PrintStructure(s);
-                }
-                statusPanel.AddToBarPosition("Добавление завершения документа", 5);
-                wordProtocol.AddFooter(test);
-                statusPanel.SetBarPosition("Расстановка таблиц", 99);
-                Thread.Sleep(250);
-                wordProtocol.Finalise();
-                statusPanel.SetBarPosition("Расстановка таблиц", 100);
-                //statusForm.Hide();
-
-            }
-            catch(System.Runtime.InteropServices.COMException ex)
-            {
-                if (tryingTime-- > 0) throw ex;
-            }
         }
-        */
+
         public static void BuildProtocolForTest(Tables.CableTest test, StatusPanel panel)
         {
             int tryingTime = 3;
@@ -80,7 +47,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 statusPanel.Reset();
                 statusPanel.SetBarRange(1, 100);
                 statusPanel.SetBarPosition("Создание документа MS Word", "Инициализация", 5);
-                wordProtocol = new MSWordProtocol();
+                wordProtocol = new MSWordProtocol($"Испытание {test.TestId}");
+                
                 wordProtocol.Init();
                 statusPanel.AddToBarPosition();
                 statusPanel.AddToBarPosition("Добавление шапки документа", 5);
@@ -1668,11 +1636,26 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         public float CellWidth;
         public float CellHeight;
         private float[] PageLine;
+        private string FilePath;
+        private string FileName
+        {
+            set
+            {
+                FilePath = Path.Combine(CreatedProtocolsDir, $"{value}.docx");
+            }
+        }
+
 
         private List<ShapeCoord> ShapeCoordsList;
 
         public MSWordProtocol()
         {
+            this.FileName = "default";
+        }
+
+        public MSWordProtocol(string file_name)
+        {
+            this.FileName = file_name;
         }
 
         public void Init()
@@ -1698,7 +1681,13 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         public void Finalise()
         {
             PlaceShapes();
-            WordDocument.Saved = true;
+            SaveProtocol();
+        }
+
+        private void SaveProtocol()
+        {
+            object fp = FilePath;
+            WordDocument.SaveAs2(fp);
             if (WordApp != null) WordApp.Visible = true;
         }
 
@@ -1711,6 +1700,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             oTab.Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphCenter;
             return oTab;
         }
+
+
 
         public void AddParagraph(string text, float shape_height = 50f, float shape_width=0)
         {
@@ -2089,6 +2080,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         }
 
 
+
         public string AddTmpFile(string file_name)
         {
             object needSave = true;
@@ -2288,6 +2280,19 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
+        private string CreatedProtocolsDir
+        {
+            get
+            {
+                string path = Path.Combine(RootProtocolsDir, "Сформированные протоколы");
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+                return path;
+            }
+        }
+
         private string ProtocolTemplatesDir
         {
             get
@@ -2300,6 +2305,8 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 return path;
             }
         }
+
+
 
         public string ProtocolFooterFile
         {

@@ -64,7 +64,7 @@ namespace SAKProtocolManager
                 Thread.CurrentThread.CurrentCulture = ci;
             }
         }
-
+         
 
         private void initTestsList()
         {
@@ -136,44 +136,7 @@ namespace SAKProtocolManager
                     else if (tests.Rows.Count > 1 && tests.Rows.Count < 5) selectedCountLbl.Text = String.Format("Показано {0} испытания из {1}", tests.Rows.Count, TestCount);
                     else selectedCountLbl.Text = String.Format("Показано {0} испытаний из {1}", tests.Rows.Count, TestCount);
                 }
-                /*
-                string com = buildQueryBySearchType();
-                DBControl mySql = new DBControl(DBQueries.Default.DBName);
-                int rowsCount;
-                string defaultText = SearchButton.Text;
-                //com += " limit 10000";
-                ClearList.Visible = false;
-                SearchButton.Enabled = false;
-                SearchButton.Text = "ИДЁТ ПОИСК...";
-                this.Refresh();
-                this.Cursor = Cursors.WaitCursor;
-                mySql.MyConn.Open();
-                MySqlDataAdapter da = new MySqlDataAdapter(com, mySql.MyConn);
-                dataSetTest.Tables["ispytan"].Rows.Clear();
-                da.Fill(dataSetTest.Tables["ispytan"]);
-                mySql.MyConn.Close();
-                testsListView.DataSource = dataSetTest.Tables["ispytan"];
-                testsListView.Refresh();
-                ClearList.Visible = true;
-                SearchButton.Text = defaultText;
-                this.Cursor = Cursors.Arrow;
-                SearchButton.Enabled = true;
-                this.Refresh();
-                rowsCount = testsListView.Rows.Count - 1;
-                ClearList.Enabled = rowsCount > 0;
-                if (TestCount == 0)
-                {
-                    selectedCountLbl.Text = "База данных испытаний пуста";
-                }
-                else
-                {
-                    if (rowsCount == 0) selectedCountLbl.Text = String.Format("Показано 0 испытаний из {0}", TestCount);
-                    else if (rowsCount == 1) selectedCountLbl.Text = String.Format("Показано 1 испытание из {0}", TestCount);
-                    else if (rowsCount > 1 && rowsCount < 5) selectedCountLbl.Text = String.Format("Показано {0} испытания из {1}", rowsCount, TestCount);
-                    else selectedCountLbl.Text = String.Format("Показано {0} испытаний из {1}", rowsCount, TestCount);
 
-                }
-                */
             }
             catch(MySqlException ex)
             {
