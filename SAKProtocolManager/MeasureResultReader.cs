@@ -519,11 +519,25 @@ namespace SAKProtocolManager
         {
             StatusPanel statPanel = new StatusPanel(procNameLbl, lengthUpdProgressBarLbl, LengthUpdProgressBar);
             lengthUpdProgressBarField.Visible = true;
-            this.Enabled = false;
-            MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest, statPanel);
-            //lengthEditor.Visible = true;
-            this.Enabled = true;
-            lengthUpdProgressBarField.Visible = false;
+            DialogResult r = DialogResult.Yes;
+            string protocolName = MSWordProtocolBuilder.MSWordProtocolBuilder.MakeProtocolFileName(CableTest);
+            if (MSWordProtocolBuilder.MSWordProtocol.ProtocolExists(protocolName))
+            {
+                r = MessageBox.Show("Протокол уже свормирован, сформировать заново?", "Вопрос", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            }
+            if (r == DialogResult.Yes)
+            {
+                this.Enabled = false;
+                MSWordProtocolBuilder.MSWordProtocolBuilder.BuildProtocolForTest(CableTest, statPanel);
+                //lengthEditor.Visible = true;
+                this.Enabled = true;
+                lengthUpdProgressBarField.Visible = false;
+            }else
+            {
+                MSWordProtocolBuilder.MSWordProtocol p = new MSWordProtocol(protocolName);
+                p.OpenProtocol();
+            }
+
             
         }
     }

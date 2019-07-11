@@ -31,9 +31,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
         private const int MaxColsPerPage = 20;
         private static StatusPanel statusPanel;
 
-        public bool ProtocolIsCreated
+        public static string MakeProtocolFileName(Tables.CableTest test)
         {
-
+            return $"Испытание {test.TestId}";
         }
 
         public static void BuildProtocolForTest(Tables.CableTest test, StatusPanel panel)
@@ -47,9 +47,9 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 statusPanel.Reset();
                 statusPanel.SetBarRange(1, 100);
                 statusPanel.SetBarPosition("Создание документа MS Word", "Инициализация", 5);
-                wordProtocol = new MSWordProtocol($"Испытание {test.TestId}");
+                wordProtocol = new MSWordProtocol(MakeProtocolFileName(test));
                 
-                wordProtocol.Init();
+                wordProtocol.InitForBuild();
                 statusPanel.AddToBarPosition();
                 statusPanel.AddToBarPosition("Добавление шапки документа", 5);
                 wordProtocol.AddHeader(test);
@@ -64,12 +64,17 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 wordProtocol.AddFooter(test);
                 statusPanel.SetBarPosition("Расстановка таблиц", 99);
                 Thread.Sleep(250);
+                statusPanel.SetBarPosition("Сохранение протокола", 100);
                 wordProtocol.Finalise();
-                statusPanel.SetBarPosition("Расстановка таблиц", 100);
+
             }
-            catch (System.Runtime.InteropServices.COMException ex)
+            catch (Exception ex)
             {
-                if (tryingTime-- > 0) throw ex;
+                if (tryingTime-- > 0)
+                {
+                    DialogResult r = MessageBox.Show(ex.Message, "Не удалось сформировать протокол MSWord", MessageBoxButtons.RetryCancel);
+                    if (r == DialogResult.Retry) BuildProtocolForTest(test, panel);
+                }
             }
         }
 
@@ -600,6 +605,7 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             wordProtocol.AddElementsAsXML(elementsToPage.ToArray(), elementHeight, elementWidth);
             statusPanel.AddToBarPosition();
         }
+
 
         private static void add_al_Table(Tables.TestedCableStructure structure)
         {
@@ -1645,6 +1651,12 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             }
         }
 
+        public static bool ProtocolExists(string file_name)
+        {
+            MSWordProtocol p = new MSWordProtocol(file_name);
+            return File.Exists(p.FilePath);
+        }
+
 
         private List<ShapeCoord> ShapeCoordsList;
 
@@ -1658,10 +1670,17 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
             this.FileName = file_name;
         }
 
-        public void Init()
+        private void InitWordApp()
         {
             WordApp = new Word.Application();
             WordApp.Visible = false;
+        }
+
+
+
+        public void InitForBuild()
+        {
+            InitWordApp();
             WordDocument = WordApp.Documents.Add(ref oMissing, ref oMissing, ref oMissing, ref oMissing);
             WordDocument.PageSetup.LeftMargin = MarginLeft;
             WordDocument.PageSetup.RightMargin = MarginRight;
@@ -1686,9 +1705,32 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
 
         private void SaveProtocol()
         {
-            object fp = FilePath;
-            WordDocument.SaveAs2(fp);
-            if (WordApp != null) WordApp.Visible = true;
+            try
+            {
+                object fp = FilePath;
+                WordDocument.SaveAs2(fp);
+                if (WordApp != null) WordApp.Visible = true;
+            }
+            catch (System.Runtime.InteropServices.COMException ex)
+            {
+                if (ex.ErrorCode == -2146822932)
+                {
+                    DialogResult r = MessageBox.Show("Чтобы сохранить файл протокола, убедитесь, что он закрыт и нажмите кнопку \"Повтор\"", "Не удается сохранить протокол", MessageBoxButtons.RetryCancel);
+                    if (r == DialogResult.Retry)
+                    {
+                        SaveProtocol();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Протокол не сформирован", "Не удалось сформировать протокол");
+                    }
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
+
         }
 
         private Table BuildTable(int cols, int rows, Word.Shape oShape)
@@ -2262,6 +2304,19 @@ namespace SAKProtocolManager.MSWordProtocolBuilder
                 AddShapeToCoordsList(oShape);
             }
             footerDoc.Close(ref oSave, ref oMissing, ref oMissing);
+        }
+
+        internal void OpenProtocol()
+        {
+
+            InitWordApp();
+            object isTemplate = false;
+            object filePath = FilePath;
+            object oVisible = true;
+            //WordDocument = WordApp.Documents.Add(ref oMissing, ref oMissing, ref oMissing, ref oMissing);
+
+            Word.Document doc = WordApp.Documents.Open(ref filePath, ref isTemplate, ref oMissing, ref oVisible);
+            WordApp.Visible = true;
         }
 
         private ShapeCoord LastShapeCoords => ShapeCoordsList.Count > 0 ? ShapeCoordsList.Last() : null;
